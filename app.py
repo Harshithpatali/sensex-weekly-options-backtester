@@ -911,7 +911,7 @@ def page_daily_options_research():
         else:
             st.warning(holdout.get("note", "Not enough daily sessions for holdout testing."))
 
-    st.subheader("Alternative signals, market regimes and debit spreads")
+    st.subheader("Alternative signals, option positioning and defined-risk spreads")
     signal_report_path = out / "entry_signal_research.json"
     signal_board_path = out / "entry_signal_leaderboard.csv"
     signal_monthly_path = out / "entry_signal_monthly.csv"
@@ -937,7 +937,9 @@ def page_daily_options_research():
         )
         st.caption(
             "Candidate pass rule: every month with at least 3 trades must have PF ≥ 1.20 "
-            "in both training and holdout. Candidate backtests use one lot and one open position at a time."
+            "in both training and holdout. Research now includes ATM long options, debit spreads, "
+            "credit spreads, option-chain PCR/OI build-up and a straddle-versus-realised-volatility proxy. "
+            "Credit spreads are filtered by estimated defined maximum loss, not broker margin."
         )
         if signal_report.get("position_sizing"):
             st.caption(signal_report["position_sizing"])
