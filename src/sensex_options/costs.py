@@ -46,7 +46,10 @@ def compute_transaction_costs(
     other = cost.other_charges * n_lots * 2 * n_legs
 
     # Slippage applied to P&L separately (price adjustment)
-    slippage_cost = (cost.entry_slippage + cost.exit_slippage) * qty * n_legs
+    slippage_cost = (
+        cost.entry_slippage + cost.exit_slippage + cost.spread_points
+        + 2 * cost.market_impact_points
+    ) * qty * n_legs
 
     total = brokerage + stt + exchange + gst + stamp + other + slippage_cost
 
@@ -68,6 +71,8 @@ def apply_slippage_to_premiums(
     cost: CostConfig,
 ) -> tuple[float, float]:
     """Return adjusted entry (higher) and exit (lower) premiums."""
-    adj_entry = entry_premium + cost.entry_slippage
-    adj_exit = max(0.0, exit_premium - cost.exit_slippage)
+    entry_adjustment = cost.entry_slippage + cost.spread_points / 2 + cost.market_impact_points
+    exit_adjustment = cost.exit_slippage + cost.spread_points / 2 + cost.market_impact_points
+    adj_entry = entry_premium + entry_adjustment
+    adj_exit = max(0.0, exit_premium - exit_adjustment)
     return adj_entry, adj_exit

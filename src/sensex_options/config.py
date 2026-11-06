@@ -23,13 +23,16 @@ class CostConfig:
     gst_pct: float = 0.0                    # on brokerage + exchange
     stamp_duty_pct: float = 0.0
     other_charges: float = 0.0
-    entry_slippage: float = 0.0             # absolute points added to entry premium
-    exit_slippage: float = 0.0              # absolute points subtracted from exit premium
+    entry_slippage: float = 0.0             # additional adverse points on entry
+    exit_slippage: float = 0.0              # additional adverse points on exit
+    spread_points: float = 0.0              # full bid/ask width; half charged on each side
+    market_impact_points: float = 0.0       # additional adverse points per side and leg
 
     def label(self) -> str:
         return (
             f"brokerage={self.brokerage_per_lot}/lot + {self.brokerage_pct*100:.3f}%, "
-            f"STT={self.stt_pct*100:.3f}%, slippage={self.entry_slippage}/{self.exit_slippage}"
+            f"STT={self.stt_pct*100:.3f}%, entry/exit slippage={self.entry_slippage}/{self.exit_slippage}, "
+            f"spread={self.spread_points}, impact/side={self.market_impact_points}"
         )
 
 

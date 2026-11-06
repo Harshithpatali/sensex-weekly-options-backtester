@@ -108,8 +108,10 @@ def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: floa
             if any(int(v)!=lots for v in lot_values): continue
             raw_entry_debit = sum(float(r.close) for r in entry_rows)
             raw_exit_credit = sum(float(r.close) for r in exit_rows)
-            entry_debit = raw_entry_debit + len(legs) * cost.entry_slippage
-            exit_credit = sum(max(0.0, float(r.close) - cost.exit_slippage) for r in exit_rows)
+            entry_adjustment = cost.entry_slippage + cost.spread_points / 2 + cost.market_impact_points
+            exit_adjustment = cost.exit_slippage + cost.spread_points / 2 + cost.market_impact_points
+            entry_debit = raw_entry_debit + len(legs) * entry_adjustment
+            exit_credit = sum(max(0.0, float(r.close) - exit_adjustment) for r in exit_rows)
             if entry_debit <= 0: continue
             entry_turnover_per_lot = entry_debit * lots
             entry_fee_per_lot = (
