@@ -181,10 +181,24 @@ def run() -> dict:
                 "note": intraday_report.get("note"),
             }
         else:
+            pd.DataFrame(columns=["timestamp", "date", "open", "high", "low", "close", "volume"]).to_csv(
+                output_dir / "sensex_intraday_5m.csv", index=False
+            )
+            pd.DataFrame().to_csv(output_dir / "sensex_intraday_session_features.csv", index=False)
+            empty_report = {
+                "status": "insufficient_data",
+                "note": "Intraday download empty or daily option ledger unavailable.",
+                "stop_loss_status": "Not tested: index intraday candles cannot validate option-premium stop-loss execution.",
+            }
+            with open(output_dir / "daily_put_intraday_validation.json", "w", encoding="utf-8") as handle:
+                json.dump(empty_report, handle, indent=2)
+            pd.DataFrame(columns=["rule", "trades", "net_pnl", "profit_factor", "expectancy", "median_trade_pnl", "max_drawdown"]).to_csv(
+                output_dir / "daily_put_intraday_validation.csv", index=False
+            )
             intraday_status = {
                 "status": "insufficient_data",
                 "bars": int(len(intraday_bars)),
-                "note": "Intraday download empty or daily option ledger unavailable.",
+                "note": empty_report["note"],
             }
     except Exception as exc:
         # Do not lose the daily BSE collection/replay if Yahoo intraday is temporarily unavailable.
