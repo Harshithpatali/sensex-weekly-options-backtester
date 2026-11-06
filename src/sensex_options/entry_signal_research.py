@@ -660,6 +660,23 @@ def _candidate_signals(features: pd.DataFrame) -> dict[str, pd.Series]:
     return signals
 
 
+def _one_position_at_a_time(frame: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+    """Sequential fixed-one-lot book; do not open a new trade before prior exit."""
+    if frame.empty:
+        return frame.copy(), 0
+    ordered = frame.sort_values(["entry_date", "exit_date"], kind="stable")
+    keep = []
+    last_exit = None
+    for idx, row in ordered.iterrows():
+        entry = pd.Timestamp(row["entry_date"])
+        exit_ = pd.Timestamp(row["exit_date"])
+        if last_exit is None or entry >= last_exit:
+            keep.append(idx)
+            last_exit = exit_
+    selected = ordered.loc[keep].copy()
+    return selected, int(len(frame) - len(selected))
+
+
 def _monthly_stats(frame: pd.DataFrame) -> pd.DataFrame:
     if frame.empty:
         return pd.DataFrame()
@@ -867,6 +884,11 @@ def run_entry_signal_research(
                 chosen["put_pnl"],
             )
             chosen = chosen.dropna(subset=["net_pnl"])
+            raw_trade_count = len(chosen)
+            chosen, overlap_skipped = _one_position_at_a_time(chosen)
+            if chosen.empty:
+                continue
+            chosen["overlap_skipped_trades_for_rule"] = overlap_skipped
             if chosen.empty:
                 continue
             chosen["month"] = chosen["exit_date"].dt.strftime("%Y-%m")
@@ -1023,6 +1045,10 @@ def run_entry_signal_research(
         "holding_periods_tested": sorted(paired["holding_sessions"].dropna().astype(int).unique().tolist()),
         "instrument_families_tested": sorted(paired["option_family"].dropna().astype(str).unique().tolist()),
         "candidate_rules_tested": int(len(candidate_names)),
+        "position_sizing": "One lot per candidate, one open position at a time; new entry allowed on the previous position's exit session after the EOD exit.",
+        "overlapping_candidate_entries_skipped": int(
+            pd.to_numeric(trades.get("overlap_skipped_trades_for_rule", pd.Series(dtype=float)), errors="coerce").fillna(0).sum()
+        ),
         "training_end": str(train_end.date()),
         "holdout_start": str(holdout_start.date()) if holdout_start is not None else None,
         "holdout_end": str(paired["exit_date"].max().date()),
@@ -1032,7 +1058,8 @@ def run_entry_signal_research(
         "rolling_selector_summary": selector_summary,
         "training_month_end": train_month_end,
         "selector_note": (
-            "Rolling selector is a paper-research allocation rule only. It goes to cash when no signal "
+            "Rolling selector is a diagnostic paper-research rule, not a shared-capital portfolio: "
+            "strategy switches across month boundaries may overlap positions. It goes to cash when no signal "
             "has at least 20 prior trades and prior-window PF >= 1.20."
         ),
         "caveat": (
