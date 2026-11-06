@@ -1,1 +1,1 @@
-Re-run daily research with expanded five-day momentum, EMA trend and RSI reversal variants.
+Regenerate daily strategy results with trade-distribution and concentration diagnostics.
