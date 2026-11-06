@@ -17,7 +17,7 @@
     "minimum_aggregate_profit_factor": 1.2,
     "net_pnl_must_be_positive": true
   },
-  "method": "Predeclared lagged index indicator and regime signals choose between same-date, same-expiry, same-strike ATM Call/Put outcomes for one-, two-, three- and five-session holds. Option outcomes are rebuilt from observed BSE daily candles, with the exact same contract held through the selected exit session. A missing side is not fabricated; that direction is skipped when its observed quote is unavailable. Signals use only the last completed index session before entry. Candidate rules are ranked using training only; holdout is separate. Rolling selectors use only prior complete calendar months.",
+  "method": "Chronological training/holdout split is aligned to realized exit months so a multi-session position cannot spill across the validation boundary. Predeclared lagged index indicator and regime signals choose between same-date, same-expiry, same-strike ATM Call/Put outcomes for one-, two-, three- and five-session holds. Option outcomes are rebuilt from observed BSE daily candles, with the exact same contract held through the selected exit session. A missing side is not fabricated; that direction is skipped when its observed quote is unavailable. Signals use only the last completed index session before entry. Candidate rules are ranked using training only; holdout is separate. Rolling selectors use only prior complete calendar months.",
   "option_outcome_sessions": 1866,
   "sample_start": "2024-07-08",
   "sample_end": "2026-11-05",
@@ -31,7 +31,7 @@
   "candidate_rules_tested": 164,
   "training_end": "2026-02-27",
   "holdout_start": "2026-03-02",
-  "holdout_end": "2026-11-05",
+  "holdout_end": "2026-11-06",
   "candidate_pass_count": 0,
   "top_training_rule": {
     "training_rank": 1,
