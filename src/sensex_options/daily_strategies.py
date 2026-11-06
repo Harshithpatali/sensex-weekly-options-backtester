@@ -153,6 +153,11 @@ def run_daily_strategy_suite(
     for name, group in ledger.groupby("strategy"):
         pnl = group["net_pnl"].astype(float)
         gains, losses = float(pnl[pnl > 0].sum()), float(-pnl[pnl < 0].sum())
+        equity = group.sort_values("exit_date")["ending_capital"].astype(float)
+        start_capital = float(group.sort_values("exit_date").iloc[0]["starting_capital"])
+        curve = pd.concat([pd.Series([start_capital]), equity.reset_index(drop=True)], ignore_index=True)
+        peak = curve.cummax()
+        drawdown = curve - peak
         rows.append({
             "strategy": name, "description": DAILY_STRATEGIES[name], "trades": len(group),
             "net_pnl": round(float(pnl.sum()), 2),
@@ -160,6 +165,8 @@ def run_daily_strategy_suite(
             "profit_factor": round(gains / losses, 4) if losses else None,
             "expectancy": round(float(pnl.mean()), 2),
             "avg_return_pct": round(float(group["return_pct"].mean()), 4),
+            "max_drawdown": round(float(drawdown.min()), 2),
+            "max_drawdown_pct": round(float((drawdown / peak.replace(0, pd.NA) * 100).min()), 2),
             "sample_warning": "Small sample: fewer than 30 daily trades" if len(group) < 30 else "",
         })
     ranking = pd.DataFrame(rows).sort_values("net_pnl", ascending=False).reset_index(drop=True)
@@ -174,3 +181,42 @@ def run_daily_strategy_suite(
         "cost_assumptions": cost.__dict__,
     }
     return ledger, ranking, meta
+
+
+
+def daily_holdout_evaluation(ledger: pd.DataFrame) -> dict:
+    """Chronological 70/30 daily-session holdout; no strategy fitting or tuning."""
+    if ledger.empty or "entry_date" not in ledger:
+        return {"status": "insufficient_data", "note": "No daily trades available."}
+    frame = ledger.copy()
+    frame["entry_date"] = pd.to_datetime(frame["entry_date"], errors="coerce")
+    frame = frame.dropna(subset=["entry_date"])
+    dates = sorted(frame["entry_date"].drop_duplicates())
+    if len(dates) < 10:
+        return {
+            "status": "insufficient_data",
+            "note": "At least 10 distinct entry sessions are required for a chronological holdout.",
+            "distinct_entry_sessions": len(dates),
+        }
+    split = max(1, min(len(dates) - 1, int(len(dates) * 0.70)))
+    holdout_dates = set(dates[split:])
+    test = frame[frame["entry_date"].isin(holdout_dates)]
+    metrics = []
+    for strategy, group in test.groupby("strategy"):
+        pnl = pd.to_numeric(group["net_pnl"], errors="coerce").dropna()
+        gains, losses = float(pnl[pnl > 0].sum()), float(-pnl[pnl < 0].sum())
+        metrics.append({
+            "strategy": strategy, "trades": int(len(pnl)),
+            "net_pnl": round(float(pnl.sum()), 2),
+            "win_rate_pct": round(float((pnl > 0).mean() * 100), 2) if len(pnl) else None,
+            "profit_factor": round(gains / losses, 4) if losses else None,
+            "expectancy": round(float(pnl.mean()), 2) if len(pnl) else None,
+        })
+    return {
+        "status": "ok", "method": "chronological 70/30 split by entry session",
+        "train_start": str(dates[0].date()), "train_end": str(dates[split - 1].date()),
+        "holdout_start": str(dates[split].date()), "holdout_end": str(dates[-1].date()),
+        "distinct_entry_sessions": len(dates), "holdout_sessions": len(holdout_dates),
+        "holdout_metrics": metrics,
+        "warning": "This is a fixed-rule holdout, not a guarantee of future performance. Review sample size and execution assumptions.",
+    }
