@@ -930,6 +930,7 @@ def page_daily_options_research():
         s4.metric("Monthly target PF", f"{signal_report.get('monthly_target_profit_factor', 1.2):.2f}")
         st.caption(
             f"Instrument families: {', '.join(signal_report.get('instrument_families_tested', []))} · "
+            f"Moneyness: {', '.join(signal_report.get('moneyness_variants_tested', [])) or 'not applicable'} · "
             f"Holding periods: {', '.join(str(x) for x in signal_report.get('holding_periods_tested', []))} sessions · "
             f"Training through {signal_report.get('training_end', '—')} · "
             f"Chronological holdout from {signal_report.get('holdout_start', '—')} "
