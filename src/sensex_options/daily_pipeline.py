@@ -21,6 +21,7 @@ from sensex_options.strategies import run_strategy_suite, period_pnl
 from sensex_options.analytics import strategy_performance_metrics, walk_forward_evaluation
 from sensex_options.daily_strategies import run_daily_strategy_suite, daily_holdout_evaluation
 from sensex_options.intraday_research import download_sensex_intraday, evaluate_intraday_put_filters
+from sensex_options.risk_managed_research import run_risk_managed_research
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("daily_pipeline")
@@ -155,6 +156,25 @@ def run() -> dict:
                 output_dir / f"daily_options_{period}_pnl.csv", index=False
             )
 
+    # Risk controls are researched from the next-session option's own daily OHLC.
+    # The dashboard only reads these persisted reports; it never runs this grid.
+    risk_research_status = {"status": "not_run"}
+    if not daily_trades.empty:
+        risk_monthly, risk_board, risk_report = run_risk_managed_research(
+            daily_trades, options
+        )
+        risk_monthly.to_csv(output_dir / "risk_managed_monthly.csv", index=False)
+        risk_board.to_csv(output_dir / "risk_managed_leaderboard.csv", index=False)
+        with open(output_dir / "risk_managed_research.json", "w", encoding="utf-8") as handle:
+            json.dump(risk_report, handle, indent=2, default=str)
+        risk_research_status = {
+            "status": risk_report.get("status"),
+            "variants": risk_report.get("total_variants_including_baselines", 0),
+            "option_ohlc_coverage_pct": risk_report.get("option_ohlc_coverage_pct"),
+            "approved_candidate_count": risk_report.get("approved_candidate_count", 0),
+            "top_training_ranked_strategy": risk_report.get("top_training_ranked_strategy"),
+        }
+
     # Intraday SENSEX context is collected by the scheduled workflow, never by Streamlit.
     # Yahoo's recent-window limit means this is a rolling 60-calendar-day dataset.
     intraday_status = {"status": "not_run"}
@@ -219,6 +239,7 @@ def run() -> dict:
         "daily_strategy_count": int(len(daily_ranking)),
         "daily_strategy_trades": int(len(daily_trades)),
         "daily_holdout_status": daily_holdout.get("status"),
+        "risk_managed_research": risk_research_status,
         "intraday_research": intraday_status,
         "pnl_semantics": "realized P&L grouped by trade exit date; not daily mark-to-market",
         "validation_report": str(validation_path),
