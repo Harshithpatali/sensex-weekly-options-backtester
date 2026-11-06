@@ -24,7 +24,7 @@ from sensex_options.intraday_research import download_sensex_intraday, evaluate_
 from sensex_options.risk_managed_research import run_risk_managed_research
 from sensex_options.entry_signal_research import run_entry_signal_research
 from sensex_options.regime_research import run_regime_research
-from sensex_options.capital_controls import apply_capital_controls
+from sensex_options.capital_controls import apply_capital_controls, evaluate_capital_control_holdout
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("daily_pipeline")
@@ -181,8 +181,13 @@ def run() -> dict:
         )
         controlled_trades.to_csv(output_dir / "daily_capital_controlled_ledger.csv", index=False)
         controlled_board.to_csv(output_dir / "daily_capital_controlled_leaderboard.csv", index=False)
+        capital_holdout_board, capital_holdout_report = evaluate_capital_control_holdout(
+            daily_trades, initial_capital=10_000.0,
+            risk_per_trade_pct=0.02, daily_loss_limit_pct=0.02,
+        )
+        capital_holdout_board.to_csv(output_dir / "daily_capital_controlled_holdout.csv", index=False)
         with open(output_dir / "daily_capital_controls.json", "w", encoding="utf-8") as handle:
-            json.dump(capital_report, handle, indent=2, default=str)
+            json.dump({**capital_report, "chronological_holdout": capital_holdout_report}, handle, indent=2, default=str)
         capital_control_status = {
             "status": capital_report.get("status"),
             "candidate_trades": capital_report.get("candidate_trades", 0),
@@ -190,6 +195,9 @@ def run() -> dict:
             "rejected_trades": capital_report.get("rejected_trades", 0),
             "best_strategy": controlled_board.iloc[0]["strategy"] if not controlled_board.empty else None,
             "best_strategy_net_pnl": controlled_board.iloc[0]["net_pnl"] if not controlled_board.empty else None,
+            "holdout_status": capital_holdout_report.get("status"),
+            "holdout_start": capital_holdout_report.get("validation_start"),
+            "holdout_board_rows": int(len(capital_holdout_board)),
         }
 
     # Additional predeclared regime-gated analysis against observed option outcomes.
