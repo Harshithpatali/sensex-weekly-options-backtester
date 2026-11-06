@@ -43,15 +43,42 @@ HEADERS = {
 UDIFF_START = datetime(2024, 7, 8)
 
 def _parse_bse_date(values: pd.Series) -> pd.Series:
-    """Parse BSE date strings and compact YYYYMMDD values safely."""
+    """Parse ISO, compact YYYYMMDD, and day-first BSE dates without ambiguity."""
     text = values.astype("string").str.strip()
-    compact = text.str.len().eq(8) & text.str.isnumeric().fillna(False)
-    parsed = pd.to_datetime(text.where(~compact), errors="coerce", dayfirst=True)
+    compact = text.str.fullmatch(r"\\d{8}", na=False)
+    iso = text.str.match(r"^\\d{4}-\\d{2}-\\d{2}(?:[ T].*)?$", na=False)
+
+    parsed = pd.Series(pd.NaT, index=values.index, dtype="datetime64[ns]")
+    if iso.any():
+        parsed.loc[iso] = pd.to_datetime(text.loc[iso], errors="coerce", format="mixed")
     if compact.any():
         parsed.loc[compact] = pd.to_datetime(
             text.loc[compact], format="%Y%m%d", errors="coerce"
         )
+    other = ~(iso | compact)
+    if other.any():
+        parsed.loc[other] = pd.to_datetime(
+            text.loc[other], errors="coerce", dayfirst=True, format="mixed"
+        )
     return parsed.dt.normalize()
+
+
+def _remove_reversed_expiry_rows(frame: pd.DataFrame, source: str) -> pd.DataFrame:
+    """Exclude impossible option observations whose contract expired before trading."""
+    if frame.empty or not {"trade_date", "expiry_date"}.issubset(frame.columns):
+        return frame
+    trade = pd.to_datetime(frame["trade_date"], errors="coerce")
+    expiry = pd.to_datetime(frame["expiry_date"], errors="coerce")
+    invalid = trade.notna() & expiry.notna() & (expiry < trade)
+    count = int(invalid.sum())
+    if count:
+        sample = frame.loc[invalid, ["trade_date", "expiry_date"]].head(3).to_dict("records")
+        logger.warning(
+            "Excluded %d impossible option rows from %s (expiry before trade date); samples=%s",
+            count, source, sample,
+        )
+        frame = frame.loc[~invalid].copy()
+    return frame
 
 
 
@@ -268,6 +295,7 @@ def parse_bse_fo_file(path: Path, trade_date: Optional[datetime] = None) -> pd.D
     out = out.dropna(subset=["trade_date", "expiry_date", "strike"], how="any")
     out = out[out["option_type"].isin(["CE", "PE"])]
     out = out[(out["strike"] > 0) & (out["close"].isna() | (out["close"] >= 0))]
+    out = _remove_reversed_expiry_rows(out, str(path))
     return out.reset_index(drop=True)
 
 
@@ -412,5 +440,6 @@ def load_options(path: Optional[Path] = None) -> pd.DataFrame:
         return pd.DataFrame()
     df = pd.read_csv(path, parse_dates=["trade_date", "expiry_date"], compression="gzip" if str(path).endswith(".gz") else "infer")
     df["trade_date"] = pd.to_datetime(df["trade_date"]).dt.normalize()
-    df["expiry_date"] = pd.to_datetime(df["expiry_date"]).dt.normalize()
+    df["expiry_date"] = pd.to_datetime(df["expiry_date"], errors="coerce").dt.normalize()
+    df = _remove_reversed_expiry_rows(df, str(path))
     return df
