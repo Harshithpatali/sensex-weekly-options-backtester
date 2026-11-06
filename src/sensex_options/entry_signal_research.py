@@ -182,11 +182,12 @@ def _option_horizon_outcomes(
     risk_pct: float = 0.02,
     cost: CostConfig | None = None,
 ) -> pd.DataFrame:
-    """Build observed option outcomes for ATM, one-step ITM and one-step OTM.
+    """Build observed outcomes for ATM, ITM1, and OTM1/2/3/5 contracts.
 
-    CE ITM/OTM use one strike below/above ATM; PE ITM/OTM use one strike
-    above/below ATM. Entry uses the previous completed SENSEX close; the exact
-    selected contract is marked at the requested future session close.
+    CE ITM uses lower strikes and CE OTM uses higher strikes; PE is reversed.
+    Entry uses the previous completed SENSEX close, and the exact selected
+    contract is marked at the requested future session close. Full premium
+    plus estimated entry fees must fit the configured per-trade risk budget.
     """
     if index is None or index.empty or options is None or options.empty:
         return pd.DataFrame()
@@ -423,11 +424,11 @@ def _option_debit_vertical_outcomes(
     risk_pct: float = 0.02,
     cost: CostConfig | None = None,
 ) -> pd.DataFrame:
-    """Generate ATM debit vertical spread outcomes from observed BSE option candles.
+    """Generate ATM debit vertical outcomes from observed BSE option candles.
 
-    Bull call spread: long ATM CE, short the 1st/2nd/3rd higher available CE strike.
-    Bear put spread: long ATM PE, short the 1st/2nd/3rd lower available PE strike.
-    Both legs must share expiry and lot size, and both entry/exit quotes must exist.
+    Bull call spread: long ATM CE, short a higher CE strike. Bear put spread:
+    long ATM PE, short a lower PE strike. Both legs must share expiry and lot
+    size, be liquid at entry/exit, and fit the per-trade max-loss budget.
     """
     if index is None or index.empty or options is None or options.empty:
         return pd.DataFrame()
@@ -778,8 +779,8 @@ def _option_credit_vertical_outcomes(
     """Build defined-risk bull-put and bear-call credit spreads from real quotes.
 
     Risk is bounded by observed strike distance less entry credit. A position is
-    skipped when estimated maximum loss plus entry fees exceeds available
-    capital. This is a conservative risk budget, not a broker margin quote.
+    skipped when estimated maximum loss plus entry fees exceeds the configured
+    percentage of capital. This is not a broker margin quote.
     """
     if index is None or index.empty or options is None or options.empty:
         return pd.DataFrame()
@@ -1756,9 +1757,9 @@ def run_entry_signal_research(
             "Call/Put outcomes at ATM, one-strike ITM and one-strike OTM moneyness, plus "
             "bounded-risk ATM debit and credit vertical spread outcomes "
             "at one-, two- and three-available-strike widths for one-, two-, three- and five-session holds. "
-            "Both spread types require both observed legs at entry and exit, reject impossible marks beyond "
-            "their strike width, and cap estimated maximum loss plus entry fees at the "
-            "₹10,000 research risk budget. Option-chain PCR, OI build-up and ATM straddle/realised-volatility "
+            "Long-option candidates include ATM, one-step ITM, and one-, two-, three- and five-step OTM contracts. "
+            "Both spread types require liquid observed legs at entry and exit, reject impossible marks beyond "
+            "their strike width, and cap estimated maximum loss plus entry fees at the configured 2% risk budget. Option-chain PCR, OI build-up and ATM straddle/realised-volatility "
             "proxies are aligned to the prior completed signal session. "
             "Option outcomes are rebuilt from observed BSE daily candles, with the exact same contract "
             "held through the selected exit session. A missing side is not fabricated; that direction is "
