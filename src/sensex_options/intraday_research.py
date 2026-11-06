@@ -24,8 +24,15 @@ def download_sensex_intraday(
         raise ValueError("Supported intraday intervals are 5m and 15m.")
     if period not in {"5d", "1mo", "3mo", "60d"}:
         raise ValueError("Use a recent period no longer than Yahoo's intraday window.")
+    # Use explicit dates rather than a "60d" period token, which is not
+    # accepted consistently by Yahoo's chart endpoint.
+    days = {"5d": 5, "1mo": 30, "3mo": 60, "60d": 60}[period]
+    end_date = pd.Timestamp.now(tz="Asia/Kolkata").date()
+    start_date = end_date - pd.Timedelta(days=days - 1)
     frame = yf.Ticker(INDEX_TICKER).history(
-        period=period, interval=interval, auto_adjust=False, prepost=False
+        start=start_date.isoformat(),
+        end=(end_date + pd.Timedelta(days=1)).isoformat(),
+        interval=interval, auto_adjust=False, prepost=False
     )
     if frame.empty:
         return pd.DataFrame(columns=["timestamp", "date", "open", "high", "low", "close", "volume"])
