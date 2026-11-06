@@ -990,6 +990,99 @@ def _candidate_signals(features: pd.DataFrame) -> dict[str, pd.Series]:
         signals[f"GAP{int(threshold * 1000)}_CONTINUATION"] = continuation
         signals[f"GAP{int(threshold * 1000)}_FADE"] = fade
 
+    # Option-chain positioning hypotheses. PCR is ambiguous (put demand versus
+    # put writing), so both directional interpretations are tested explicitly.
+    if "pcr_oi_near_atm" in f.columns:
+        pcr = f["pcr_oi_near_atm"]
+        for threshold in (0.80, 1.00, 1.20, 1.50):
+            high = pcr >= threshold
+            low = pcr <= (1.0 / threshold if threshold > 1 else 0.80)
+            for label, call_when_high in (
+                ("PUT_HEAVY_SUPPORT", True),
+                ("PUT_HEAVY_DEMAND", False),
+            ):
+                sig = pd.Series("", index=f.index, dtype="object")
+                if call_when_high:
+                    sig.loc[high] = "CE"
+                    sig.loc[low] = "PE"
+                else:
+                    sig.loc[high] = "PE"
+                    sig.loc[low] = "CE"
+                signals[f"PCR_OI_{int(threshold * 100)}_{label}"] = sig
+    if "pcr_volume_near_atm" in f.columns:
+        pcr = f["pcr_volume_near_atm"]
+        for threshold in (0.80, 1.00, 1.20, 1.50):
+            high = pcr >= threshold
+            low = pcr <= (1.0 / threshold if threshold > 1 else 0.80)
+            for label, call_when_high in (
+                ("PUT_HEAVY_SUPPORT", True),
+                ("PUT_HEAVY_DEMAND", False),
+            ):
+                sig = pd.Series("", index=f.index, dtype="object")
+                if call_when_high:
+                    sig.loc[high] = "CE"
+                    sig.loc[low] = "PE"
+                else:
+                    sig.loc[high] = "PE"
+                    sig.loc[low] = "CE"
+                signals[f"PCR_VOL_{int(threshold * 100)}_{label}"] = sig
+
+    # Price/OI build-up patterns; OI changes alone do not reveal who initiated
+    # a position, so price direction is required as a second confirmation.
+    for oi_threshold in (0.02, 0.05, 0.10):
+        call_oi_up = f.get("call_oi_change_pct", pd.Series(np.nan, index=f.index)) >= oi_threshold
+        put_oi_up = f.get("put_oi_change_pct", pd.Series(np.nan, index=f.index)) >= oi_threshold
+        call_premium = f.get("call_premium_change_pct", pd.Series(np.nan, index=f.index))
+        put_premium = f.get("put_premium_change_pct", pd.Series(np.nan, index=f.index))
+        call_up = call_premium >= 0.01
+        call_down = call_premium <= -0.01
+        put_up = put_premium >= 0.01
+        put_down = put_premium <= -0.01
+
+        sig = pd.Series("", index=f.index, dtype="object")
+        sig.loc[call_oi_up & put_oi_up & call_up & put_down] = "CE"
+        sig.loc[call_oi_up & put_oi_up & call_down & put_up] = "PE"
+        signals[f"OI_BUILDUP_BOTH_{int(oi_threshold * 100)}"] = sig
+
+        sig = pd.Series("", index=f.index, dtype="object")
+        sig.loc[call_oi_up & call_up] = "CE"
+        sig.loc[call_oi_up & call_down] = "PE"
+        signals[f"CALL_OI_BUILDUP_{int(oi_threshold * 100)}"] = sig
+
+        sig = pd.Series("", index=f.index, dtype="object")
+        sig.loc[put_oi_up & put_down] = "CE"
+        sig.loc[put_oi_up & put_up] = "PE"
+        signals[f"PUT_OI_BUILDUP_{int(oi_threshold * 100)}"] = sig
+
+    if "positioning_score" in f.columns:
+        score = f["positioning_score"]
+        for threshold in (0.0, 0.5, 1.0):
+            signals[f"POSITIONING_SCORE_{int(threshold * 10)}"] = direction(
+                score > threshold, score.notna()
+            )
+            signals[f"POSITIONING_SCORE_NEG_{int(threshold * 10)}"] = direction(
+                score < -threshold, score.notna()
+            )
+
+    # Use the ATM straddle-implied daily move proxy as a premium-cost regime.
+    # A low implied/realised ratio gates long-option entries; all gates are
+    # lagged because these values come from the previous completed session.
+    if "implied_to_realized_vol_ratio" in f.columns:
+        ratio = f["implied_to_realized_vol_ratio"]
+        for base in (
+            "RET3_MOMENTUM", "RET5_MOMENTUM", "EMA5_20_TREND",
+            "EMA5_20_ADX20", "RET3_5_CONSENSUS", "DONCHIAN10_BREAKOUT",
+            "RSI35_65_REVERSAL",
+        ):
+            base_signal = signals[base]
+            for threshold in (0.90, 1.10, 1.30):
+                signals[f"{base}_CHEAP_STRADDLE{int(threshold * 100)}"] = base_signal.where(
+                    ratio <= threshold, ""
+                )
+                signals[f"{base}_EXPENSIVE_STRADDLE{int(threshold * 100)}"] = base_signal.where(
+                    ratio >= threshold, ""
+                )
+
     return signals
 
 
@@ -1160,8 +1253,12 @@ def run_entry_signal_research(
     """Test predeclared signals across one-, two-, three- and five-session holds."""
     if options is not None:
         long_outcomes = _option_horizon_outcomes(index, options, holding_periods=holding_periods)
-        spread_outcomes = _option_debit_vertical_outcomes(index, options, holding_periods=holding_periods)
-        frames = [frame for frame in (long_outcomes, spread_outcomes) if frame is not None and not frame.empty]
+        debit_outcomes = _option_debit_vertical_outcomes(index, options, holding_periods=holding_periods)
+        credit_outcomes = _option_credit_vertical_outcomes(index, options, holding_periods=holding_periods)
+        frames = [
+            frame for frame in (long_outcomes, debit_outcomes, credit_outcomes)
+            if frame is not None and not frame.empty
+        ]
         pairs = pd.concat(frames, ignore_index=True, sort=False) if frames else pd.DataFrame()
     else:
         pairs = _paired_option_outcomes(daily_ledger)
@@ -1194,6 +1291,19 @@ def run_entry_signal_research(
         [pairs.reset_index(drop=True), paired_features.drop(columns=["signal_date"]).reset_index(drop=True)],
         axis=1,
     )
+    if options is not None and not options.empty:
+        option_features = _option_chain_market_features(index, options)
+        if not option_features.empty:
+            paired["expiry_date"] = pd.to_datetime(paired["expiry_date"], errors="coerce").dt.normalize()
+            option_features["expiry_date"] = pd.to_datetime(
+                option_features["expiry_date"], errors="coerce"
+            ).dt.normalize()
+            paired = paired.merge(
+                option_features,
+                on=["signal_date", "expiry_date"],
+                how="left",
+                validate="many_to_one",
+            )
     if paired.empty:
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), {
             "status": "insufficient_feature_overlap",
@@ -1211,8 +1321,10 @@ def run_entry_signal_research(
                 continue
             if family == "LONG_OPTIONS":
                 prefix = "LONG"
+            elif str(family).startswith("DEBIT_SPREADS"):
+                prefix = str(family).replace("DEBIT_SPREADS", "DEBIT")
             else:
-                prefix = str(family).replace("DEBIT_SPREADS", "SPREAD")
+                prefix = str(family).replace("CREDIT_SPREADS", "CREDIT")
             chosen["strategy"] = f"{prefix}_H{int(holding)}D_{name}"
             chosen["net_pnl"] = np.where(
                 chosen["signal"] == "CE",
@@ -1382,10 +1494,19 @@ def run_entry_signal_research(
         "distinct_entry_sessions": int(paired["entry_date"].nunique()),
         "holding_periods_tested": sorted(paired["holding_sessions"].dropna().astype(int).unique().tolist()),
         "instrument_families_tested": sorted(paired["option_family"].dropna().astype(str).unique().tolist()),
-        "spread_width_steps_tested": sorted(
+        "spread_width_steps_tested": sorted({
             int(str(family).split("_W")[-1])
             for family in paired["option_family"].dropna().astype(str).unique()
-            if str(family).startswith("DEBIT_SPREADS_W")
+            if str(family).startswith(("DEBIT_SPREADS_W", "CREDIT_SPREADS_W"))
+        }),
+        "option_market_features": [
+            "near-ATM put/call volume and open-interest ratios",
+            "call/put open-interest changes matched to premium changes",
+            "ATM straddle premium versus trailing realised-volatility proxy",
+        ] if options is not None else [],
+        "credit_spread_risk_budget": (
+            "Defined-risk credit spreads require maximum theoretical loss plus entry fees <= ₹10,000; "
+            "this is a conservative risk budget, not a broker margin quote."
         ),
         "candidate_rules_tested": int(len(candidate_names)),
         "position_sizing": "One lot per candidate, one open position at a time; new entry allowed on the previous position's exit session after the EOD exit.",
