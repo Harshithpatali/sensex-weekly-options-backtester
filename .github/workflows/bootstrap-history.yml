@@ -39,6 +39,24 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .
+      - name: Remove stale legacy rows before corrected backfill
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          from sensex_options.config import DEFAULT_PATHS
+          from sensex_options.sources.bse import load_options
+
+          existing = load_options()
+          if not existing.empty:
+              # Earlier parser versions used the legacy L T Date field as the
+              # session date. Remove all pre-UDiFF rows and rebuild them from
+              # the authoritative archive date in this run.
+              keep = existing[existing["trade_date"] > pd.Timestamp("2024-07-05")].copy()
+              target = DEFAULT_PATHS.processed / "sensex_options.csv"
+              target.parent.mkdir(parents=True, exist_ok=True)
+              keep.to_csv(target, index=False)
+              print({"preserved_post_legacy_rows": int(len(keep)), "removed_stale_legacy_rows": int(len(existing) - len(keep))})
+          PY
       - name: Download historical SENSEX index and BSE options
         env:
           START_DATE: ${{ github.event.inputs.start_date || '2023-05-15' }}
