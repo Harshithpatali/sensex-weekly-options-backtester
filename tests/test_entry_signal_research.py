@@ -414,3 +414,47 @@ def test_option_horizon_outcomes_reject_illiquid_entry_and_exit_marks():
     second = outcomes[outcomes["entry_date"] == dates[2]].iloc[0]
     assert pd.notna(second["call_pnl"])
     assert pd.isna(second["put_pnl"])
+
+
+def test_long_option_outcomes_enforce_two_percent_max_loss_budget():
+    dates = pd.bdate_range("2024-03-01", periods=6)
+    index = pd.DataFrame({
+        "date": dates, "open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0,
+    })
+    expiry = dates[-1] + pd.Timedelta(days=7)
+    rows = []
+    for day in dates:
+        for side in ("CE", "PE"):
+            rows.append({
+                "trade_date": day, "expiry_date": expiry, "strike": 100.0,
+                "symbol": "SENSEX", "option_type": side, "close": 25.0,
+                "lot_size": 10, "volume": 100, "open_interest": 100,
+            })
+    outcomes = _option_horizon_outcomes(
+        index, pd.DataFrame(rows), holding_periods=(1,), moneyness_variants=("ATM",),
+        capital=10000.0, risk_pct=0.02,
+    )
+    assert outcomes.empty
+
+
+def test_far_otm_contract_variants_select_correct_strikes():
+    dates = pd.bdate_range("2024-04-01", periods=6)
+    index = pd.DataFrame({
+        "date": dates, "open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0,
+    })
+    expiry = dates[-1] + pd.Timedelta(days=7)
+    rows = []
+    for day in dates:
+        for strike in range(95, 106):
+            for side in ("CE", "PE"):
+                rows.append({
+                    "trade_date": day, "expiry_date": expiry, "strike": float(strike),
+                    "symbol": "SENSEX", "option_type": side, "close": 5.0,
+                    "lot_size": 10, "volume": 100, "open_interest": 100,
+                })
+    outcomes = _option_horizon_outcomes(
+        index, pd.DataFrame(rows), holding_periods=(1,), moneyness_variants=("OTM5",),
+    )
+    first = outcomes[outcomes["entry_date"] == dates[1]].iloc[0]
+    assert first["call_strike"] == 105.0
+    assert first["put_strike"] == 95.0
