@@ -55,3 +55,22 @@ def test_rejects_overlapping_positions_in_same_strategy():
     )
     assert len(trades) == 1
     assert board.iloc[0]["trades_rejected_overlap"] == 1
+
+
+def test_capital_holdout_is_chronological_and_resets_each_period():
+    from sensex_options.capital_controls import evaluate_capital_control_holdout
+
+    dates = pd.bdate_range("2024-01-01", periods=20)
+    ledger = pd.DataFrame([{
+        "strategy": "CALL", "entry_date": day, "exit_date": day + pd.offsets.BDay(1),
+        "entry_premium": 5.0, "exit_premium": 7.0, "lot_size": 10,
+        "lots": 1, "quantity": 10, "net_pnl": 20.0,
+    } for day in dates])
+    board, report = evaluate_capital_control_holdout(
+        ledger, initial_capital=10_000, risk_per_trade_pct=0.02,
+        daily_loss_limit_pct=0.02, cost=CostConfig(),
+    )
+    assert report["status"] == "complete"
+    assert report["train_end"] < report["validation_start"]
+    assert board.iloc[0]["train_ending_capital"] >= 10_000
+    assert board.iloc[0]["validation_ending_capital"] >= 10_000
