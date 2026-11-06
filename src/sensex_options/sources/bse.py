@@ -226,7 +226,9 @@ def parse_bse_fo_file(path: Path, trade_date: Optional[datetime] = None) -> pd.D
     # In the spaced legacy schema, "L T Date" means last traded date, not
     # the bhavcopy session date; using it would shift stale rows backwards.
     if trade_date is not None:
-        out["trade_date"] = pd.Timestamp(trade_date).normalize()
+        out["trade_date"] = pd.Series(
+            pd.Timestamp(trade_date).normalize(), index=raw.index
+        )
     elif trad_c:
         out["trade_date"] = _parse_bse_date(raw[trad_c])
     else:
