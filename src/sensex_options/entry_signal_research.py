@@ -13,6 +13,9 @@ from typing import Callable
 import numpy as np
 import pandas as pd
 
+from sensex_options.config import CostConfig
+from sensex_options.costs import compute_transaction_costs
+
 TARGET_PF = 1.20
 MIN_MONTH_TRADES = 3
 MIN_TRAIN_TRADES = 50
@@ -112,6 +115,174 @@ def build_lagged_features(index: pd.DataFrame) -> pd.DataFrame:
     x["range_median_20"] = x["range_pct"].shift(1).rolling(20, min_periods=15).median()
     x["range_compression"] = x["range_pct"] / x["range_median_20"].replace(0, np.nan)
     return x
+
+
+def _default_signal_cost() -> CostConfig:
+    return CostConfig(
+        brokerage_per_lot=20.0,
+        stt_pct=0.001,
+        exchange_charges_pct=0.0003,
+        gst_pct=0.18,
+        stamp_duty_pct=0.00003,
+        entry_slippage=0.5,
+        exit_slippage=0.5,
+        spread_points=1.0,
+        market_impact_points=0.25,
+    )
+
+
+def _option_horizon_outcomes(
+    index: pd.DataFrame,
+    options: pd.DataFrame,
+    holding_periods: tuple[int, ...] = (1, 2, 3, 5),
+    capital: float = 10000.0,
+    cost: CostConfig | None = None,
+) -> pd.DataFrame:
+    """Create same-session ATM CE/PE outcomes for multiple holding periods.
+
+    Entry uses the previous completed SENSEX close for ATM selection. Exit uses
+    the observed close of the exact same option contract after N index sessions.
+    Each candidate position is one historical lot with estimated transaction
+    costs and an affordability check; no compounding is used.
+    """
+    if index is None or index.empty or options is None or options.empty:
+        return pd.DataFrame()
+    needed = {"date", "close"}
+    opt_needed = {"trade_date", "expiry_date", "strike", "option_type", "close", "lot_size"}
+    if not needed.issubset(index.columns) or not opt_needed.issubset(options.columns):
+        return pd.DataFrame()
+
+    cfg = cost or _default_signal_cost()
+    idx = index.copy()
+    idx["date"] = pd.to_datetime(idx["date"], errors="coerce").dt.normalize()
+    idx["close"] = pd.to_numeric(idx["close"], errors="coerce")
+    idx = idx.dropna(subset=["date", "close"]).sort_values("date").drop_duplicates("date").reset_index(drop=True)
+    opt = options.copy()
+    opt["trade_date"] = pd.to_datetime(opt["trade_date"], errors="coerce").dt.normalize()
+    opt["expiry_date"] = pd.to_datetime(opt["expiry_date"], errors="coerce").dt.normalize()
+    for col in ("strike", "close", "lot_size"):
+        opt[col] = pd.to_numeric(opt[col], errors="coerce")
+    opt["symbol"] = opt["symbol"].astype(str).str.strip().str.upper() if "symbol" in opt else "SENSEX"
+    opt["option_type"] = opt["option_type"].astype(str).str.strip().str.upper()
+    opt = opt.dropna(subset=["trade_date", "expiry_date", "strike", "close"])
+    opt = opt[
+        (opt["strike"] > 0)
+        & (opt["close"] >= 0)
+        & (opt["option_type"].isin(["CE", "PE"]))
+    ].copy()
+    opt = opt.sort_values(["trade_date", "expiry_date", "strike", "symbol"])
+    by_day = {day: frame for day, frame in opt.groupby("trade_date", sort=False)}
+    sessions = idx.reset_index(drop=True)
+    rows = []
+
+    entry_adjustment = cfg.entry_slippage + cfg.spread_points / 2 + cfg.market_impact_points
+
+    for hold in sorted(set(int(h) for h in holding_periods if int(h) > 0)):
+        for entry_pos in range(1, len(sessions) - hold):
+            signal_row = sessions.iloc[entry_pos - 1]
+            entry_row = sessions.iloc[entry_pos]
+            exit_row = sessions.iloc[entry_pos + hold]
+            entry_day = pd.Timestamp(entry_row["date"])
+            exit_day = pd.Timestamp(exit_row["date"])
+            reference_spot = float(signal_row["close"])
+            entry_options = by_day.get(entry_day)
+            exit_options = by_day.get(exit_day)
+            if entry_options is None or exit_options is None or entry_options.empty or exit_options.empty:
+                continue
+
+            eligible_expiries = sorted(
+                entry_options.loc[
+                    entry_options["expiry_date"] >= exit_day, "expiry_date"
+                ].dropna().unique()
+            )
+            if not eligible_expiries:
+                continue
+            expiry = pd.Timestamp(eligible_expiries[0])
+            chain = entry_options[entry_options["expiry_date"] == expiry]
+            strikes = sorted(pd.to_numeric(chain["strike"], errors="coerce").dropna().unique())
+            if not strikes:
+                continue
+            atm = float(min(strikes, key=lambda strike: abs(float(strike) - reference_spot)))
+
+            for option_type in ("CE", "PE"):
+                entry_candidates = chain[
+                    (chain["strike"] == atm) & (chain["option_type"] == option_type)
+                ]
+                if entry_candidates.empty:
+                    continue
+                selected = entry_candidates.iloc[0]
+                entry_premium = float(selected["close"])
+                lot_value = selected.get("lot_size")
+                symbol = str(selected.get("symbol", "SENSEX")).strip().upper()
+                if not _finite(entry_premium) or entry_premium <= 0 or not _finite(lot_value) or float(lot_value) <= 0:
+                    continue
+                lot_size = int(lot_value)
+                adjusted_entry = entry_premium + entry_adjustment
+                entry_turnover = adjusted_entry * lot_size
+                entry_fees = (
+                    cfg.brokerage_per_lot
+                    + cfg.other_charges
+                    + (cfg.brokerage_pct + cfg.exchange_charges_pct) * entry_turnover
+                    + cfg.gst_pct * (
+                        cfg.brokerage_per_lot + cfg.other_charges
+                        + (cfg.brokerage_pct + cfg.exchange_charges_pct) * entry_turnover
+                    )
+                    + cfg.stamp_duty_pct * entry_turnover
+                )
+                if entry_turnover + entry_fees > capital:
+                    continue
+
+                exit_candidates = exit_options[
+                    (exit_options["expiry_date"] == expiry)
+                    & (exit_options["strike"] == atm)
+                    & (exit_options["option_type"] == option_type)
+                    & (exit_options["symbol"] == symbol)
+                ]
+                if exit_candidates.empty:
+                    continue
+                exit_premium = float(exit_candidates.iloc[-1]["close"])
+                if not _finite(exit_premium) or exit_premium < 0:
+                    continue
+                quantity = lot_size
+                gross = (exit_premium - entry_premium) * quantity
+                charges = compute_transaction_costs(
+                    entry_premium, exit_premium, lot_size, 1, cfg
+                )
+                net = gross - float(charges["total_cost"])
+                rows.append({
+                    "entry_date": entry_day,
+                    "exit_date": exit_day,
+                    "signal_date": pd.Timestamp(signal_row["date"]),
+                    "holding_sessions": hold,
+                    "expiry_date": expiry,
+                    "strike": atm,
+                    "symbol": symbol,
+                    "option_type": option_type,
+                    "entry_premium": entry_premium,
+                    "exit_premium": exit_premium,
+                    "lot_size": lot_size,
+                    "quantity": quantity,
+                    "net_pnl": round(net, 2),
+                })
+
+    outcomes = pd.DataFrame(rows)
+    if outcomes.empty:
+        return outcomes
+    keys = ["entry_date", "exit_date", "holding_sessions", "expiry_date", "strike"]
+    calls = outcomes[outcomes["option_type"] == "CE"][keys + ["net_pnl"]].rename(
+        columns={"net_pnl": "call_pnl"}
+    )
+    puts = outcomes[outcomes["option_type"] == "PE"][keys + ["net_pnl"]].rename(
+        columns={"net_pnl": "put_pnl"}
+    )
+    combined = calls.merge(puts, on=keys, how="outer", validate="one_to_one")
+    combined["month"] = pd.to_datetime(combined["exit_date"]).dt.strftime("%Y-%m")
+    combined["signal_date"] = pd.to_datetime(combined["entry_date"]).map(
+        dict(zip(sessions["date"], sessions["date"].shift(1)))
+    )
+    return combined.dropna(subset=["signal_date"]).sort_values(
+        ["entry_date", "holding_sessions"]
+    ).reset_index(drop=True)
 
 
 def _paired_option_outcomes(daily_ledger: pd.DataFrame) -> pd.DataFrame:
@@ -400,9 +571,16 @@ def _build_monthly_selector(
 def run_entry_signal_research(
     daily_ledger: pd.DataFrame,
     index: pd.DataFrame,
+    options: pd.DataFrame | None = None,
+    holding_periods: tuple[int, ...] = (1, 2, 3, 5),
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict]:
-    """Test predeclared signals and rolling selectors on paired call/put outcomes."""
-    pairs = _paired_option_outcomes(daily_ledger)
+    """Test predeclared signals across one-, two-, three- and five-session holds."""
+    if options is not None:
+        pairs = _option_horizon_outcomes(index, options, holding_periods=holding_periods)
+    else:
+        pairs = _paired_option_outcomes(daily_ledger)
+        if not pairs.empty:
+            pairs["holding_sessions"] = 1
     if pairs.empty:
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), {
             "status": "insufficient_paired_option_data",
@@ -438,23 +616,29 @@ def run_entry_signal_research(
     signals = _candidate_signals(paired)
     records = []
     for name, signal in signals.items():
-        chosen = paired.copy()
-        chosen["signal"] = signal.to_numpy()
-        chosen = chosen[chosen["signal"].isin(["CE", "PE"])].copy()
-        if chosen.empty:
-            continue
-        chosen["strategy"] = name
-        chosen["net_pnl"] = np.where(
-            chosen["signal"] == "CE",
-            chosen["call_pnl"],
-            chosen["put_pnl"],
-        )
-        chosen["month"] = chosen["exit_date"].dt.strftime("%Y-%m")
-        chosen["option_type"] = chosen["signal"]
-        records.append(chosen[[
-            "strategy", "entry_date", "exit_date", "signal_date", "month",
-            "signal", "option_type", "strike", "net_pnl", "call_pnl", "put_pnl",
-        ]])
+        for holding, horizon in paired.groupby("holding_sessions", sort=True):
+            chosen = horizon.copy()
+            chosen["signal"] = signal.loc[chosen.index].to_numpy()
+            chosen = chosen[chosen["signal"].isin(["CE", "PE"])].copy()
+            if chosen.empty:
+                continue
+            chosen["strategy"] = f"H{int(holding)}D_{name}"
+            chosen["net_pnl"] = np.where(
+                chosen["signal"] == "CE",
+                chosen["call_pnl"],
+                chosen["put_pnl"],
+            )
+            chosen = chosen.dropna(subset=["net_pnl"])
+            if chosen.empty:
+                continue
+            chosen["month"] = chosen["exit_date"].dt.strftime("%Y-%m")
+            chosen["option_type"] = chosen["signal"]
+            chosen["holding_sessions"] = int(holding)
+            records.append(chosen[[
+                "strategy", "holding_sessions", "entry_date", "exit_date",
+                "signal_date", "month", "signal", "option_type", "strike",
+                "net_pnl", "call_pnl", "put_pnl",
+            ]])
     trades = pd.concat(records, ignore_index=True) if records else pd.DataFrame()
     if trades.empty:
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), {
@@ -582,14 +766,18 @@ def run_entry_signal_research(
         },
         "method": (
             "Predeclared lagged index indicator and regime signals choose between same-date, same-expiry, "
-            "same-strike paired ATM Call/Put outcomes. Signals are based only on the last completed index "
-            "session before the option entry. Candidate rules are ranked using training only; holdout is "
-            "reported separately. Rolling selectors use only prior complete calendar months."
+            "same-strike ATM Call/Put outcomes for one-, two-, three- and five-session holds. "
+            "Option outcomes are rebuilt from observed BSE daily candles, with the exact same contract "
+            "held through the selected exit session. A missing side is not fabricated; that direction is "
+            "skipped when its observed quote is unavailable. Signals use only the last completed index "
+            "session before entry. Candidate rules are ranked using training only; holdout is separate. "
+            "Rolling selectors use only prior complete calendar months."
         ),
         "paired_trades": int(len(paired)),
         "paired_start": str(paired["entry_date"].min().date()),
         "paired_end": str(paired["entry_date"].max().date()),
         "distinct_entry_sessions": int(paired["entry_date"].nunique()),
+        "holding_periods_tested": sorted(paired["holding_sessions"].dropna().astype(int).unique().tolist()),
         "candidate_rules_tested": int(len(candidate_names)),
         "training_end": str(train_end.date()),
         "holdout_start": str(holdout_start.date()) if holdout_start is not None else None,
