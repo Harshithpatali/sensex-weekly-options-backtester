@@ -19,3 +19,5 @@ Legacy archive schema diagnostic rerun: inspect raw CSV columns, SENSEX symbols,
 Rerun historical backfill with the actual spaced-header parser fix and strict risk/liquidity filters.
 
 Rerun after archive-session date precedence fix: L T Date is last-traded date, not bhavcopy session date.
+
+Rebuild legacy archive range after UDiFF merge; purge stale pre-2024-07-06 rows first.
