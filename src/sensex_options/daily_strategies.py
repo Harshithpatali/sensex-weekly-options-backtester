@@ -160,6 +160,13 @@ def run_daily_strategy_suite(
                 & (exit_options["option_type"] == option_type)
                 & (exit_options["symbol"] == symbol)
             ]
+            # The exit candle must also show activity and open interest; an
+            # inactive EOD close is not accepted as an executable mark.
+            exit_candidates = exit_candidates[
+                (exit_candidates["close"] > 0)
+                & (exit_candidates["volume"] >= min_volume)
+                & (exit_candidates["open_interest"] >= min_open_interest)
+            ]
             if exit_candidates.empty:
                 continue
             exit_premium = float(exit_candidates.iloc[-1]["close"])
