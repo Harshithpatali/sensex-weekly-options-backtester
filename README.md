@@ -329,3 +329,19 @@ Data validation now reports option-session coverage against SENSEX index session
 The scheduled daily workflow only adds recent sessions; it does not create a multi-year dataset. Run **Actions → Bootstrap SENSEX historical dataset → Run workflow** with the default range (2023-05-15 through the latest available date) to backfill the archive. This can take time because it requests one BSE FO bhavcopy per weekday. Inspect the collection manifest for holidays, unavailable dates and download failures. Do not interpret strategy metrics as reliable until several years and many expiry cycles are present.
 
 The Streamlit app is deployed from this repository's `main` branch. The UI and research-engine changes are committed together; the hosted app updates after its GitHub deployment completes.
+
+
+## Daily one-session Call and Put research
+
+The **Daily Options Research** page runs a separate close-to-close experiment that is not limited to expiry day:
+
+- **Daily ATM Call:** buy the nearest ATM CE each eligible session.
+- **Daily ATM Put:** buy the nearest ATM PE each eligible session.
+- **Daily Momentum:** use the prior session's SENSEX move; buy CE after an up move and PE after a down move.
+- **Daily Mean Reversion:** take the opposite option side to the prior session's move.
+
+Each position is entered using the current session's option close and exited using the same contract's close on the next SENSEX session. The signal uses only the two index closes available before entry; ATM strike selection uses the previous session's SENSEX close. The nearest expiry that remains valid through the next session is selected. Missing next-session quotes, invalid premiums, or missing lot sizes cause a trade to be skipped.
+
+Daily strategies have isolated capital curves, estimated transaction costs, a trade ledger, daily/weekly/monthly realized P&L, and a chronological 70/30 holdout by entry session. The dashboard shows net P&L, expectancy, profit factor and drawdown. The holdout is descriptive fixed-rule evaluation; it is not proof of future profitability.
+
+**Execution limitation:** BSE bhavcopy data contains end-of-day marks, not historical intraday quotes or order-book depth. This daily experiment is therefore an EOD close-to-next-close approximation, not an executable intraday strategy. It does not place orders. The daily and expiry-based experiments must be judged separately.
