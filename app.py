@@ -25,6 +25,9 @@ from sensex_options.features import build_features
 from sensex_options.strategies import run_strategy_suite, period_pnl
 from sensex_options.analytics import strategy_performance_metrics, walk_forward_evaluation
 from sensex_options.daily_strategies import run_daily_strategy_suite, daily_holdout_evaluation
+from sensex_options.intraday_research import (
+    download_sensex_intraday, latest_previous_close, evaluate_intraday_put_filters,
+)
 
 st.set_page_config(
     page_title="SENSEX Weekly Options Backtester",
@@ -87,6 +90,13 @@ def page_overview():
     index = load_index()
     options = load_options()
     report = validate_all(index, options)
+    close_info = latest_previous_close(index)
+    if close_info.get("status") == "ok":
+        p1, p2, p3 = st.columns(3)
+        p1.metric("SENSEX Previous Close", f"₹{close_info['close']:,.2f}", help=f"Latest completed session: {close_info['date']}")
+        p2.metric("Previous Session Change", f"{close_info['change']:+,.2f}" if close_info.get("change") is not None else "—")
+        p3.metric("Change (%)", f"{close_info['change_pct']:+.2f}%" if close_info.get("change_pct") is not None else "—")
+        st.caption(f"Previous close date: {close_info['date']} · Source: saved daily ^BSESN history (Yahoo Finance).")
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Initial Capital (default)", "₹10,000")
@@ -429,6 +439,13 @@ def page_daily_options_research():
         "This page is separate from the expiry-only leaderboard. Signals use the previous session's index move; "
         "the ATM strike is selected using the previous session's SENSEX close. EOD marks are estimates, not guaranteed fills."
     )
+    close_info = latest_previous_close(load_index())
+    if close_info.get("status") == "ok":
+        pc1, pc2, pc3 = st.columns(3)
+        pc1.metric("SENSEX Previous Close", f"₹{close_info['close']:,.2f}")
+        pc2.metric("Previous Session Change", f"{close_info['change']:+,.2f}" if close_info.get("change") is not None else "—")
+        pc3.metric("Change (%)", f"{close_info['change_pct']:+.2f}%" if close_info.get("change_pct") is not None else "—")
+        st.caption(f"Last completed SENSEX session: {close_info['date']}. This is not a live quote.")
     out = DEFAULT_PATHS.outputs
     ledger_path = out / "daily_strategy_trade_ledger.csv"
     board_path = out / "daily_strategy_leaderboard.csv"
@@ -537,6 +554,67 @@ def page_daily_options_research():
         else:
             st.warning(holdout.get("note", "Not enough daily sessions for holdout testing."))
 
+    st.subheader("Intraday filters — Daily ATM Put")
+    st.markdown(
+        "Download recent **5-minute SENSEX index candles** from Yahoo Finance, then test whether end-of-session "
+        "bearish trend, VWAP position and volatility filters improve the later validation sample. "
+        "This uses index candles to filter an EOD option entry; it does not treat index points as option premiums."
+    )
+    st.warning(
+        "Important: Yahoo's intraday history is short-window data (typically up to about 60 days for 5m/15m). "
+        "BSE bhavcopy has daily option marks only. An intraday option-premium stop-loss cannot be backtested "
+        "from these files, so stop-loss results are deliberately not fabricated."
+    )
+    intraday_path = out / "sensex_intraday_5m.csv"
+    filter_report_path = out / "daily_put_intraday_validation.json"
+    filter_metrics_path = out / "daily_put_intraday_validation.csv"
+    if st.button("Download recent 5-minute SENSEX data and test Put filters", key="download_test_intraday"):
+        with st.spinner("Downloading recent SENSEX 5-minute candles and matching daily option trades..."):
+            try:
+                bars = download_sensex_intraday(interval="5m", period="60d", output_path=intraday_path)
+                if bars.empty:
+                    st.error("Yahoo Finance returned no intraday SENSEX candles. Try again later.")
+                else:
+                    joined, filter_report, features = evaluate_intraday_put_filters(ledger, bars)
+                    features.to_csv(out / "sensex_intraday_session_features.csv", index=False)
+                    if filter_report.get("status") == "ok":
+                        metrics_frame = pd.DataFrame(filter_report["validation_metrics"])
+                        metrics_frame.to_csv(filter_metrics_path, index=False)
+                        with open(filter_report_path, "w", encoding="utf-8") as handle:
+                            json.dump(filter_report, handle, indent=2, default=str)
+                        st.success(
+                            f"Downloaded {len(bars):,} intraday bars; matched {filter_report['matched_sessions']} "
+                            f"Daily ATM Put sessions. Validation window: {filter_report['validation_start']} "
+                            f"to {filter_report['validation_end']}."
+                        )
+                        st.dataframe(metrics_frame, use_container_width=True, hide_index=True)
+                    else:
+                        st.warning(filter_report.get("note", "Not enough overlapping data to evaluate filters."))
+                        st.json(filter_report)
+            except Exception as exc:
+                st.error(f"Intraday download or filter analysis failed: {exc}")
+    if filter_report_path.exists() and filter_metrics_path.exists():
+        with open(filter_report_path, encoding="utf-8") as handle:
+            filter_report = json.load(handle)
+        st.subheader("Latest intraday filter validation")
+        if filter_report.get("status") == "ok":
+            st.caption(
+                f"Training: {filter_report.get('training_start')} → {filter_report.get('training_end')} · "
+                f"Validation: {filter_report.get('validation_start')} → {filter_report.get('validation_end')} · "
+                f"Volatility cutoff learned from training only: {filter_report.get('training_median_range_pct')}% range"
+            )
+            st.dataframe(pd.read_csv(filter_metrics_path), use_container_width=True, hide_index=True)
+            st.caption(filter_report.get("warning", ""))
+            st.error(filter_report.get("stop_loss_status", ""))
+            st.download_button(
+                "Download intraday filter validation CSV",
+                filter_metrics_path.read_bytes(), "daily_put_intraday_validation.csv", "text/csv",
+            )
+        else:
+            st.warning(filter_report.get("note", "Intraday validation is not available."))
+    else:
+        st.caption("No intraday filter report yet. Download the recent 5-minute data to run this separate validation.")
+    
     st.subheader("Daily trade ledger")
     choices = ["All strategies"] + sorted(ledger["strategy"].dropna().unique().tolist())
     selected = st.selectbox("Filter daily strategy", choices, key="daily_options_strategy_filter")
