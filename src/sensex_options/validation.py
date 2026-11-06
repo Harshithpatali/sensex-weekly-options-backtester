@@ -120,10 +120,13 @@ def validate_all(index: pd.DataFrame, options: pd.DataFrame) -> dict[str, Any]:
         if not index.empty and {"date", "close"}.issubset(index.columns) and not valid_dates.empty:
             idx_dates = pd.to_datetime(index["date"], errors="coerce").dt.normalize().dropna()
             option_dates = pd.to_datetime(opt["trade_date"], errors="coerce").dt.normalize().dropna()
-            # Compare against the complete observed index history so missing
-            # option sessions at the beginning or end of the archive are visible.
-            coverage_start, coverage_end = idx_dates.min(), idx_dates.max()
-            expected_sessions = sorted(set(idx_dates[(idx_dates >= coverage_start) & (idx_dates <= coverage_end)]))
+            # Measure only the interval for which options history is actually
+            # present. Comparing a short options archive with years of index
+            # sessions would understate coverage and mislabel uncollected history.
+            coverage_start, coverage_end = option_dates.min(), option_dates.max()
+            expected_sessions = sorted(set(
+                idx_dates[(idx_dates >= coverage_start) & (idx_dates <= coverage_end)]
+            ))
             observed_sessions = set(option_dates.unique())
             missing_sessions = [d.strftime("%Y-%m-%d") for d in expected_sessions if d not in observed_sessions]
             report["option_trading_days"] = int(option_dates.nunique())
@@ -156,8 +159,30 @@ def validate_all(index: pd.DataFrame, options: pd.DataFrame) -> dict[str, Any]:
             entry_pe = entry_obs[entry_obs["option_type"].eq("PE")]
             exit_ce = exit_obs[exit_obs["option_type"].eq("CE")]
             exit_pe = exit_obs[exit_obs["option_type"].eq("PE")]
+
+            # Count a side as usable only when at least one strike has a
+            # positive entry premium, a valid same-session exit mark, and a
+            # verified historical lot size. This prevents mere row presence
+            # from inflating the expiry-completeness statistic.
+            lot_col = "lot_size" if "lot_size" in opt.columns else None
+            def usable_contracts(entry_side: pd.DataFrame, exit_side: pd.DataFrame) -> set:
+                if lot_col is None or entry_side.empty or exit_side.empty:
+                    return set()
+                entry_valid = entry_side.copy()
+                exit_valid = exit_side.copy()
+                entry_valid["close"] = pd.to_numeric(entry_valid["close"], errors="coerce")
+                entry_valid[lot_col] = pd.to_numeric(entry_valid[lot_col], errors="coerce")
+                exit_valid["close"] = pd.to_numeric(exit_valid["close"], errors="coerce")
+                entry_valid = entry_valid[
+                    (entry_valid["close"] > 0) & (entry_valid[lot_col] > 0)
+                ]
+                exit_valid = exit_valid[exit_valid["close"].notna() & (exit_valid["close"] >= 0)]
+                return set(entry_valid["strike"].dropna()) & set(exit_valid["strike"].dropna())
+
+            usable_ce = usable_contracts(entry_ce, exit_ce)
+            usable_pe = usable_contracts(entry_pe, exit_pe)
             matured = bool(pd.notna(latest_index_date) and expiry_ts <= latest_index_date)
-            complete = bool(matured and len(entry_ce) and len(entry_pe) and len(exit_ce) and len(exit_pe))
+            complete = bool(matured and usable_ce and usable_pe)
             expiry_rows.append({
                 "expiry_date": expiry_ts.strftime("%Y-%m-%d"),
                 "trade_days": int(len(trade_days)),
@@ -165,10 +190,14 @@ def validate_all(index: pd.DataFrame, options: pd.DataFrame) -> dict[str, Any]:
                 "put_rows": int(len(puts)),
                 "call_contracts": int(calls["strike"].nunique()),
                 "put_contracts": int(puts["strike"].nunique()),
+                "usable_call_strikes": int(len(usable_ce)),
+                "usable_put_strikes": int(len(usable_pe)),
                 "expected_entry_session": entry_day.strftime("%Y-%m-%d") if pd.notna(entry_day) else None,
                 "expected_exit_session": exit_day.strftime("%Y-%m-%d") if pd.notna(exit_day) else None,
                 "entry_has_both_sides": bool(len(entry_ce) and len(entry_pe)),
                 "exit_has_both_sides": bool(len(exit_ce) and len(exit_pe)),
+                "has_usable_call_round_trip": bool(usable_ce),
+                "has_usable_put_round_trip": bool(usable_pe),
                 "matured_expiry": matured,
                 "complete_for_backtest": complete,
                 "first_observation": pd.Timestamp(trade_days[0]).strftime("%Y-%m-%d") if trade_days else None,
