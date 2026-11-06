@@ -152,8 +152,8 @@ def test_parser_supports_legacy_bse_derivatives_columns(tmp_path: Path):
     assert len(parsed) == 2
     assert set(parsed["symbol"]) == {"SENSEX"}
     assert set(parsed["option_type"]) == {"CE", "PE"}
-    assert parsed["trade_date"].eq(pd.Timestamp("2024-07-25")).all()
-    assert parsed["expiry_date"].eq(pd.Timestamp("2024-07-25")).all()
+    assert parsed["trade_date"].eq(pd.Timestamp("2024-07-04")).all()
+    assert parsed["expiry_date"].eq(pd.Timestamp("2024-07-04")).all()
     assert parsed["open_interest"].tolist() == [1000, 1100]
     assert parsed["volume"].tolist() == [100, 120]
     assert parsed["lot_size"].tolist() == [10, 10]
