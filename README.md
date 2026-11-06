@@ -348,3 +348,17 @@ Each position is entered using the current session's option close and exited usi
 Daily strategies use one historical lot per eligible session (no compounding), with ₹10,000 used only as a one-lot affordability filter. They include estimated transaction costs, a trade ledger, daily/weekly/monthly realized P&L, and a chronological 70/30 holdout by entry session. The dashboard shows net P&L, expectancy, profit factor and drawdown. The holdout is descriptive fixed-rule evaluation; it is not proof of future profitability.
 
 **Execution limitation:** BSE bhavcopy data contains end-of-day marks, not historical intraday quotes or order-book depth. This daily experiment is therefore an EOD close-to-next-close approximation, not an executable intraday strategy. It does not place orders. The daily and expiry-based experiments must be judged separately.
+
+
+## Recent SENSEX intraday filter research
+
+The **Daily Options Research** page can download recent `^BSESN` intraday candles from Yahoo Finance (5-minute by default; 15-minute is supported by the research module). Yahoo's intraday retention is limited, so this is a recent-window diagnostic rather than a multi-year archive.
+
+The intraday experiment matches these SENSEX session features to the existing **Daily ATM Put** EOD option ledger:
+- Session return (first observed open to last observed close).
+- Closing level relative to volume-weighted average price (VWAP).
+- Session high-low range as a simple volatility proxy.
+
+It compares an unfiltered baseline with bearish-session, below-VWAP and lower-range filters. The volatility cutoff is calculated from the training segment only, and results are reported on a later chronological validation segment. The dashboard also displays the latest saved SENSEX daily close as the **previous completed-session close**, with the change from the preceding session. This is a historical close, not a live quote.
+
+**Stop-loss limitation:** Yahoo intraday bars are for the SENSEX index, not SENSEX option contracts. BSE bhavcopy contains daily option marks, not intraday option premiums. Therefore this dataset cannot establish whether an option-premium stop-loss would have triggered, nor the fill price. The research page explicitly marks option stop-loss testing as unavailable instead of using index points as a false proxy. Obtain timestamped CE/PE intraday trade/quote data before evaluating option stop-losses, intraday exits, or realistic execution.
