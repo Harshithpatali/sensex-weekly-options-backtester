@@ -72,6 +72,16 @@ def run_backtest(
     options = options.copy()
     options["trade_date"] = pd.to_datetime(options["trade_date"]).dt.normalize()
     options["expiry_date"] = pd.to_datetime(options["expiry_date"]).dt.normalize()
+    for col in ("strike", "close", "lot_size", "volume"):
+        if col in options.columns:
+            options[col] = pd.to_numeric(options[col], errors="coerce")
+    if "option_type" in options.columns:
+        options["option_type"] = options["option_type"].astype(str).str.strip().str.upper()
+    if "symbol" in options.columns:
+        options["symbol"] = options["symbol"].astype(str).str.strip().str.upper()
+    index["close"] = pd.to_numeric(index["close"], errors="coerce")
+    index = index.dropna(subset=["date", "close"])
+    options = options.dropna(subset=["trade_date", "expiry_date", "strike"])
 
     # Optional date filter on expiries
     expiries = available_expiries(options)
@@ -128,12 +138,18 @@ def run_backtest(
         entry_prem = float(entry_prem)
 
         # Exit premium: same contract on exit_date
-        exit_rows = options[
+        exit_mask = (
             (options["expiry_date"] == expiry)
             & (options["trade_date"] == exit_date)
             & (options["option_type"] == "CE")
             & (options["strike"] == strike)
-        ]
+        )
+        # Contract identity includes the exchange symbol; never exit against a
+        # different series that happens to share the same strike and expiry.
+        selected_symbol = selected.get("symbol")
+        if pd.notna(selected_symbol) and "symbol" in options.columns:
+            exit_mask &= options["symbol"] == str(selected_symbol).strip().upper()
+        exit_rows = options[exit_mask]
         if exit_rows.empty:
             trades.append(_skip(
                 expiry, entry_date, exit_date, "missing_exit_premium",
@@ -187,9 +203,8 @@ def run_backtest(
             adj_entry, adj_exit, lot_size, n_lots, config.cost,
         )
         # Note: slippage already embedded in adj premiums; cost module still reports it
-        net_pnl = gross_pnl - (cost_break["total_cost"] - cost_break["slippage"])
-        # because slippage is already in gross via adj prices; avoid double-count
-        # Simpler: recompute costs without slippage component for net
+        # Slippage is already reflected in adjusted entry/exit premiums. Subtract
+        # all remaining fees once, avoiding double-counting the slippage component.
         cost_wo_slip = cost_break["total_cost"] - cost_break["slippage"]
         net_pnl = gross_pnl - cost_wo_slip
 
@@ -315,9 +330,9 @@ def compute_summary(
         max_dd = 0.0
         max_dd_pct = 0.0
 
-    gross_wins = float(wins["gross_pnl"].sum()) if len(wins) else 0.0
-    gross_losses = abs(float(losses["gross_pnl"].sum())) if len(losses) else 0.0
-    profit_factor = (gross_wins / gross_losses) if gross_losses > 0 else (float("inf") if gross_wins > 0 else 0.0)
+    net_wins = float(wins["net_pnl"].sum()) if len(wins) else 0.0
+    net_losses = abs(float(losses["net_pnl"].sum())) if len(losses) else 0.0
+    profit_factor = (net_wins / net_losses) if net_losses > 0 else (float("inf") if net_wins > 0 else 0.0)
 
     n_comp = len(completed)
     win_rate = 100.0 * len(wins) / n_comp if n_comp else 0.0
