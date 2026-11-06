@@ -50,10 +50,10 @@ def collect_index(start: str, end: str) -> None:
 @click.option("--end", required=True, help="End date YYYY-MM-DD")
 @click.option("--sleep", default=0.8, show_default=True, help="Seconds between downloads")
 def collect_options(start: str, end: str, sleep: float) -> None:
-    """Download BSE FO bhavcopies and normalise SENSEX Call options."""
+    """Download BSE FO bhavcopies and normalize SENSEX Call and Put options."""
     from sensex_options.sources.bse import download_bse_options_range
     df = download_bse_options_range(start, end, sleep=sleep)
-    click.echo(f"Option rows (SENSEX CE filtered): {len(df)}")
+    click.echo(f"SENSEX CE/PE option rows: {len(df):,}")
 
 
 @main.command("build-features")
