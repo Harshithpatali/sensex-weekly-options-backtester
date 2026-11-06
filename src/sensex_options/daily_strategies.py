@@ -54,7 +54,10 @@ def run_daily_strategy_suite(
     opt = opt[(opt["close"] >= 0) & (opt["strike"] > 0) & opt["option_type"].isin(["CE", "PE"])]
     opt = opt.sort_values(["trade_date", "expiry_date", "strike", "symbol"])
     by_day = {day: frame for day, frame in opt.groupby("trade_date", sort=False)}
-    capital_by_strategy = {name: float(capital) for name in DAILY_STRATEGIES}
+    # Unit-lot research sizing: one lot per eligible session, not compounded.
+    # This keeps the full historical sample visible instead of stopping a
+    # strategy permanently after an early sequence of losses.
+    cumulative_pnl = {name: 0.0 for name in DAILY_STRATEGIES}
     trades: list[dict] = []
     sessions = idx.reset_index(drop=True)
 
@@ -110,23 +113,29 @@ def run_daily_strategy_suite(
             if exit_candidates.empty:
                 continue
             exit_premium = float(exit_candidates.iloc[-1]["close"])
-            available = capital_by_strategy[strategy]
             entry_adjustment = cost.entry_slippage + cost.spread_points / 2 + cost.market_impact_points
-            exit_adjustment = cost.exit_slippage + cost.spread_points / 2 + cost.market_impact_points
             adjusted_entry = entry_premium + entry_adjustment
-            adjusted_exit = max(0.0, exit_premium - exit_adjustment)
-            entry_cost_per_lot = adjusted_entry * lot_size
-            n_lots = int(available // max(entry_cost_per_lot, 1e-9))
-            if n_lots < 1:
+            entry_turnover = adjusted_entry * lot_size
+            entry_fees = (
+                cost.brokerage_per_lot
+                + cost.other_charges
+                + (cost.brokerage_pct + cost.exchange_charges_pct) * entry_turnover
+                + cost.gst_pct * (cost.brokerage_per_lot + cost.other_charges
+                    + cost.exchange_charges_pct * entry_turnover)
+                + cost.stamp_duty_pct * entry_turnover
+            )
+            if entry_turnover + entry_fees > capital:
                 continue
-            qty = n_lots * lot_size
+            n_lots = 1
+            qty = lot_size
             gross = (exit_premium - entry_premium) * qty
             charges = compute_transaction_costs(
                 entry_premium, exit_premium, lot_size, n_lots, cost
             )
-            net = max(-available, gross - charges["total_cost"])
-            ending = max(0.0, available + net)
-            capital_by_strategy[strategy] = ending
+            net = gross - charges["total_cost"]
+            starting_equity = capital + cumulative_pnl[strategy]
+            cumulative_pnl[strategy] += net
+            ending = capital + cumulative_pnl[strategy]
             trades.append({
                 "strategy": strategy, "strategy_description": DAILY_STRATEGIES[strategy],
                 "entry_date": entry_day, "exit_date": exit_day, "expiry_date": expiry,
@@ -135,7 +144,7 @@ def run_daily_strategy_suite(
                 "option_type": option_type, "spot_reference": reference_spot,
                 "strike": float(atm), "symbol": symbol, "entry_premium": entry_premium,
                 "exit_premium": exit_premium, "lot_size": lot_size, "lots": n_lots,
-                "quantity": qty, "starting_capital": round(available, 2),
+                "quantity": qty, "starting_capital": round(starting_equity, 2),
                 "ending_capital": round(ending, 2), "gross_pnl": round(gross, 2),
                 "estimated_costs": charges["total_cost"], "brokerage": charges["brokerage"],
                 "stt": charges["stt"], "exchange_charges": charges["exchange"],
@@ -175,7 +184,8 @@ def run_daily_strategy_suite(
         "signal_timing": "prior-session return; no same-day signal look-ahead",
         "strike_selection": "nearest ATM using prior-session SENSEX close",
         "expiry_selection": "nearest available expiry not earlier than exit session",
-        "capital": "isolated sequential capital curve per strategy; not a shared portfolio",
+        "position_sizing": "one historical lot per eligible session; fixed unit-lot research, not compounded sizing",
+        "capital": "capital is used only as a one-lot affordability filter; each strategy has its own cumulative unit-lot P&L curve",
         "execution": "EOD close marks with configurable estimated costs; not guaranteed fills",
         "initial_capital_per_strategy": capital,
         "cost_assumptions": cost.__dict__,
