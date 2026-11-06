@@ -160,7 +160,7 @@ def test_option_horizon_outcomes_use_same_contract_for_multiple_holds():
     assert set(outcomes["holding_sessions"].unique()) == {1, 2}
     assert set(outcomes["moneyness"].unique()) == {"ATM", "ITM1", "OTM1", "OTM2"}
     assert set(outcomes["option_family"].unique()) == {
-        "LONG_OPTIONS_ATM", "LONG_OPTIONS_ITM1", "LONG_OPTIONS_OTM1"
+        "LONG_OPTIONS_ATM", "LONG_OPTIONS_ITM1", "LONG_OPTIONS_OTM1", "LONG_OPTIONS_OTM2"
     }
 
     h1 = outcomes[
