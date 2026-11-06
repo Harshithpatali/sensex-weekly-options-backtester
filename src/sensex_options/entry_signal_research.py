@@ -149,6 +149,30 @@ def _default_signal_cost() -> CostConfig:
     )
 
 
+def _filter_liquid_option_rows(
+    options: pd.DataFrame,
+    min_volume: float = 25.0,
+    min_open_interest: float = 50.0,
+) -> pd.DataFrame:
+    """Keep only contracts with observable, non-zero EOD activity and OI.
+
+    BSE bhavcopy has no bid/ask. Requiring both volume and OI on entry and
+    exit days is a conservative stale-mark screen, not proof of executable fills.
+    Missing liquidity fields are rejected rather than silently treated as liquid.
+    """
+    required = {"volume", "open_interest", "close"}
+    if options is None or options.empty or not required.issubset(options.columns):
+        return pd.DataFrame(columns=list(options.columns) if options is not None else [])
+    out = options.copy()
+    for column in required:
+        out[column] = pd.to_numeric(out[column], errors="coerce")
+    return out[
+        (out["close"] > 0)
+        & (out["volume"] >= float(min_volume))
+        & (out["open_interest"] >= float(min_open_interest))
+    ].copy()
+
+
 def _option_horizon_outcomes(
     index: pd.DataFrame,
     options: pd.DataFrame,
@@ -189,6 +213,8 @@ def _option_horizon_outcomes(
         & (opt["close"] >= 0)
         & (opt["option_type"].isin(["CE", "PE"]))
     ].copy()
+    # Filter entry and exit dates: stale or inactive EOD marks are not fills.
+    opt = _filter_liquid_option_rows(opt)
     opt = opt.sort_values(["trade_date", "expiry_date", "strike", "symbol"])
     by_day = {day: frame for day, frame in opt.groupby("trade_date", sort=False)}
     sessions = idx.reset_index(drop=True)
@@ -420,6 +446,8 @@ def _option_debit_vertical_outcomes(
         & (opt["close"] >= 0)
         & (opt["option_type"].isin(["CE", "PE"]))
     ].sort_values(["trade_date", "expiry_date", "strike", "symbol"])
+    # Both legs must be liquid on entry and exit dates.
+    opt = _filter_liquid_option_rows(opt)
     by_day = {day: frame for day, frame in opt.groupby("trade_date", sort=False)}
     sessions = idx.reset_index(drop=True)
     rows = []
@@ -765,6 +793,8 @@ def _option_credit_vertical_outcomes(
         (opt["strike"] > 0) & (opt["close"] >= 0)
         & opt["option_type"].isin(["CE", "PE"])
     ].sort_values(["trade_date", "expiry_date", "strike", "symbol"])
+    # Both legs must be liquid on entry and exit dates.
+    opt = _filter_liquid_option_rows(opt)
     by_day = {day: frame for day, frame in opt.groupby("trade_date", sort=False)}
     rows = []
 
