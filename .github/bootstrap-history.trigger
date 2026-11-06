@@ -15,3 +15,5 @@ Legacy BSE schema parser fix: rerun May 2023-July 2024 archive ingestion.
 Rebuild once more with legacy lot-size metadata fallback enabled.
 
 Legacy archive schema diagnostic rerun: inspect raw CSV columns, SENSEX symbols, and parser row counts.
+
+Rerun historical backfill with the actual spaced-header parser fix and strict risk/liquidity filters.
