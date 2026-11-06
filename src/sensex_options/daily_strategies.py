@@ -13,6 +13,9 @@ DAILY_STRATEGIES = {
     "DAILY_ATM_PUT": "Buy ATM Put every eligible session",
     "DAILY_MOMENTUM": "Buy Call after prior up day; Put after prior down day",
     "DAILY_MEAN_REVERSION": "Buy Put after prior up day; Call after prior down day",
+    "DAILY_5D_MOMENTUM": "Buy CE or PE using the prior five-session SENSEX return",
+    "DAILY_EMA_TREND": "Buy CE when prior EMA-5 is above EMA-20; otherwise PE",
+    "DAILY_RSI_REVERSAL": "Buy CE when prior RSI-14 is below 30; PE when above 70",
 }
 
 
@@ -40,7 +43,15 @@ def run_daily_strategy_suite(
     idx = index.copy()
     idx["date"] = pd.to_datetime(idx["date"], errors="coerce").dt.normalize()
     idx["close"] = pd.to_numeric(idx["close"], errors="coerce")
-    idx = idx.dropna(subset=["date", "close"]).sort_values("date").drop_duplicates("date")
+    idx = idx.dropna(subset=["date", "close"]).sort_values("date").drop_duplicates("date").reset_index(drop=True)
+    idx["ema5"] = idx["close"].ewm(span=5, adjust=False).mean()
+    idx["ema20"] = idx["close"].ewm(span=20, adjust=False).mean()
+    delta = idx["close"].diff()
+    avg_gain = delta.clip(lower=0).rolling(14).mean()
+    avg_loss = (-delta.clip(upper=0)).rolling(14).mean()
+    relative_strength = avg_gain / avg_loss.replace(0, float("nan"))
+    idx["rsi14"] = 100 - (100 / (1 + relative_strength))
+    idx.loc[(avg_loss == 0) & (avg_gain > 0), "rsi14"] = 100.0
     opt = options.copy()
     opt["trade_date"] = pd.to_datetime(opt["trade_date"], errors="coerce").dt.normalize()
     opt["expiry_date"] = pd.to_datetime(opt["expiry_date"], errors="coerce").dt.normalize()
@@ -70,6 +81,16 @@ def run_daily_strategy_suite(
         entry_day, exit_day = entry_row["date"], exit_row["date"]
         reference_spot = float(signal_row["close"])
         prior_return = reference_spot / float(prior_row["close"]) - 1.0
+        prior_5d_return = (
+            reference_spot / float(sessions.iloc[i - 6]["close"]) - 1.0
+            if i >= 6 else None
+        )
+        prior_features = sessions.iloc[i - 1]
+        rsi14 = prior_features["rsi14"]
+        ema_direction = (
+            "CE" if prior_features["ema5"] > prior_features["ema20"]
+            else "PE" if prior_features["ema5"] < prior_features["ema20"] else None
+        )
         entry_options = by_day.get(entry_day)
         exit_options = by_day.get(exit_day)
         if entry_options is None or exit_options is None:
@@ -90,6 +111,15 @@ def run_daily_strategy_suite(
             "DAILY_ATM_PUT": "PE",
             "DAILY_MOMENTUM": "CE" if prior_return > 0 else "PE" if prior_return < 0 else None,
             "DAILY_MEAN_REVERSION": "PE" if prior_return > 0 else "CE" if prior_return < 0 else None,
+            "DAILY_5D_MOMENTUM": (
+                "CE" if prior_5d_return is not None and prior_5d_return > 0
+                else "PE" if prior_5d_return is not None and prior_5d_return < 0 else None
+            ),
+            "DAILY_EMA_TREND": ema_direction if i >= 20 else None,
+            "DAILY_RSI_REVERSAL": (
+                "CE" if pd.notna(rsi14) and rsi14 < 30
+                else "PE" if pd.notna(rsi14) and rsi14 > 70 else None
+            ),
         }
         for strategy, option_type in directions.items():
             if option_type is None:
