@@ -431,71 +431,71 @@ def _option_debit_vertical_outcomes(
                 for option_type, long_strike, short_strike, label in spread_specs:
                     if short_strike is None:
                         continue
-                long_entry_rows = chain[
-                    (chain["strike"] == long_strike) & (chain["option_type"] == option_type)
-                ]
-                short_entry_rows = chain[
-                    (chain["strike"] == short_strike) & (chain["option_type"] == option_type)
-                ]
-                if long_entry_rows.empty or short_entry_rows.empty:
-                    continue
-                long_entry = long_entry_rows.iloc[0]
-                short_entry = short_entry_rows.iloc[0]
-                long_symbol = str(long_entry.get("symbol", "SENSEX")).strip().upper()
-                short_symbol = str(short_entry.get("symbol", "SENSEX")).strip().upper()
-                long_lot = long_entry.get("lot_size")
-                short_lot = short_entry.get("lot_size")
-                if (
-                    not _finite(long_lot) or not _finite(short_lot)
-                    or int(long_lot) <= 0 or int(short_lot) != int(long_lot)
-                    or long_symbol != short_symbol
-                ):
-                    continue
-                lot_size = int(long_lot)
-                entry_long_premium = float(long_entry["close"])
-                entry_short_premium = float(short_entry["close"])
-                entry_debit = entry_long_premium - entry_short_premium
-                if not _finite(entry_debit) or entry_debit <= 0:
-                    continue
+                    long_entry_rows = chain[
+                        (chain["strike"] == long_strike) & (chain["option_type"] == option_type)
+                    ]
+                    short_entry_rows = chain[
+                        (chain["strike"] == short_strike) & (chain["option_type"] == option_type)
+                    ]
+                    if long_entry_rows.empty or short_entry_rows.empty:
+                        continue
+                    long_entry = long_entry_rows.iloc[0]
+                    short_entry = short_entry_rows.iloc[0]
+                    long_symbol = str(long_entry.get("symbol", "SENSEX")).strip().upper()
+                    short_symbol = str(short_entry.get("symbol", "SENSEX")).strip().upper()
+                    long_lot = long_entry.get("lot_size")
+                    short_lot = short_entry.get("lot_size")
+                    if (
+                        not _finite(long_lot) or not _finite(short_lot)
+                        or int(long_lot) <= 0 or int(short_lot) != int(long_lot)
+                        or long_symbol != short_symbol
+                    ):
+                        continue
+                    lot_size = int(long_lot)
+                    entry_long_premium = float(long_entry["close"])
+                    entry_short_premium = float(short_entry["close"])
+                    entry_debit = entry_long_premium - entry_short_premium
+                    if not _finite(entry_debit) or entry_debit <= 0:
+                        continue
 
-                long_exit_rows = exit_options[
-                    (exit_options["expiry_date"] == expiry)
-                    & (exit_options["strike"] == long_strike)
-                    & (exit_options["option_type"] == option_type)
-                    & (exit_options["symbol"] == long_symbol)
-                ]
-                short_exit_rows = exit_options[
-                    (exit_options["expiry_date"] == expiry)
-                    & (exit_options["strike"] == short_strike)
-                    & (exit_options["option_type"] == option_type)
-                    & (exit_options["symbol"] == short_symbol)
-                ]
-                if long_exit_rows.empty or short_exit_rows.empty:
-                    continue
-                exit_long_premium = float(long_exit_rows.iloc[-1]["close"])
-                exit_short_premium = float(short_exit_rows.iloc[-1]["close"])
-                if (
-                    not _finite(exit_long_premium) or not _finite(exit_short_premium)
-                    or exit_long_premium < 0 or exit_short_premium < 0
-                ):
-                    continue
-                exit_credit = exit_long_premium - exit_short_premium
-                if exit_credit < 0:
-                    # Reject inverted/possibly stale spread marks instead of fabricating a floor.
-                    continue
+                    long_exit_rows = exit_options[
+                        (exit_options["expiry_date"] == expiry)
+                        & (exit_options["strike"] == long_strike)
+                        & (exit_options["option_type"] == option_type)
+                        & (exit_options["symbol"] == long_symbol)
+                    ]
+                    short_exit_rows = exit_options[
+                        (exit_options["expiry_date"] == expiry)
+                        & (exit_options["strike"] == short_strike)
+                        & (exit_options["option_type"] == option_type)
+                        & (exit_options["symbol"] == short_symbol)
+                    ]
+                    if long_exit_rows.empty or short_exit_rows.empty:
+                        continue
+                    exit_long_premium = float(long_exit_rows.iloc[-1]["close"])
+                    exit_short_premium = float(short_exit_rows.iloc[-1]["close"])
+                    if (
+                        not _finite(exit_long_premium) or not _finite(exit_short_premium)
+                        or exit_long_premium < 0 or exit_short_premium < 0
+                    ):
+                        continue
+                    exit_credit = exit_long_premium - exit_short_premium
+                    if exit_credit < 0:
+                        # Reject inverted/possibly stale spread marks instead of fabricating a floor.
+                        continue
 
-                quantity = lot_size
-                entry_fees = _debit_vertical_entry_fees(
-                    entry_long_premium, entry_short_premium, quantity, cfg
-                )
-                if entry_debit * quantity + entry_fees > capital:
-                    continue
-                charges = _debit_vertical_costs(
-                    entry_long_premium, entry_short_premium,
-                    exit_long_premium, exit_short_premium,
-                    quantity, cfg,
-                )
-                net = (exit_credit - entry_debit) * quantity - charges["total_cost"]
+                    quantity = lot_size
+                    entry_fees = _debit_vertical_entry_fees(
+                        entry_long_premium, entry_short_premium, quantity, cfg
+                    )
+                    if entry_debit * quantity + entry_fees > capital:
+                        continue
+                    charges = _debit_vertical_costs(
+                        entry_long_premium, entry_short_premium,
+                        exit_long_premium, exit_short_premium,
+                        quantity, cfg,
+                    )
+                    net = (exit_credit - entry_debit) * quantity - charges["total_cost"]
                     result_by_direction[label] = round(net, 2)
 
                 if result_by_direction:
