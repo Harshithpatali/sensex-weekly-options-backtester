@@ -1745,6 +1745,7 @@ def run_entry_signal_research(
                 errors="coerce",
             ).fillna(0).sum()
         ) if not trades.empty else 0,
+        "training_start": str(paired["entry_date"].min().date()),
         "training_end": str(train_end.date()),
         "holdout_start": str(holdout_start.date()) if holdout_start is not None else None,
         "holdout_end": str(paired["exit_date"].max().date()),
