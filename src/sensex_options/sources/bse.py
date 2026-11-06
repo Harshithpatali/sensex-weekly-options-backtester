@@ -288,12 +288,9 @@ def _sanitise_premiums(df: pd.DataFrame) -> pd.DataFrame:
     out.loc[use_settle, "close"] = settle[use_settle]
 
     still_bad = still_bad & ~use_settle
-    # Intrinsic for CE at expiry-like rows
-    is_ce = opt.astype(str).str.upper().isin(["CE", "CALL", "C"])
-    intrinsic = (und - strike).clip(lower=0)
-    use_intr = still_bad & is_ce & und.notna() & strike.notna()
-    out.loc[use_intr, "close"] = intrinsic[use_intr]
-
+    # Never replace a missing/invalid market close with theoretical intrinsic value.
+    # Intrinsic payoff is not an observed executable premium; mark it missing instead.
+    out.loc[still_bad, "close"] = np.nan
     return out
 
 
