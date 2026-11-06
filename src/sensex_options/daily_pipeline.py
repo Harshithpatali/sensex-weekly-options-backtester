@@ -317,6 +317,7 @@ def run() -> dict:
         "daily_strategy_trades": int(len(daily_trades)),
         "daily_holdout_status": daily_holdout.get("status"),
         "risk_managed_research": risk_research_status,
+        "regime_research": regime_research_status,
         "entry_signal_research": entry_signal_status,
         "intraday_research": intraday_status,
         "pnl_semantics": "realized P&L grouped by trade exit date; not daily mark-to-market",
