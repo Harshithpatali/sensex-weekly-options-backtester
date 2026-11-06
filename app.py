@@ -485,6 +485,20 @@ def page_daily_options_research():
 
     st.subheader("Daily strategy comparison")
     st.dataframe(board, use_container_width=True, hide_index=True)
+    if {"net_pnl", "median_trade_pnl", "top3_wins_share_of_net_pct"}.issubset(board.columns):
+        concentration = board[
+            (pd.to_numeric(board["net_pnl"], errors="coerce") > 0)
+            & (
+                (pd.to_numeric(board["median_trade_pnl"], errors="coerce") < 0)
+                | (pd.to_numeric(board["top3_wins_share_of_net_pct"], errors="coerce") > 50)
+            )
+        ]
+        if not concentration.empty:
+            flagged = ", ".join(concentration["strategy"].astype(str))
+            st.warning(
+                f"Tail-risk warning: {flagged} has positive total P&L but a negative median trade "
+                "or more than half of net profit from its three largest wins. Do not treat the headline P&L as consistent profitability."
+            )
     left, right = st.columns(2)
     pnl_fig = px.bar(board.sort_values("net_pnl"), x="net_pnl", y="strategy", orientation="h",
                      title="Net P&L after estimated costs", text_auto=".2s")
