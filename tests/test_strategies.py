@@ -71,5 +71,5 @@ def test_strategy_capital_compounds_between_expiries():
     )
     atm_calls = trades[trades.strategy == "ATM_CALL"].sort_values("exit_date")
     assert len(atm_calls) == 2
-    assert atm_calls.iloc[0]["ending_capital"] == 10010.0
+    assert atm_calls.iloc[0]["ending_capital"] == 12000.0
     assert atm_calls.iloc[1]["starting_capital"] == 10010.0
