@@ -211,6 +211,7 @@ def run() -> dict:
             "candidate_rules_tested": signal_report.get("candidate_rules_tested", 0),
             "holding_periods_tested": signal_report.get("holding_periods_tested", []),
             "instrument_families_tested": signal_report.get("instrument_families_tested", []),
+            "moneyness_variants_tested": signal_report.get("moneyness_variants_tested", []),
             "position_sizing": signal_report.get("position_sizing"),
             "overlapping_candidate_entries_skipped": signal_report.get("overlapping_candidate_entries_skipped", 0),
             "candidate_pass_count": signal_report.get("candidate_pass_count", 0),
