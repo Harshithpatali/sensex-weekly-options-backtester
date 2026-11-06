@@ -4,7 +4,10 @@ from sensex_options.entry_signal_research import (
     _build_monthly_selector,
     _paired_option_outcomes,
     _option_horizon_outcomes,
+    _option_credit_vertical_outcomes,
+    _option_chain_market_features,
     _one_position_at_a_time,
+    _candidate_signals,
     build_lagged_features,
     run_entry_signal_research,
 )
@@ -190,3 +193,72 @@ def test_one_position_book_skips_overlapping_trades_but_allows_exit_day_reentry(
     selected, skipped = _one_position_at_a_time(trades)
     assert selected["trade"].tolist() == ["first", "exit_day_reentry"]
     assert skipped == 2
+
+
+def test_option_chain_features_calculate_pcr_and_option_positioning():
+    dates = pd.bdate_range("2024-01-01", periods=35)
+    close = [72000 + i * 10 for i in range(len(dates))]
+    index = pd.DataFrame({
+        "date": dates,
+        "open": close,
+        "high": [v + 100 for v in close],
+        "low": [v - 100 for v in close],
+        "close": close,
+    })
+    expiry = dates[-1] + pd.Timedelta(days=14)
+    rows = []
+    for i, day in enumerate(dates):
+        for strike in (71900, 72000, 72100):
+            for option_type in ("CE", "PE"):
+                is_put = option_type == "PE"
+                rows.append({
+                    "trade_date": day,
+                    "expiry_date": expiry,
+                    "strike": strike,
+                    "symbol": "SENSEX",
+                    "option_type": option_type,
+                    "close": (100 + i if not is_put else 105 - i * 0.5) + abs(strike - 72000) / 100,
+                    "volume": 1000 if is_put else 500,
+                    "open_interest": (2000 if is_put else 1000) + i * (20 if is_put else 10),
+                })
+    features = _option_chain_market_features(index, pd.DataFrame(rows))
+    latest = features[features["signal_date"] == dates[-1]].iloc[0]
+    assert latest["pcr_volume_near_atm"] > 1.0
+    assert latest["pcr_oi_near_atm"] > 1.0
+    assert pd.notna(latest["call_oi_change_pct"])
+    assert pd.notna(latest["put_oi_change_pct"])
+    assert "atm_straddle_pct" in features.columns
+
+    signals = _candidate_signals(features)
+    assert any(name.startswith("PCR_OI_") for name in signals)
+    assert any(name.startswith("CALL_OI_BUILDUP") for name in signals)
+    assert any("CHEAP_STRADDLE" in name for name in signals)
+
+
+def test_defined_risk_credit_spreads_use_observed_hedge_and_fit_risk_budget():
+    dates = pd.bdate_range("2024-01-01", periods=12)
+    close = [72000.0] * len(dates)
+    index = pd.DataFrame({
+        "date": dates, "open": close, "high": [v + 100 for v in close],
+        "low": [v - 100 for v in close], "close": close,
+    })
+    expiry = dates[-1] + pd.Timedelta(days=10)
+    option_rows = []
+    for i, day in enumerate(dates):
+        for strike in (71900.0, 72000.0, 72100.0):
+            for option_type in ("CE", "PE"):
+                # ATM option is 15 points; the protective OTM hedge costs 5.
+                premium = 15.0 if strike == 72000 else 5.0
+                option_rows.append({
+                    "trade_date": day, "expiry_date": expiry, "strike": strike,
+                    "symbol": "SENSEX", "option_type": option_type,
+                    "close": premium + (i % 2) * 0.1, "lot_size": 10,
+                })
+    outcomes = _option_credit_vertical_outcomes(
+        index, pd.DataFrame(option_rows), holding_periods=(1,), spread_width_steps=(1,),
+        capital=10000.0,
+    )
+    assert not outcomes.empty
+    assert set(outcomes["option_family"]) == {"CREDIT_SPREADS_W1"}
+    assert outcomes["call_pnl"].notna().any()
+    assert outcomes["put_pnl"].notna().any()
