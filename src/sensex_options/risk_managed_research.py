@@ -355,7 +355,8 @@ def run_risk_managed_research(
             "holdout_all_months_target_met": holdout["holdout_all_active_months_pass"],
         }
         row["validation_candidate"] = bool(
-            train["train_trades"] >= 30
+            row["option_ohlc_coverage_pct"] >= 95.0
+            and train["train_trades"] >= 30
             and train["train_active_months"] >= 4
             and train["train_all_active_months_pass"]
             and train["train_aggregate_pf"] is not None
@@ -387,6 +388,7 @@ def run_risk_managed_research(
         "target_profit_factor": MONTHLY_TARGET_PF,
         "minimum_trades_per_month_for_target_test": MIN_MONTHLY_TRADES,
         "minimum_validation_candidate_requirements": {
+            "option_ohlc_coverage_pct": 95.0,
             "training_trades": 30,
             "training_active_months": 4,
             "training_all_active_months_must_pass": True,
