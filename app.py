@@ -1060,6 +1060,103 @@ def page_daily_options_research():
         else:
             st.warning(holdout.get("note", "Not enough daily sessions for holdout testing."))
 
+    st.subheader("Advanced entry-signal research")
+    st.caption(
+        "Saved results from the scheduled GitHub Actions research engine. "
+        "This panel does not collect data or run backtests in Streamlit. "
+        "Signals are selected using prior completed sessions and reported separately for training and holdout."
+    )
+    signal_report_path = out / "entry_signal_research.json"
+    signal_board_path = out / "entry_signal_leaderboard.csv"
+    signal_monthly_path = out / "entry_signal_monthly.csv"
+    signal_ledger_gzip_path = out / "entry_signal_trade_ledger.csv.gz"
+    if signal_report_path.exists():
+        try:
+            with open(signal_report_path, encoding="utf-8") as handle:
+                signal_report = json.load(handle)
+        except (OSError, json.JSONDecodeError):
+            signal_report = {}
+        sm1, sm2, sm3, sm4 = st.columns(4)
+        sm1.metric("Unique entry rules tested", f"{signal_report.get('candidate_rules_tested', 0):,}")
+        sm2.metric("Option outcome samples", f"{signal_report.get('option_outcome_sessions', 0):,}")
+        sm3.metric("Rules passing both screens", f"{signal_report.get('candidate_pass_count', 0):,}")
+        sm4.metric("Monthly PF target", f"{signal_report.get('monthly_target_profit_factor', 1.20):.2f}")
+        st.caption(
+            f"Training period: {signal_report.get('training_start', '—')} → {signal_report.get('training_end', '—')} · "
+            f"Holdout period: {signal_report.get('holdout_start', '—')} → {signal_report.get('holdout_end', '—')} · "
+            f"Horizons: {', '.join(str(x) for x in signal_report.get('holding_periods_tested', [])) or '—'} sessions · "
+            f"Structures: {', '.join(signal_report.get('instrument_families_tested', [])) or '—'}"
+        )
+        if signal_report.get("candidate_pass_count", 0):
+            st.success("At least one candidate passed the declared training and holdout screens. Review monthly records before any paper trading.")
+        else:
+            st.warning(
+                "No candidate passed the strict monthly PF screen in both training and holdout. "
+                "The leaderboard is research evidence, not a live-trading signal."
+            )
+        st.caption(
+            "A testable month requires at least three trades. A passing candidate must meet PF ≥ 1.20 "
+            "in every testable month in both windows, and also pass aggregate profit-factor, sample-size and positive-net-P&L requirements."
+        )
+        if signal_board_path.exists():
+            signal_board = pd.read_csv(signal_board_path)
+            if not signal_board.empty:
+                shown_columns = [
+                    "training_rank", "strategy", "option_family", "holding_sessions",
+                    "train_trades", "train_net_pnl", "train_aggregate_pf",
+                    "train_monthly_target_hit_pct", "train_median_trade_pnl",
+                    "train_max_drawdown", "holdout_trades", "holdout_net_pnl",
+                    "holdout_aggregate_pf", "holdout_monthly_target_hit_pct",
+                    "holdout_median_trade_pnl", "holdout_max_drawdown", "candidate_pass",
+                ]
+                visible = [column for column in shown_columns if column in signal_board.columns]
+                st.dataframe(
+                    signal_board[visible].head(25),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                rule_names = signal_board["strategy"].dropna().astype(str).tolist()
+                selected_signal_rule = st.selectbox(
+                    "Monthly results for an entry rule",
+                    rule_names,
+                    key="advanced_entry_signal_monthly_rule",
+                )
+                if signal_monthly_path.exists():
+                    signal_monthly = pd.read_csv(signal_monthly_path)
+                    rule_monthly = signal_monthly[
+                        signal_monthly["strategy"].astype(str) == selected_signal_rule
+                    ]
+                    st.dataframe(
+                        rule_monthly.sort_values("month", ascending=False),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+                    st.download_button(
+                        "Download selected rule's monthly results",
+                        rule_monthly.to_csv(index=False),
+                        "selected_entry_signal_monthly.csv",
+                        "text/csv",
+                        key="selected_entry_signal_monthly_download",
+                    )
+                st.download_button(
+                    "Download entry-signal leaderboard",
+                    signal_board.to_csv(index=False),
+                    "entry_signal_leaderboard.csv",
+                    "text/csv",
+                    key="entry_signal_leaderboard_download",
+                )
+        if signal_ledger_gzip_path.exists():
+            st.download_button(
+                "Download complete entry-signal trade ledger (compressed CSV)",
+                signal_ledger_gzip_path.read_bytes(),
+                "entry_signal_trade_ledger.csv.gz",
+                "application/gzip",
+                key="entry_signal_trade_ledger_download",
+            )
+        st.caption(signal_report.get("caveat", ""))
+    else:
+        st.info("Saved entry-signal research will appear after the next successful scheduled strategy workflow.")
+
     st.subheader("Intraday filters — Daily ATM Put")
     st.caption(
         "Read-only results from the scheduled GitHub Actions data pipeline. "
