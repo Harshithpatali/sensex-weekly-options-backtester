@@ -42,26 +42,29 @@ jobs:
 
           DEFAULT_PATHS.ensure()
           report = {"samples": []}
-          for day in ("2023-05-15", "2023-05-16", "2024-07-05"):
+          for day in ("2023-05-15", "2023-05-16", "2024-07-05", "2024-07-08", "2024-07-09", "2026-11-05"):
               dt = datetime.strptime(day, "%Y-%m-%d")
               path, status = download_one_day(dt, DEFAULT_PATHS.raw_options)
               item = {"date": day, "download_status": status, "path": str(path) if path else None}
-              if path is not None and path.suffix.lower() == ".zip":
+              if path is not None:
                   try:
-                      with zipfile.ZipFile(path) as archive:
-                          names = archive.namelist()
-                          csv_names = [name for name in names if name.lower().endswith(".csv")]
-                          item["archive_members"] = names[:30]
-                          item["csv_members"] = csv_names
-                          if csv_names:
-                              with archive.open(csv_names[0]) as handle:
-                                  raw = pd.read_csv(handle)
-                              item["raw_rows"] = int(len(raw))
-                              item["columns"] = [str(c) for c in raw.columns]
-                              for col in ("SYMBOL", "symbol", "TckrSymb", "FinInstrmTp", "INSTRUMENT", "OPTION_TYP", "OptnTp"):
-                                  if col in raw.columns:
-                                      item[f"{col}_top_values"] = raw[col].astype(str).value_counts().head(15).to_dict()
-                              item["sample_rows"] = raw.head(3).astype(str).to_dict("records")
+                      if path.suffix.lower() == ".zip":
+                          with zipfile.ZipFile(path) as archive:
+                              names = archive.namelist()
+                              csv_names = [name for name in names if name.lower().endswith(".csv")]
+                              item["archive_members"] = names[:30]
+                              item["csv_members"] = csv_names
+                              if csv_names:
+                                  with archive.open(csv_names[0]) as handle:
+                                      raw = pd.read_csv(handle)
+                          else:
+                              raw = pd.read_csv(path)
+                      item["raw_rows"] = int(len(raw))
+                      item["columns"] = [str(c) for c in raw.columns]
+                      for col in ("SYMBOL", "symbol", "TckrSymb", "FinInstrmTp", "INSTRUMENT", "OPTION_TYP", "OptnTp", "NewBrdLotQty", "TtlTradgVol", "OpnIntrst"):
+                          if col in raw.columns:
+                              item[f"{col}_top_values"] = raw[col].astype(str).value_counts().head(15).to_dict()
+                      item["sample_rows"] = raw.head(3).astype(str).to_dict("records")
                       parsed = parse_bse_fo_file(path, trade_date=dt)
                       item["parser_rows"] = int(len(parsed))
                       item["parser_columns"] = [str(c) for c in parsed.columns]
