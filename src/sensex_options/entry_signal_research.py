@@ -69,14 +69,23 @@ def build_lagged_features(index: pd.DataFrame) -> pd.DataFrame:
     open_ = x["open"] if "open" in x else close
     ret = close.pct_change()
     x["ret_1"] = close.pct_change(1)
+    x["realized_vol_20"] = ret.rolling(20, min_periods=15).std()
     for period in (2, 3, 5, 10, 20):
         x[f"ret_{period}"] = close.pct_change(period)
+        x[f"ret_z_{period}"] = (
+            x[f"ret_{period}"] /
+            (x["realized_vol_20"] * np.sqrt(period)).replace(0, np.nan)
+        )
 
     for span in (5, 10, 20, 30, 50):
         x[f"ema_{span}"] = close.ewm(span=span, adjust=False, min_periods=span).mean()
     x["ema_5_20"] = x["ema_5"] / x["ema_20"] - 1
     x["ema_10_30"] = x["ema_10"] / x["ema_30"] - 1
     x["ema_20_50"] = x["ema_20"] / x["ema_50"] - 1
+    for gap_name in ("ema_5_20", "ema_10_30", "ema_20_50"):
+        x[f"{gap_name}_z"] = (
+            x[gap_name] / x["realized_vol_20"].replace(0, np.nan)
+        )
     x["rsi_7"] = _rsi(close, 7)
     x["rsi_14"] = _rsi(close, 14)
 
@@ -108,6 +117,8 @@ def build_lagged_features(index: pd.DataFrame) -> pd.DataFrame:
     plus_di = 100 * plus_dm.rolling(14, min_periods=14).mean() / atr.replace(0, np.nan)
     minus_di = 100 * minus_dm.rolling(14, min_periods=14).mean() / atr.replace(0, np.nan)
     dx = 100 * (plus_di - minus_di).abs() / (plus_di + minus_di).replace(0, np.nan)
+    x["plus_di_14"] = plus_di
+    x["minus_di_14"] = minus_di
     x["adx_14"] = dx.rolling(14, min_periods=14).mean()
 
     # Donchian boundaries exclude the signal session itself.
@@ -892,9 +903,25 @@ def _candidate_signals(features: pd.DataFrame) -> dict[str, pd.Series]:
         signals[f"RET{period}_MOMENTUM"] = direction(r > 0, r.notna())
         signals[f"RET{period}_REVERSAL"] = direction(r < 0, r.notna())
 
+    # Volatility-normalised momentum thresholds avoid treating a tiny quiet
+    # move as equivalent to a large move in a high-volatility regime.
+    for period in (2, 3, 5, 10, 20):
+        z = f[f"ret_z_{period}"]
+        for threshold in (0.25, 0.50, 0.75, 1.00):
+            sig = pd.Series("", index=f.index, dtype="object")
+            sig.loc[z >= threshold] = "CE"
+            sig.loc[z <= -threshold] = "PE"
+            signals[f"RET{period}_Z{int(threshold * 100):03d}_MOMENTUM"] = sig
+
     for fast, slow, label in ((5, 20, "EMA5_20"), (10, 30, "EMA10_30"), (20, 50, "EMA20_50")):
         v = f[f"ema_{fast}"].notna() & f[f"ema_{slow}"].notna() & (f[f"ema_{fast}"] != f[f"ema_{slow}"])
         signals[f"{label}_TREND"] = direction(f[f"ema_{fast}"] > f[f"ema_{slow}"], v)
+        gap_z = f[f"{label.lower()}_z"]
+        for threshold in (0.05, 0.15, 0.30):
+            sig = pd.Series("", index=f.index, dtype="object")
+            sig.loc[gap_z >= threshold] = "CE"
+            sig.loc[gap_z <= -threshold] = "PE"
+            signals[f"{label}_NORMALISED_GAP{int(threshold * 100):02d}"] = sig
 
     for lower, upper in ((25, 75), (30, 70), (35, 65)):
         r = f["rsi_14"]
@@ -950,6 +977,18 @@ def _candidate_signals(features: pd.DataFrame) -> dict[str, pd.Series]:
         sig.loc[valid & ema_bull] = "CE"
         sig.loc[valid & ema_bear] = "PE"
         signals[f"EMA5_20_ADX{minimum_adx}"] = sig
+
+    # Directional movement confirmation is separate from EMA crossover.
+    dmi_valid = f["plus_di_14"].notna() & f["minus_di_14"].notna()
+    signals["DMI14_DIRECTION"] = direction(
+        f["plus_di_14"] > f["minus_di_14"], dmi_valid & (f["plus_di_14"] != f["minus_di_14"])
+    )
+    for minimum_adx in (15, 20, 25):
+        valid = dmi_valid & (f["adx_14"] >= minimum_adx)
+        signals[f"DMI14_ADX{minimum_adx}"] = direction(
+            f["plus_di_14"] > f["minus_di_14"],
+            valid & (f["plus_di_14"] != f["minus_di_14"]),
+        )
 
     # Volatility-regime filters use past-only trailing ATR thresholds.
     for label, vol_condition in (
