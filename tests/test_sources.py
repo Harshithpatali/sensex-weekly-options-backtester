@@ -156,6 +156,7 @@ def test_parser_supports_legacy_bse_derivatives_columns(tmp_path: Path):
     assert parsed["expiry_date"].eq(pd.Timestamp("2024-07-25")).all()
     assert parsed["open_interest"].tolist() == [1000, 1100]
     assert parsed["volume"].tolist() == [100, 120]
+    assert parsed["lot_size"].tolist() == [10, 10]
 
 
 def test_parser_supports_legacy_bse_zip_archive(tmp_path: Path):
@@ -188,4 +189,5 @@ def test_parser_supports_legacy_bse_zip_archive(tmp_path: Path):
     assert parsed.iloc[0]["option_type"] == "CE"
     assert parsed.iloc[0]["strike"] == 81000
     assert parsed.iloc[0]["close"] == 132
+    assert parsed.iloc[0]["lot_size"] == 10
 
