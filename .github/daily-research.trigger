@@ -1,1 +1,1 @@
-Re-run historical daily one-lot Call/Put experiments after sizing correction.
+Re-run daily research with expanded five-day momentum, EMA trend and RSI reversal variants.
