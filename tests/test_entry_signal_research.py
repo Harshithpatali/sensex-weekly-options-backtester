@@ -271,6 +271,11 @@ def test_option_chain_features_calculate_pcr_and_option_positioning():
     assert pd.notna(latest["put_oi_change_pct"])
     assert "atm_straddle_pct" in features.columns
 
+    # Force the straddle/realised-volatility gate to be selective so the
+    # gated rule is behaviourally distinct rather than a duplicate alias.
+    features["implied_to_realized_vol_ratio"] = np.where(
+        np.arange(len(features)) % 2 == 0, 0.50, 2.00
+    )
     index_features = build_lagged_features(index).rename(columns={"date": "signal_date"})
     combined_features = features.merge(
         index_features,
