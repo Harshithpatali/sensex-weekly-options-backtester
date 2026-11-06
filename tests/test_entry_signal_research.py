@@ -4,6 +4,7 @@ from sensex_options.entry_signal_research import (
     _build_monthly_selector,
     _paired_option_outcomes,
     _option_horizon_outcomes,
+    _one_position_at_a_time,
     build_lagged_features,
     run_entry_signal_research,
 )
@@ -176,3 +177,16 @@ def test_option_horizon_outcomes_do_not_invent_missing_option_side():
     ].iloc[0]
     assert pd.notna(row["call_pnl"])
     assert pd.isna(row["put_pnl"])
+
+
+def test_one_position_book_skips_overlapping_trades_but_allows_exit_day_reentry():
+    dates = pd.bdate_range("2024-01-01", periods=6)
+    trades = pd.DataFrame([
+        {"entry_date": dates[0], "exit_date": dates[2], "trade": "first"},
+        {"entry_date": dates[1], "exit_date": dates[3], "trade": "overlaps_first"},
+        {"entry_date": dates[2], "exit_date": dates[4], "trade": "exit_day_reentry"},
+        {"entry_date": dates[3], "exit_date": dates[5], "trade": "overlaps_third"},
+    ])
+    selected, skipped = _one_position_at_a_time(trades)
+    assert selected["trade"].tolist() == ["first", "exit_day_reentry"]
+    assert skipped == 2
