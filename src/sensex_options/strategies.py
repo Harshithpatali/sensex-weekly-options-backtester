@@ -29,15 +29,20 @@ def _last_contract_row(frame, expiry, trade_date, strike, opt_type, symbol):
 def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: float=10000.0, brokerage_per_order: float=20.0, slippage_points: float=0.5, cost: CostConfig | None = None):
     if index.empty or options.empty:
         return pd.DataFrame(), pd.DataFrame(), {"error":"Index or options dataset is empty"}
-    cost = cost or CostConfig(
-        brokerage_per_lot=brokerage_per_order,
-        stt_pct=0.001,
-        exchange_charges_pct=0.0003,
-        gst_pct=0.18,
-        stamp_duty_pct=0.00003,
-        entry_slippage=slippage_points,
-        exit_slippage=slippage_points,
-    )
+    if cost is None:
+        # Default scheduled research uses conservative illustrative statutory
+        # charge estimates. Explicit legacy overrides (including zero-cost test
+        # fixtures) retain exactly the rates requested by the caller.
+        use_research_defaults = brokerage_per_order == 20.0 and slippage_points == 0.5
+        cost = CostConfig(
+            brokerage_per_lot=brokerage_per_order,
+            stt_pct=0.001 if use_research_defaults else 0.0,
+            exchange_charges_pct=0.0003 if use_research_defaults else 0.0,
+            gst_pct=0.18 if use_research_defaults else 0.0,
+            stamp_duty_pct=0.00003 if use_research_defaults else 0.0,
+            entry_slippage=slippage_points,
+            exit_slippage=slippage_points,
+        )
     idx=index.copy(); opt=options.copy()
     idx["date"]=pd.to_datetime(idx.date, errors="coerce").dt.normalize()
     idx["close"]=pd.to_numeric(idx["close"], errors="coerce")

@@ -16,7 +16,7 @@ from sensex_options import DATA_ROOT, PROJECT_ROOT
 class CostConfig:
     """Transaction cost assumptions (configurable; historical rates vary)."""
 
-    brokerage_per_lot: float = 0.0          # flat brokerage per lot (entry+exit)
+    brokerage_per_lot: float = 0.0          # flat brokerage per lot per order (entry and exit billed separately)
     brokerage_pct: float = 0.0              # % of premium turnover
     stt_pct: float = 0.0                    # Securities Transaction Tax (sell side typical)
     exchange_charges_pct: float = 0.0
