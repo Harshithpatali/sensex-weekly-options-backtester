@@ -222,11 +222,13 @@ def parse_bse_fo_file(path: Path, trade_date: Optional[datetime] = None) -> pd.D
 
     out = pd.DataFrame()
 
-    # Prefer column from file; fall back to explicit trade_date argument
-    if trad_c:
-        out["trade_date"] = _parse_bse_date(raw[trad_c])
-    elif trade_date is not None:
+    # The archive day is authoritative when supplied by the downloader.
+    # In the spaced legacy schema, "L T Date" means last traded date, not
+    # the bhavcopy session date; using it would shift stale rows backwards.
+    if trade_date is not None:
         out["trade_date"] = pd.Timestamp(trade_date).normalize()
+    elif trad_c:
+        out["trade_date"] = _parse_bse_date(raw[trad_c])
     else:
         # try from filename
         stem = path.stem
