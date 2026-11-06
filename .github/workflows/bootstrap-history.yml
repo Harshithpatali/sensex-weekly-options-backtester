@@ -1,0 +1,61 @@
+name: Bootstrap SENSEX historical dataset
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_date:
+        description: "Historical start date (YYYY-MM-DD)"
+        required: true
+        default: "2023-05-15"
+      end_date:
+        description: "Historical end date (YYYY-MM-DD)"
+        required: true
+        default: "2026-11-06"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sensex-history-bootstrap
+  cancel-in-progress: false
+
+jobs:
+  download-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      - name: Download historical SENSEX index and BSE options
+        env:
+          START_DATE: ${{ inputs.start_date }}
+          END_DATE: ${{ inputs.end_date }}
+        run: |
+          python - <<'PY'
+          import os
+          from sensex_options.config import DEFAULT_PATHS
+          from sensex_options.sources.index import download_sensex_index
+          from sensex_options.sources.bse import download_bse_options_range
+          DEFAULT_PATHS.ensure()
+          download_sensex_index(os.environ["START_DATE"], os.environ["END_DATE"])
+          download_bse_options_range(os.environ["START_DATE"], os.environ["END_DATE"], sleep=0.5)
+          PY
+      - name: Validate and generate strategy leaderboard
+        run: python -m sensex_options.daily_pipeline
+      - name: Persist dataset and research outputs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f data/processed/sensex_index.csv data/processed/sensex_options.csv outputs/strategy_trade_ledger.csv outputs/strategy_leaderboard.csv outputs/daily_strategy_pnl.csv outputs/weekly_strategy_pnl.csv outputs/monthly_strategy_pnl.csv outputs/daily_run.json data/reports/data_validation.json
+          git diff --cached --quiet || git commit -m "data: bootstrap historical SENSEX options research dataset"
+          git push
