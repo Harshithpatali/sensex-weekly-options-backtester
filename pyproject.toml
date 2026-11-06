@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sensex-options"
+version = "1.0.0"
+description = "SENSEX Weekly Options Backtesting Platform - Research tool using actual BSE historical data"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Quantitative Research"}
+]
+dependencies = [
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "yfinance>=0.2.28",
+    "requests>=2.31.0",
+    "streamlit>=1.28.0",
+    "plotly>=5.18.0",
+    "pytest>=7.4.0",
+    "pyyaml>=6.0",
+    "python-dateutil>=2.8.2",
+    "tqdm>=4.66.0",
+    "lxml>=4.9.0",
+    "openpyxl>=3.1.0",
+    "click>=8.1.0",
+]
+
+[project.scripts]
+sensex-options = "sensex_options.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4.0", "black", "ruff"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

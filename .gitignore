@@ -1,0 +1,73 @@
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Data (do not commit large market data)
+data/raw/index/*.csv
+data/raw/options/*
+!data/raw/index/.gitkeep
+!data/raw/options/.gitkeep
+data/processed/*.csv
+data/processed/*.parquet
+!data/processed/.gitkeep
+data/reports/*
+!data/reports/.gitkeep
+outputs/*
+!outputs/.gitkeep
+
+# Logs and temp
+*.log
+logs/
+tmp/
+temp/
+.cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Secrets
+.env
+.env.local
+*.pem
+secrets/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Test / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+.mypy_cache/
+
+# Jupyter
+.ipynb_checkpoints/
