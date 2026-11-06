@@ -1,0 +1,101 @@
+name: Diagnose legacy BSE options archives
+
+on:
+  push:
+    paths:
+      - ".github/legacy-diagnostic.trigger"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: legacy-bse-diagnostic
+  cancel-in-progress: false
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      - name: Download and inspect representative legacy archives
+        run: |
+          python - <<'PY'
+          import json
+          import zipfile
+          from datetime import datetime
+          from pathlib import Path
+          import pandas as pd
+          from sensex_options.config import DEFAULT_PATHS
+          from sensex_options.sources.bse import download_one_day, parse_bse_fo_file
+
+          DEFAULT_PATHS.ensure()
+          report = {"samples": []}
+          for day in ("2023-05-15", "2023-05-16", "2024-07-05"):
+              dt = datetime.strptime(day, "%Y-%m-%d")
+              path, status = download_one_day(dt, DEFAULT_PATHS.raw_options)
+              item = {"date": day, "download_status": status, "path": str(path) if path else None}
+              if path is not None and path.suffix.lower() == ".zip":
+                  try:
+                      with zipfile.ZipFile(path) as archive:
+                          names = archive.namelist()
+                          csv_names = [name for name in names if name.lower().endswith(".csv")]
+                          item["archive_members"] = names[:30]
+                          item["csv_members"] = csv_names
+                          if csv_names:
+                              with archive.open(csv_names[0]) as handle:
+                                  raw = pd.read_csv(handle)
+                              item["raw_rows"] = int(len(raw))
+                              item["columns"] = [str(c) for c in raw.columns]
+                              for col in ("SYMBOL", "symbol", "TckrSymb", "FinInstrmTp", "INSTRUMENT", "OPTION_TYP", "OptnTp"):
+                                  if col in raw.columns:
+                                      item[f"{col}_top_values"] = raw[col].astype(str).value_counts().head(15).to_dict()
+                              item["sample_rows"] = raw.head(3).astype(str).to_dict("records")
+                      parsed = parse_bse_fo_file(path, dt)
+                      item["parser_rows"] = int(len(parsed))
+                      item["parser_columns"] = [str(c) for c in parsed.columns]
+                      if not parsed.empty:
+                          item["parsed_sample"] = parsed.head(3).astype(str).to_dict("records")
+                  except Exception as exc:
+                      item["diagnostic_error"] = repr(exc)
+              report["samples"].append(item)
+
+          output = Path("data/reports/legacy_archive_schema_diagnostic.json")
+          output.parent.mkdir(parents=True, exist_ok=True)
+          output.write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
+          print(json.dumps(report, indent=2, default=str))
+          PY
+      - name: Upload diagnostic report
+        uses: actions/upload-artifact@v4
+        with:
+          name: legacy-bse-schema-diagnostic
+          path: data/reports/legacy_archive_schema_diagnostic.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Persist diagnostic report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f data/reports/legacy_archive_schema_diagnostic.json
+          git commit -m "data: record raw legacy BSE archive schema"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            sleep $((attempt * 3))
+          done
+          echo "::error::Could not persist diagnostic report after five safe retries."
+          exit 1
