@@ -170,7 +170,7 @@ python scripts/run_daily_research.py
 
 Use `--index-only` or `--options-only` with `download_data.py` to collect just one source. Dates are inclusive. BSE holidays and unavailable bhavcopies are recorded in the collection manifest rather than treated as successful downloads.
 
-The preprocessing script does not fabricate or impute option premiums. It loads the normalized datasets, writes `data/processed/features_summary.json`, validates them, and exits non-zero if validation reports errors.
+The preprocessing script parses any official BSE FO CSV/ZIP files placed in `data/raw/options/`, filters SENSEX CE/PE contracts, normalizes dates and numeric fields through the shared parser, merges with existing processed history, removes duplicate contract/day rows, writes `data/processed/sensex_options.csv` and `features_summary.json`, then validates. It does not fabricate or impute option premiums and exits non-zero if validation reports errors.
 
 ### Build & validate (CLI alternative)
 
