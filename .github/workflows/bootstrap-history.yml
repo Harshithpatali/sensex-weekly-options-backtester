@@ -16,7 +16,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: sensex-history-bootstrap
+  group: sensex-data-pipeline
   cancel-in-progress: false
 
 jobs:
