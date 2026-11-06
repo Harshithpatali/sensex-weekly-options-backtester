@@ -41,4 +41,4 @@ def test_spread_and_market_impact_are_applied_to_both_sides():
     assert entry == 101.5
     assert exit_price == 118.5
     breakdown = compute_transaction_costs(100, 120, 10, 1, c)
-    assert breakdown["slippage"] == 20.0
+    assert breakdown["slippage"] == 30.0
