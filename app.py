@@ -24,6 +24,7 @@ from sensex_options.reports import write_backtest_reports
 from sensex_options.features import build_features
 from sensex_options.strategies import run_strategy_suite, period_pnl
 from sensex_options.analytics import strategy_performance_metrics, walk_forward_evaluation
+from sensex_options.daily_strategies import run_daily_strategy_suite, daily_holdout_evaluation
 
 st.set_page_config(
     page_title="SENSEX Weekly Options Backtester",
@@ -58,6 +59,7 @@ PAGES = [
     "Reports",
     "Strategy Leaderboard",
     "Daily / Weekly / Monthly P&L",
+    "Daily Options Research",
     "Research & Walk-Forward",
 ]
 
@@ -78,8 +80,8 @@ def sidebar():
 def page_overview():
     st.title("SENSEX Weekly Options Backtester")
     st.markdown(
-        "Historical long **Call** strategy on SENSEX weeklies using **actual** "
-        "BSE derivatives bhavcopy premiums. Initial capital default: **₹10,000**."
+        "Research platform for **daily Call and Put trades** plus expiry-based SENSEX options strategies, "
+        "using observed BSE derivatives bhavcopy premiums. Initial capital default: **₹10,000 per isolated strategy**."
     )
     DEFAULT_PATHS.ensure()
     index = load_index()
@@ -420,6 +422,119 @@ def page_period_pnl():
 
 
 
+def page_daily_options_research():
+    st.title("Daily Options Research")
+    st.caption("One-session options experiments: enter at one session's EOD close and exit at the next session's EOD close. Calls and Puts are tested independently.")
+    st.info(
+        "This page is separate from the expiry-only leaderboard. Signals use the previous session's index move; "
+        "the ATM strike is selected using the previous session's SENSEX close. EOD marks are estimates, not guaranteed fills."
+    )
+    out = DEFAULT_PATHS.outputs
+    ledger_path = out / "daily_strategy_trade_ledger.csv"
+    board_path = out / "daily_strategy_leaderboard.csv"
+    holdout_path = out / "daily_strategy_holdout.json"
+
+    if st.button("Re-run daily strategies using available history", type="primary"):
+        index_data, option_data = load_index(), load_options()
+        with st.spinner("Testing daily Call, Put, momentum and mean-reversion strategies..."):
+            ledger, board, meta = run_daily_strategy_suite(index_data, option_data)
+            if ledger.empty:
+                st.error(meta.get("error", "No valid next-session contract round trips were found."))
+            else:
+                out.mkdir(parents=True, exist_ok=True)
+                ledger.to_csv(ledger_path, index=False)
+                board.to_csv(board_path, index=False)
+                holdout = daily_holdout_evaluation(ledger)
+                with open(holdout_path, "w", encoding="utf-8") as handle:
+                    json.dump(holdout, handle, indent=2, default=str)
+                st.success(f"Completed {len(ledger):,} daily trades across {ledger['entry_date'].nunique():,} entry sessions.")
+                st.json(meta)
+
+    if not ledger_path.exists() or not board_path.exists():
+        st.warning("Daily strategy reports are not available yet. Run the historical bootstrap and the daily research workflow.")
+        st.markdown("[Open daily research workflow](https://github.com/Harshithpatali/sensex-weekly-options-backtester/actions/workflows/daily-research.yml)")
+        return
+
+    board = pd.read_csv(board_path)
+    ledger = pd.read_csv(ledger_path)
+    if board.empty or ledger.empty:
+        st.warning("The daily report files exist but contain no completed trades.")
+        return
+    ledger["entry_date"] = pd.to_datetime(ledger["entry_date"], errors="coerce")
+    ledger["exit_date"] = pd.to_datetime(ledger["exit_date"], errors="coerce")
+    ledger["net_pnl"] = pd.to_numeric(ledger["net_pnl"], errors="coerce").fillna(0)
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Daily strategies", f"{len(board)}")
+    c2.metric("Completed daily trades", f"{len(ledger):,}")
+    c3.metric("Entry sessions", f"{ledger['entry_date'].nunique():,}")
+    c4.metric("Net P&L across isolated tests", f"₹{ledger.groupby('strategy')['net_pnl'].sum().sum():,.2f}")
+
+    st.subheader("Strategy definitions")
+    definitions = pd.DataFrame([
+        {"Strategy": "Daily ATM Call", "Rule": "Buy nearest ATM CE every eligible session"},
+        {"Strategy": "Daily ATM Put", "Rule": "Buy nearest ATM PE every eligible session"},
+        {"Strategy": "Daily Momentum", "Rule": "Buy CE after a positive prior-session move; PE after a negative move"},
+        {"Strategy": "Daily Mean Reversion", "Rule": "Buy PE after a positive prior-session move; CE after a negative move"},
+    ])
+    st.dataframe(definitions, use_container_width=True, hide_index=True)
+    st.caption("Each strategy has its own isolated ₹10,000 capital curve by default. These rows are not a combined portfolio.")
+
+    st.subheader("Daily strategy comparison")
+    st.dataframe(board, use_container_width=True, hide_index=True)
+    left, right = st.columns(2)
+    pnl_fig = px.bar(board.sort_values("net_pnl"), x="net_pnl", y="strategy", orientation="h",
+                     title="Net P&L after estimated costs", text_auto=".2s")
+    pnl_fig.update_layout(template="plotly_dark", xaxis_title="Net P&L (₹)", yaxis_title="")
+    left.plotly_chart(pnl_fig, use_container_width=True)
+    exp_fig = px.bar(board.sort_values("expectancy"), x="expectancy", y="strategy", orientation="h",
+                     title="Expectancy per completed trade", text_auto=".2s")
+    exp_fig.update_layout(template="plotly_dark", xaxis_title="Expectancy (₹)", yaxis_title="")
+    right.plotly_chart(exp_fig, use_container_width=True)
+
+    risk_left, risk_right = st.columns(2)
+    if "max_drawdown_pct" in board:
+        dd_fig = px.bar(board.sort_values("max_drawdown_pct"), x="max_drawdown_pct", y="strategy",
+                        orientation="h", title="Maximum drawdown (%)")
+        dd_fig.update_layout(template="plotly_dark", xaxis_title="Drawdown (%)", yaxis_title="")
+        risk_left.plotly_chart(dd_fig, use_container_width=True)
+    if "profit_factor" in board:
+        pf_fig = px.bar(board.sort_values("profit_factor", na_position="first"), x="profit_factor", y="strategy",
+                        orientation="h", title="Profit factor")
+        pf_fig.add_vline(x=1.0, line_dash="dash", annotation_text="Break-even")
+        pf_fig.update_layout(template="plotly_dark", xaxis_title="Gross profit / gross loss", yaxis_title="")
+        risk_right.plotly_chart(pf_fig, use_container_width=True)
+
+    if holdout_path.exists():
+        with open(holdout_path, encoding="utf-8") as handle:
+            holdout = json.load(handle)
+        st.subheader("Chronological out-of-sample holdout")
+        st.write(f"**Status:** {holdout.get('status', 'not run')}")
+        if holdout.get("status") == "ok":
+            st.write(f"Training window: {holdout.get('train_start')} to {holdout.get('train_end')}")
+            st.write(f"Holdout window: {holdout.get('holdout_start')} to {holdout.get('holdout_end')} · {holdout.get('holdout_sessions')} sessions")
+            holdout_frame = pd.DataFrame(holdout.get("holdout_metrics", []))
+            if not holdout_frame.empty:
+                st.dataframe(holdout_frame, use_container_width=True, hide_index=True)
+            st.caption(holdout.get("warning", ""))
+        else:
+            st.warning(holdout.get("note", "Not enough daily sessions for holdout testing."))
+
+    st.subheader("Daily trade ledger")
+    choices = ["All strategies"] + sorted(ledger["strategy"].dropna().unique().tolist())
+    selected = st.selectbox("Filter daily strategy", choices, key="daily_options_strategy_filter")
+    view = ledger if selected == "All strategies" else ledger[ledger["strategy"] == selected]
+    chart = view.groupby("exit_date", as_index=False)["net_pnl"].sum().sort_values("exit_date")
+    if not chart.empty:
+        chart["cumulative_net_pnl"] = chart["net_pnl"].cumsum()
+        curve = px.line(chart, x="exit_date", y="cumulative_net_pnl", markers=True,
+                        title=f"Cumulative realized P&L — {selected}")
+        curve.update_layout(template="plotly_dark", xaxis_title="Exit session", yaxis_title="Cumulative net P&L (₹)")
+        st.plotly_chart(curve, use_container_width=True)
+    st.dataframe(view.sort_values("entry_date", ascending=False), use_container_width=True, hide_index=True)
+    st.download_button("Download daily options trade ledger", view.to_csv(index=False),
+                       "daily_options_trade_ledger.csv", "text/csv")
+
+
 def page_research_lab():
     st.title("Research & Walk-Forward")
     st.caption("Cost-aware comparison, chronological holdout and rolling expiry evaluation. Fixed rule strategies are not trained or optimized.")
@@ -605,6 +720,8 @@ def main():
         page_strategy_leaderboard()
     elif page == "Daily / Weekly / Monthly P&L":
         page_period_pnl()
+    elif page == "Daily Options Research":
+        page_daily_options_research()
     elif page == "Research & Walk-Forward":
         page_research_lab()
 
