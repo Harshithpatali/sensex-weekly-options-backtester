@@ -62,7 +62,7 @@ jobs:
                                   if col in raw.columns:
                                       item[f"{col}_top_values"] = raw[col].astype(str).value_counts().head(15).to_dict()
                               item["sample_rows"] = raw.head(3).astype(str).to_dict("records")
-                      parsed = parse_bse_fo_file(path, dt)
+                      parsed = parse_bse_fo_file(path, trade_date=dt)
                       item["parser_rows"] = int(len(parsed))
                       item["parser_columns"] = [str(c) for c in parsed.columns]
                       if not parsed.empty:
