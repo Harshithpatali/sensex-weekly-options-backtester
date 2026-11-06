@@ -89,3 +89,11 @@ def test_costed_strategy_suite_charges_both_straddle_legs():
     assert straddle["estimated_costs"] > straddle["brokerage"]
     assert straddle["net_pnl"] < straddle["gross_pnl"]
     assert {"profit_factor", "max_drawdown_pct"}.issubset(ranking.columns)
+
+
+def test_strategy_suite_does_not_use_stale_pre_expiry_exit_quote():
+    index, options = fixture()
+    options = options[~((options["trade_date"] == "2024-01-05") & (options["option_type"] == "CE"))]
+    trades, _, _ = run_strategy_suite(index, options, brokerage_per_order=0, slippage_points=0)
+    assert "ATM_CALL" not in set(trades["strategy"])
+    assert "ATM_PUT" in set(trades["strategy"])

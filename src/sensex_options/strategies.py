@@ -76,15 +76,13 @@ def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: floa
         step_down=[s for s in strikes if s<atm]
         otm_call=min(step_candidates) if step_candidates else None
         otm_put=max(step_down) if step_down else None
-        eligible_exit_dates = opt.loc[
-            opt.expiry_date.eq(expiry)
-            & opt.trade_date.le(expiry)
-            & opt.trade_date.gt(entry_date),
-            "trade_date",
-        ]
-        if eligible_exit_dates.empty:
+        # Exit only on the final observed SENSEX index session on/before expiry.
+        # If the contract quote is missing on that exact session, skip it rather
+        # than silently marking the position with an earlier stale close.
+        exit_sessions = idx.loc[idx.date.le(expiry), "date"]
+        if exit_sessions.empty:
             continue
-        exit_day = eligible_exit_dates.max()
+        exit_day = exit_sessions.max()
         for key,legs in {
             "ATM_CALL":[("CE",atm)],"ATM_PUT":[("PE",atm)],
             "OTM_CALL_1":[("CE",otm_call)],"OTM_PUT_1":[("PE",otm_put)],
