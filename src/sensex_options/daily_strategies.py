@@ -301,5 +301,5 @@ def daily_holdout_evaluation(ledger: pd.DataFrame) -> dict:
         "holdout_start": str(dates[split].date()), "holdout_end": str(dates[-1].date()),
         "distinct_entry_sessions": len(dates), "holdout_sessions": len(holdout_dates),
         "holdout_metrics": metrics,
-        "warning": "This is a fixed-rule holdout, not a guarantee of future performance. Review sample size and execution assumptions.",
+        "warning": "This is a signal-level unit-lot candidate comparison, NOT a ₹10,000 capital-constrained portfolio. Use daily_capital_controlled_leaderboard.csv for cash/risk-feasible results. It is not a guarantee of future performance.",
     }
