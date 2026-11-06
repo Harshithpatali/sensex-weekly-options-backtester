@@ -405,7 +405,7 @@ def test_option_horizon_outcomes_reject_illiquid_entry_and_exit_marks():
     for row in rows:
         if row["trade_date"] == dates[1] and row["option_type"] == "CE":
             row["volume"] = 1
-        if row["trade_date"] == dates[2] and row["option_type"] == "PE":
+        if row["trade_date"] == dates[3] and row["option_type"] == "PE":
             row["open_interest"] = 1
     outcomes = _option_horizon_outcomes(index, pd.DataFrame(rows), holding_periods=(1,))
     first = outcomes[outcomes["entry_date"] == dates[1]].iloc[0]
