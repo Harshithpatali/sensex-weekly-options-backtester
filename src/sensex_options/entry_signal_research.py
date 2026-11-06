@@ -177,8 +177,9 @@ def _option_horizon_outcomes(
     index: pd.DataFrame,
     options: pd.DataFrame,
     holding_periods: tuple[int, ...] = (1, 2, 3, 5),
-    moneyness_variants: tuple[str, ...] = ("ATM", "ITM1", "OTM1"),
+    moneyness_variants: tuple[str, ...] = ("ATM", "ITM1", "OTM1", "OTM2", "OTM3", "OTM5"),
     capital: float = 10000.0,
+    risk_pct: float = 0.02,
     cost: CostConfig | None = None,
 ) -> pd.DataFrame:
     """Build observed option outcomes for ATM, one-step ITM and one-step OTM.
@@ -219,7 +220,7 @@ def _option_horizon_outcomes(
     by_day = {day: frame for day, frame in opt.groupby("trade_date", sort=False)}
     sessions = idx.reset_index(drop=True)
     rows = []
-    valid_moneyness = tuple(v for v in moneyness_variants if v in {"ATM", "ITM1", "OTM1"})
+    valid_moneyness = tuple(v for v in moneyness_variants if v in {"ATM", "ITM1", "OTM1", "OTM2", "OTM3", "OTM5"})
     entry_adjustment = cfg.entry_slippage + cfg.spread_points / 2 + cfg.market_impact_points
 
     for hold in sorted(set(int(h) for h in holding_periods if int(h) > 0)):
@@ -256,10 +257,16 @@ def _option_horizon_outcomes(
                         "CE": float(strikes[atm_index - 1]) if atm_index > 0 else None,
                         "PE": float(strikes[atm_index + 1]) if atm_index + 1 < len(strikes) else None,
                     }
-                else:
+                elif moneyness == "OTM1":
                     side_strikes = {
                         "CE": float(strikes[atm_index + 1]) if atm_index + 1 < len(strikes) else None,
                         "PE": float(strikes[atm_index - 1]) if atm_index > 0 else None,
+                    }
+                else:
+                    offset = int(moneyness.replace("OTM", ""))
+                    side_strikes = {
+                        "CE": float(strikes[atm_index + offset]) if atm_index + offset < len(strikes) else None,
+                        "PE": float(strikes[atm_index - offset]) if atm_index - offset >= 0 else None,
                     }
 
                 for option_type in ("CE", "PE"):
@@ -289,7 +296,9 @@ def _option_horizon_outcomes(
                         )
                         + cfg.stamp_duty_pct * entry_turnover
                     )
-                    if entry_turnover + entry_fees > capital:
+                    # Long options can lose the full premium. Enforce the account
+                    # risk budget, not merely the cash-affordability ceiling.
+                    if entry_turnover + entry_fees > capital * risk_pct:
                         continue
 
                     exit_candidates = exit_options[
@@ -411,6 +420,7 @@ def _option_debit_vertical_outcomes(
     holding_periods: tuple[int, ...] = (1, 2, 3, 5),
     spread_width_steps: tuple[int, ...] = (1, 2, 3),
     capital: float = 10000.0,
+    risk_pct: float = 0.02,
     cost: CostConfig | None = None,
 ) -> pd.DataFrame:
     """Generate ATM debit vertical spread outcomes from observed BSE option candles.
@@ -551,7 +561,8 @@ def _option_debit_vertical_outcomes(
                     entry_fees = _debit_vertical_entry_fees(
                         entry_long_premium, entry_short_premium, quantity, cfg
                     )
-                    if entry_debit * quantity + entry_fees > capital:
+                    # Debit spread max loss is the debit plus entry fees.
+                    if entry_debit * quantity + entry_fees > capital * risk_pct:
                         continue
                     charges = _debit_vertical_costs(
                         entry_long_premium, entry_short_premium,
@@ -761,6 +772,7 @@ def _option_credit_vertical_outcomes(
     holding_periods: tuple[int, ...] = (1, 2, 3, 5),
     spread_width_steps: tuple[int, ...] = (1, 2, 3),
     capital: float = 10000.0,
+    risk_pct: float = 0.02,
     cost: CostConfig | None = None,
 ) -> pd.DataFrame:
     """Build defined-risk bull-put and bear-call credit spreads from real quotes.
@@ -892,7 +904,8 @@ def _option_credit_vertical_outcomes(
                         long_entry_premium, short_entry_premium, quantity, cfg
                     )
                     max_loss = (abs(float(short_strike) - float(long_strike)) - entry_credit) * quantity
-                    if max_loss <= 0 or max_loss + entry_fees > capital:
+                    # Credit spread max loss is width less credit, plus entry fees.
+                    if max_loss <= 0 or max_loss + entry_fees > capital * risk_pct:
                         continue
                     charges = _debit_vertical_costs(
                         long_entry_premium, short_entry_premium,
@@ -1485,12 +1498,23 @@ def run_entry_signal_research(
     index: pd.DataFrame,
     options: pd.DataFrame | None = None,
     holding_periods: tuple[int, ...] = (1, 2, 3, 5),
+    capital: float = 10000.0,
+    risk_per_trade_pct: float = 0.02,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict]:
     """Test predeclared signals across one-, two-, three- and five-session holds."""
     if options is not None:
-        long_outcomes = _option_horizon_outcomes(index, options, holding_periods=holding_periods)
-        debit_outcomes = _option_debit_vertical_outcomes(index, options, holding_periods=holding_periods)
-        credit_outcomes = _option_credit_vertical_outcomes(index, options, holding_periods=holding_periods)
+        long_outcomes = _option_horizon_outcomes(
+            index, options, holding_periods=holding_periods, capital=capital,
+            risk_pct=risk_per_trade_pct,
+        )
+        debit_outcomes = _option_debit_vertical_outcomes(
+            index, options, holding_periods=holding_periods, capital=capital,
+            risk_pct=risk_per_trade_pct,
+        )
+        credit_outcomes = _option_credit_vertical_outcomes(
+            index, options, holding_periods=holding_periods, capital=capital,
+            risk_pct=risk_per_trade_pct,
+        )
         frames = [
             frame for frame in (long_outcomes, debit_outcomes, credit_outcomes)
             if frame is not None and not frame.empty
@@ -1762,12 +1786,20 @@ def run_entry_signal_research(
             "call/put open-interest changes matched to premium changes",
             "ATM straddle premium versus trailing realised-volatility proxy",
         ] if options is not None else [],
+        "initial_capital": float(capital),
+        "risk_per_trade_pct": float(risk_per_trade_pct) * 100,
+        "maximum_risk_per_trade": round(float(capital) * float(risk_per_trade_pct), 2),
         "credit_spread_risk_budget": (
-            "Defined-risk credit spreads require maximum theoretical loss plus entry fees <= ₹10,000; "
-            "this is a conservative risk budget, not a broker margin quote."
+            f"Defined-risk credit spreads require maximum theoretical loss plus entry fees <= "
+            f"₹{float(capital) * float(risk_per_trade_pct):.2f} ({float(risk_per_trade_pct) * 100:.2f}% of capital); "
+            "this is a conservative theoretical loss estimate, not a broker margin quote."
         ),
         "candidate_rules_tested": int(len(candidate_names)),
-        "position_sizing": "One lot per candidate, one open position at a time; new entry allowed on the previous position's exit session after the EOD exit.",
+        "position_sizing": (
+            f"One lot per candidate, one open position at a time; maximum theoretical loss including "
+            f"entry fees is capped at {float(risk_per_trade_pct) * 100:.2f}% of ₹{float(capital):.0f} "
+            "for long options and defined-risk spreads."
+        ),
         "overlapping_candidate_entries_skipped": int(
             pd.to_numeric(
                 trades[["strategy", "overlap_skipped_trades_for_rule"]]
