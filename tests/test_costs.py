@@ -33,3 +33,12 @@ def test_cost_model_scales_brokerage_and_slippage_by_legs():
     breakdown = compute_transaction_costs(10, 12, 10, 2, c, n_legs=2)
     assert breakdown["brokerage"] == 160
     assert breakdown["slippage"] == 80
+
+
+def test_spread_and_market_impact_are_applied_to_both_sides():
+    c = CostConfig(spread_points=2, market_impact_points=0.5)
+    entry, exit_price = apply_slippage_to_premiums(100, 120, c)
+    assert entry == 101.5
+    assert exit_price == 118.5
+    breakdown = compute_transaction_costs(100, 120, 10, 1, c)
+    assert breakdown["slippage"] == 20.0

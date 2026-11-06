@@ -40,6 +40,8 @@ def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: floa
             exchange_charges_pct=0.0003 if use_research_defaults else 0.0,
             gst_pct=0.18 if use_research_defaults else 0.0,
             stamp_duty_pct=0.00003 if use_research_defaults else 0.0,
+            spread_points=1.0 if use_research_defaults else 0.0,
+            market_impact_points=0.25 if use_research_defaults else 0.0,
             entry_slippage=slippage_points,
             exit_slippage=slippage_points,
         )

@@ -448,16 +448,20 @@ def page_research_lab():
     entry_slip = z2.number_input("Entry slippage (points / leg)", min_value=0.0, value=0.5, step=0.1, key="research_entry_slip")
     exit_slip = z3.number_input("Exit slippage (points / leg)", min_value=0.0, value=0.5, step=0.1, key="research_exit_slip")
     other = st.number_input("Other charges (₹ / lot / order)", min_value=0.0, value=0.0, key="research_other")
+    e1, e2 = st.columns(2)
+    spread = e1.number_input("Full bid-ask spread (points / leg)", min_value=0.0, value=1.0, step=0.1, key="research_spread")
+    impact = e2.number_input("Market impact (points / side / leg)", min_value=0.0, value=0.25, step=0.05, key="research_impact")
     t1, t2 = st.columns(2)
     train_expiries = t1.number_input("Walk-forward context expiries", min_value=2, max_value=100, value=8, step=1)
     test_expiries = t2.number_input("Test expiries per fold", min_value=1, max_value=52, value=4, step=1)
-    st.caption("Rates are editable research assumptions, not broker quotes or tax advice. Verify the current BSE and broker tariff before relying on net P&L. Slippage is applied adversely to each leg on entry and exit.")
+    st.caption("Rates are editable research assumptions, not broker quotes or tax advice. Verify the current BSE and broker tariff before relying on net P&L. Spread is charged half on entry and half on exit; slippage and market impact are applied adversely to each leg on both sides. BSE EOD files do not contain historical order-book quotes, so these are user-controlled execution proxies.")
     if st.button("Run cost-aware strategy research", type="primary"):
         cost = CostConfig(
             brokerage_per_lot=brokerage, brokerage_pct=brokerage_pct / 100.0,
             stt_pct=stt / 100.0, exchange_charges_pct=exchange / 100.0,
             gst_pct=gst / 100.0, stamp_duty_pct=stamp / 100.0,
             other_charges=other, entry_slippage=entry_slip, exit_slippage=exit_slip,
+            spread_points=spread, market_impact_points=impact,
         )
         with st.spinner("Replaying all available expiry cycles..."):
             trades, ranking, meta = run_strategy_suite(index, options, capital=capital, cost=cost)
