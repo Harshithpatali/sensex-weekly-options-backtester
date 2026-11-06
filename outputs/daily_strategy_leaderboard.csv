@@ -1,8 +1,8 @@
-strategy,description,trades,net_pnl,win_rate_pct,profit_factor,expectancy,avg_return_pct,max_drawdown,max_drawdown_pct,sample_warning
-DAILY_ATM_PUT,Buy ATM Put every eligible session,403,36175.99,34.49,1.0556,89.77,-1.8882,-77975.05,-779.75,
-DAILY_RSI_REVERSAL,Buy CE when prior RSI-14 is below 30; PE when above 70,96,15914.35,34.38,1.1133,165.77,-7.9644,-45376.23,-129.83,
-DAILY_MEAN_REVERSION,Buy Put after prior up day; Call after prior down day,379,-22746.33,33.25,0.9651,-60.02,-8.7875,-102587.36,-403.81,
-DAILY_5D_MOMENTUM,Buy CE or PE using the prior five-session SENSEX return,387,-124035.41,33.33,0.8214,-320.5,-8.5484,-178161.42,-631.87,
-DAILY_EMA_TREND,Buy CE when prior EMA-5 is above EMA-20; otherwise PE,384,-124250.89,32.29,0.8176,-323.57,-6.0012,-210711.0,-857.31,
-DAILY_MOMENTUM,Buy Call after prior up day; Put after prior down day,379,-139252.27,32.19,0.7945,-367.42,-3.1361,-189482.49,-1894.82,
-DAILY_ATM_CALL,Buy ATM Call every eligible session,355,-198174.59,30.7,0.7078,-558.24,-10.5863,-265452.51,-716.86,
+strategy,description,trades,net_pnl,win_rate_pct,profit_factor,expectancy,median_trade_pnl,avg_win,avg_loss,best_trade,worst_trade,top3_wins_share_of_net_pct,avg_return_pct,max_drawdown,max_drawdown_pct,sample_warning
+DAILY_ATM_PUT,Buy ATM Put every eligible session,403,36175.99,34.49,1.0556,89.77,-982.53,4941.78,-2464.89,34967.46,-9559.83,253.68,-1.8882,-77975.05,-779.75,
+DAILY_RSI_REVERSAL,Buy CE when prior RSI-14 is below 30; PE when above 70,96,15914.35,34.38,1.1133,165.77,-854.36,4739.49,-2229.98,25499.86,-8851.49,294.86,-7.9644,-45376.23,-129.83,
+DAILY_MEAN_REVERSION,Buy Put after prior up day; Call after prior down day,379,-22746.33,33.25,0.9651,-60.02,-1161.61,4989.06,-2574.58,41112.41,-9510.82,,-8.7875,-102587.36,-403.81,
+DAILY_5D_MOMENTUM,Buy CE or PE using the prior five-session SENSEX return,387,-124035.41,33.33,0.8214,-320.5,-1034.04,4421.08,-2691.3,41112.41,-9559.83,,-8.5484,-178161.42,-631.87,
+DAILY_EMA_TREND,Buy CE when prior EMA-5 is above EMA-20; otherwise PE,384,-124250.89,32.29,0.8176,-323.57,-1142.61,4492.11,-2620.28,41112.41,-9510.82,,-6.0012,-210711.0,-857.31,
+DAILY_MOMENTUM,Buy Call after prior up day; Put after prior down day,379,-139252.27,32.19,0.7945,-367.42,-1039.56,4412.17,-2636.33,23315.98,-9559.83,,-3.1361,-189482.49,-1894.82,
+DAILY_ATM_CALL,Buy ATM Call every eligible session,355,-198174.59,30.7,0.7078,-558.24,-1285.45,4403.65,-2756.8,41112.41,-9510.82,,-10.5863,-265452.51,-716.86,

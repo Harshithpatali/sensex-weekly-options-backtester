@@ -14,7 +14,11 @@
       "net_pnl": 9641.47,
       "win_rate_pct": 37.04,
       "profit_factor": 1.045,
-      "expectancy": 89.27
+      "expectancy": 89.27,
+      "median_trade_pnl": -1021.53,
+      "best_trade": 34967.46,
+      "worst_trade": -9559.83,
+      "top3_wins_share_of_net_pct": 697.82
     },
     {
       "strategy": "DAILY_ATM_CALL",
@@ -22,7 +26,11 @@
       "net_pnl": -87034.27,
       "win_rate_pct": 32.26,
       "profit_factor": 0.5869,
-      "expectancy": -935.85
+      "expectancy": -935.85,
+      "median_trade_pnl": -1549.76,
+      "best_trade": 23315.98,
+      "worst_trade": -8411.39,
+      "top3_wins_share_of_net_pct": null
     },
     {
       "strategy": "DAILY_ATM_PUT",
@@ -30,7 +38,11 @@
       "net_pnl": 96286.14,
       "win_rate_pct": 39.82,
       "profit_factor": 1.4794,
-      "expectancy": 852.09
+      "expectancy": 852.09,
+      "median_trade_pnl": -966.76,
+      "best_trade": 34967.46,
+      "worst_trade": -9559.83,
+      "top3_wins_share_of_net_pct": 87.09
     },
     {
       "strategy": "DAILY_EMA_TREND",
@@ -38,7 +50,11 @@
       "net_pnl": 33596.21,
       "win_rate_pct": 37.86,
       "profit_factor": 1.1743,
-      "expectancy": 326.18
+      "expectancy": 326.18,
+      "median_trade_pnl": -1047.21,
+      "best_trade": 34967.46,
+      "worst_trade": -8727.51,
+      "top3_wins_share_of_net_pct": 197.32
     },
     {
       "strategy": "DAILY_MEAN_REVERSION",
@@ -46,7 +62,11 @@
       "net_pnl": 24503.92,
       "win_rate_pct": 40.0,
       "profit_factor": 1.1267,
-      "expectancy": 245.04
+      "expectancy": 245.04,
+      "median_trade_pnl": -1276.68,
+      "best_trade": 34967.46,
+      "worst_trade": -8727.51,
+      "top3_wins_share_of_net_pct": 342.21
     },
     {
       "strategy": "DAILY_MOMENTUM",
@@ -54,7 +74,11 @@
       "net_pnl": -15252.05,
       "win_rate_pct": 33.02,
       "profit_factor": 0.9301,
-      "expectancy": -143.89
+      "expectancy": -143.89,
+      "median_trade_pnl": -1286.74,
+      "best_trade": 23315.98,
+      "worst_trade": -9559.83,
+      "top3_wins_share_of_net_pct": null
     },
     {
       "strategy": "DAILY_RSI_REVERSAL",
@@ -62,7 +86,11 @@
       "net_pnl": -28608.47,
       "win_rate_pct": 33.33,
       "profit_factor": 0.441,
-      "expectancy": -1192.02
+      "expectancy": -1192.02,
+      "median_trade_pnl": -1115.34,
+      "best_trade": 8877.33,
+      "worst_trade": -8411.39,
+      "top3_wins_share_of_net_pct": null
     }
   ],
   "warning": "This is a fixed-rule holdout, not a guarantee of future performance. Review sample size and execution assumptions."
