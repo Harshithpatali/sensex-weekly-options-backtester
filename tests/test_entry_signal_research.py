@@ -155,7 +155,7 @@ def test_option_horizon_outcomes_use_same_contract_for_multiple_holds():
                     "lot_size": 10, "volume": 100, "open_interest": 100,
                 })
     outcomes = _option_horizon_outcomes(
-        index, pd.DataFrame(option_rows), holding_periods=(1, 2)
+        index, pd.DataFrame(option_rows), holding_periods=(1, 2), risk_pct=0.03
     )
     assert set(outcomes["holding_sessions"].unique()) == {1, 2}
     assert set(outcomes["moneyness"].unique()) == {"ATM", "ITM1", "OTM1"}
@@ -342,10 +342,16 @@ def test_defined_risk_credit_spreads_use_observed_hedge_and_fit_risk_budget():
                 })
     outcomes = _option_credit_vertical_outcomes(
         index, pd.DataFrame(option_rows), holding_periods=(1,), spread_width_steps=(1,),
-        capital=10000.0,
+        capital=10000.0, risk_pct=1.0,
         cost=CostConfig(),
     )
     assert not outcomes.empty
+    strict_risk_outcomes = _option_credit_vertical_outcomes(
+        index, pd.DataFrame(option_rows), holding_periods=(1,), spread_width_steps=(1,),
+        capital=10000.0, risk_pct=0.02, cost=CostConfig(),
+    )
+    assert strict_risk_outcomes.empty
+
     assert set(outcomes["option_family"]) == {"CREDIT_SPREADS_W1"}
     assert outcomes["call_pnl"].notna().any()
     assert outcomes["put_pnl"].notna().any()
