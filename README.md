@@ -44,6 +44,12 @@ For each **actual** historical SENSEX options expiry present in BSE data:
 ```
 sensex-weekly-options-backtester/
 ├── app.py                 # Streamlit dashboard
+├── scripts/               # Direct, beginner-friendly pipeline entry points
+│   ├── download_data.py
+│   ├── preprocess_data.py
+│   ├── validate_data.py
+│   ├── run_backtest.py
+│   └── run_daily_research.py
 ├── README.md
 ├── requirements.txt
 ├── pyproject.toml
@@ -141,7 +147,32 @@ BSE equity derivatives (including SENSEX options) were relaunched around **May 2
 
 A collection manifest is written to `data/reports/options_collection_manifest.csv`.
 
-### Build & validate
+### One-command Python scripts (recommended)
+
+The repository now includes explicit runnable Python files under `scripts/`. Run these from the repository root after installation:
+
+```bash
+# 1. Download index + both CE and PE options
+python scripts/download_data.py --start 2023-05-15 --end 2026-11-06
+
+# 2. Build the processed-data summary and validate data quality
+python scripts/preprocess_data.py
+
+# 3. Run validation again independently (optional)
+python scripts/validate_data.py
+
+# 4. Run the original single-strategy backtest
+python scripts/run_backtest.py --capital 10000
+
+# 5. Run incremental daily collection + five-strategy research suite
+python scripts/run_daily_research.py
+```
+
+Use `--index-only` or `--options-only` with `download_data.py` to collect just one source. Dates are inclusive. BSE holidays and unavailable bhavcopies are recorded in the collection manifest rather than treated as successful downloads.
+
+The preprocessing script does not fabricate or impute option premiums. It loads the normalized datasets, writes `data/processed/features_summary.json`, validates them, and exits non-zero if validation reports errors.
+
+### Build & validate (CLI alternative)
 
 ```bash
 sensex-options build-features
