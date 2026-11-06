@@ -203,7 +203,7 @@ def parse_bse_fo_file(path: Path, trade_date: Optional[datetime] = None) -> pd.D
     # UDiFF and legacy derivatives-bhavcopy columns (legacy names are uppercase).
     tckr = pick("TckrSymb", "ticker", "symbol", "scrip_name", "contract")
     strike_c = pick("StrkPric", "STRIKE_PR", "strike", "strike_price", "strikeprice")
-    opt_c = pick("OptnTp", "OPTION_TYP", "option_type", "optiontype", "opt_type", "ce_pe")
+    opt_c = pick("OptnTp", "OPTION_TYP", "Option Type", "option_type", "optiontype", "opt_type", "ce_pe")
     exp_c = pick("XpryDt", "EXPIRY_DT", "expiry", "expiry_date", "exp_date", "expirydate")
     open_c = pick("OpnPric", "open", "open_price")
     high_c = pick("HghPric", "high", "high_price")
@@ -212,13 +212,13 @@ def parse_bse_fo_file(path: Path, trade_date: Optional[datetime] = None) -> pd.D
     settle_c = pick("SttlmPric", "SETTLE_PR", "settle_price", "settlement", "settle")
     last_c = pick("LastPric", "last", "last_price", "ltp")
     und_c = pick("UndrlygPric", "underlying", "underlying_price", "spot")
-    vol_c = pick("TtlTradgVol", "CONTRACTS", "volume", "traded_contracts", "no_of_contracts")
-    oi_c = pick("OpnIntrst", "OPEN_INT", "open_interest", "oi", "openinterest")
+    vol_c = pick("TtlTradgVol", "CONTRACTS", "Contracts Traded", "volume", "traded_contracts", "no_of_contracts")
+    oi_c = pick("OpnIntrst", "OPEN_INT", "Open Interest", "open_interest", "oi", "openinterest")
     lot_c = pick(
         "NewBrdLotQty", "LotSize", "lot_size", "board_lot", "market_lot", "BrdLotQty"
     )
-    inst_c = pick("FinInstrmTp", "instrument", "instrument_type", "inst_type")
-    trad_c = pick("TradDt", "TIMESTAMP", "trade_date", "timestamp", "date", "BizDt")
+    inst_c = pick("FinInstrmTp", "Contract Type", "instrument", "instrument_type", "inst_type")
+    trad_c = pick("TradDt", "TIMESTAMP", "L T Date", "trade_date", "timestamp", "date", "BizDt")
 
     out = pd.DataFrame()
 
@@ -260,7 +260,9 @@ def parse_bse_fo_file(path: Path, trade_date: Optional[datetime] = None) -> pd.D
         out["option_type"] = ""
 
     if inst_c:
-        out["instrument_type"] = raw[inst_c].astype(str).str.strip().str.upper()
+        instrument_values = raw[inst_c].astype(str).str.strip().str.upper()
+        # Legacy BSE FO archive codes: IO = index option, IF = index future.
+        out["instrument_type"] = instrument_values.replace({"IO": "OPTIDX", "IF": "FUTIDX"})
     else:
         # Infer from option_type presence
         out["instrument_type"] = out["option_type"].apply(
@@ -284,12 +286,13 @@ def parse_bse_fo_file(path: Path, trade_date: Optional[datetime] = None) -> pd.D
         else:
             out[dst] = float("nan") if dst != "lot_size" else pd.NA
 
-    # Legacy BSE SENSEX bhavcopies predate the UDiFF lot-size column.
-    # BSE relaunched SENSEX derivatives on 15-May-2023 with a 10-unit lot.
-    # Apply only to the identified legacy schema and SENSEX rows.
-    legacy_schema = "expiry_dt" in lower and "strike_pr" in lower
+    # Legacy BSE archives use spaced display headers (Expiry, Strike,
+    # Option Type, Contract Type) and do not carry a lot-size column.
+    # SENSEX contracts in this pre-UDiFF archive window used a 10-unit lot.
+    legacy_schema = {"expiry", "strike", "option type", "contract type"}.issubset(lower)
     if legacy_schema and lot_c is None:
-        out.loc[out["symbol"].eq("SENSEX"), "lot_size"] = 10
+        sensex_rows = out["symbol"].astype(str).str.startswith("SENSEX", na=False)
+        out.loc[sensex_rows, "lot_size"] = 10
 
     # Sanitise premium: on expiry BSE sometimes sets ClsPric ≈ underlying index.
     # Prefer last / settle / intrinsic when close looks like the index level.
