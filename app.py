@@ -22,7 +22,7 @@ from sensex_options.validation import validate_all, save_validation_report
 from sensex_options.backtest import run_backtest
 from sensex_options.reports import write_backtest_reports
 from sensex_options.features import build_features
-from sensex_options.strategies import run_strategy_suite
+from sensex_options.strategies import run_strategy_suite, period_pnl
 from sensex_options.analytics import strategy_performance_metrics, walk_forward_evaluation
 
 st.set_page_config(
@@ -428,6 +428,8 @@ def page_research_lab():
     b.metric("Expiry cycles", validation.get("expiries", 0))
     c.metric("Session coverage", f"{validation.get('option_session_coverage_pct', 0) or 0:.1f}%")
     d.metric("CE + PE expiry coverage", f"{validation.get('expiry_completeness_pct', 0) or 0:.1f}%")
+    if validation.get("completed_expiry_count", 0) < 30:
+        st.warning("Fewer than 30 matured expiry cycles are available. Performance and risk statistics are exploratory only; complete the historical bootstrap before drawing conclusions.")
     if validation.get("missing_option_sessions"):
         with st.expander("Missing option sessions"):
             st.write(", ".join(validation["missing_option_sessions"]))
@@ -468,12 +470,16 @@ def page_research_lab():
             trades.to_csv(DEFAULT_PATHS.outputs / "strategy_trade_ledger.csv", index=False)
             ranking.to_csv(DEFAULT_PATHS.outputs / "strategy_leaderboard.csv", index=False)
             metrics.to_csv(DEFAULT_PATHS.outputs / "strategy_performance_metrics.csv", index=False)
+            for period_name, period_frame in period_pnl(trades).items():
+                period_frame.to_csv(DEFAULT_PATHS.outputs / f"{period_name}_strategy_pnl.csv", index=False)
             with open(DEFAULT_PATHS.outputs / "walk_forward_report.json", "w", encoding="utf-8") as handle:
                 json.dump(walk, handle, indent=2, default=str)
             st.session_state["research_trades"] = trades
             st.session_state["research_metrics"] = metrics
             st.session_state["research_walk_forward"] = walk
             st.success(f"Completed {len(trades):,} strategy trades across {trades['expiry_date'].nunique()} expiry cycles.")
+            if trades["expiry_date"].nunique() < 30:
+                st.warning("Small sample: these results are not statistically reliable. Backfill additional historical expiries.")
             st.json(meta)
 
     metrics = st.session_state.get("research_metrics")
