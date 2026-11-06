@@ -41,6 +41,22 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -f data/processed/sensex_index.csv data/processed/sensex_options.csv.gz outputs/strategy_trade_ledger.csv outputs/strategy_leaderboard.csv outputs/strategy_performance_metrics.csv outputs/walk_forward_report.json outputs/daily_strategy_pnl.csv outputs/weekly_strategy_pnl.csv outputs/monthly_strategy_pnl.csv outputs/daily_run.json data/reports/data_validation.json
           git diff --cached --quiet || git commit -m "chore: daily SENSEX data and strategy refresh"
-          git fetch origin main
-          git rebase origin/main
-          git push origin HEAD:main
+          # Retry if main advances between fetch/rebase and push. Never force-push:
+          # each attempt first integrates the latest remote commit.
+          for attempt in 1 2 3 4 5; do
+            echo "Safe push attempt ${attempt}/5"
+            git fetch origin main
+            if ! git rebase origin/main; then
+              echo "::error::Rebase conflict while integrating origin/main; refusing to overwrite remote history."
+              git rebase --abort || true
+              exit 1
+            fi
+            if git push origin HEAD:main; then
+              echo "Successfully pushed research outputs to main."
+              exit 0
+            fi
+            echo "Remote main moved during push; retrying after a short delay."
+            sleep $((attempt * 3))
+          done
+          echo "::error::Could not push after five safe retries."
+          exit 1
