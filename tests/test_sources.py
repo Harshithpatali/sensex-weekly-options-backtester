@@ -131,7 +131,7 @@ def test_parser_supports_legacy_bse_derivatives_columns(tmp_path: Path):
     raw = pd.DataFrame({
         "INSTRUMENT": ["OPTIDX", "OPTIDX", "OPTIDX"],
         "SYMBOL": ["SENSEX", "SENSEX", "NIFTY"],
-        "EXPIRY_DT": ["25-Jul-2024"] * 3,
+        "EXPIRY_DT": ["04-Jul-2024"] * 3,
         "STRIKE_PR": [80000, 80000, 25000],
         "OPTION_TYP": ["CE", "PE", "CE"],
         "OPEN": [100, 110, 90],
@@ -142,7 +142,7 @@ def test_parser_supports_legacy_bse_derivatives_columns(tmp_path: Path):
         "CONTRACTS": [100, 120, 200],
         "OPEN_INT": [1000, 1100, 2000],
         "CHG_IN_OI": [10, 20, 30],
-        "TIMESTAMP": ["25-Jul-2024"] * 3,
+        "TIMESTAMP": ["04-Jul-2024"] * 3,
     })
     path = tmp_path / "legacy_bse.csv"
     raw.to_csv(path, index=False)
@@ -175,10 +175,10 @@ def test_parser_supports_legacy_bse_zip_archive(tmp_path: Path):
         "SETTLE_PR": [133],
         "CONTRACTS": [75],
         "OPEN_INT": [900],
-        "TIMESTAMP": ["25-Jul-2024"],
+        "TIMESTAMP": ["04-Jul-2024"],
     })
     csv_bytes = raw.to_csv(index=False).encode("utf-8")
-    path = tmp_path / "BSE_FO_20240725.zip"
+    path = tmp_path / "BSE_FO_20240704.zip"
     with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         archive.writestr("bhavcopy.csv", csv_bytes)
 
