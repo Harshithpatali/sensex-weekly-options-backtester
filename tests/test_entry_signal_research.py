@@ -1,5 +1,6 @@
 import pandas as pd
 
+from sensex_options.config import CostConfig
 from sensex_options.entry_signal_research import (
     _build_monthly_selector,
     _paired_option_outcomes,
@@ -304,6 +305,7 @@ def test_defined_risk_credit_spreads_use_observed_hedge_and_fit_risk_budget():
     outcomes = _option_credit_vertical_outcomes(
         index, pd.DataFrame(option_rows), holding_periods=(1,), spread_width_steps=(1,),
         capital=10000.0,
+        cost=CostConfig(),
     )
     assert not outcomes.empty
     assert set(outcomes["option_family"]) == {"CREDIT_SPREADS_W1"}
