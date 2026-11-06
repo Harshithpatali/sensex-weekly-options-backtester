@@ -295,7 +295,8 @@ def parse_bse_fo_file(path: Path, trade_date: Optional[datetime] = None) -> pd.D
     )
     if legacy_schema and lot_c is None:
         sensex_rows = out["symbol"].astype(str).str.startswith("SENSEX", na=False)
-        out.loc[sensex_rows, "lot_size"] = 10
+        legacy_dates = out["trade_date"].le(pd.Timestamp("2024-07-05"))
+        out.loc[sensex_rows & legacy_dates, "lot_size"] = 10
 
     # Sanitise premium: on expiry BSE sometimes sets ClsPric ≈ underlying index.
     # Prefer last / settle / intrinsic when close looks like the index level.
