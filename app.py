@@ -431,11 +431,9 @@ def page_research_lab():
     st.subheader("Historical coverage")
     a, b, c, d = st.columns(4)
     a.metric("Option rows", f"{len(options):,}")
-    b.metric("Expiry cycles", validation.get("expiries", 0))
+    b.metric("Available expiry cycles", validation.get("expiries", 0))
     c.metric("Session coverage", f"{validation.get('option_session_coverage_pct', 0) or 0:.1f}%")
-    d.metric("CE + PE expiry coverage", f"{validation.get('expiry_completeness_pct', 0) or 0:.1f}%")
-    if validation.get("completed_expiry_count", 0) < 30:
-        st.warning("Fewer than 30 matured expiry cycles are available. Performance and risk statistics are exploratory only; complete the historical bootstrap before drawing conclusions.")
+    d.metric("Complete matured expiries", f"{validation.get('expiry_completeness_pct', 0) or 0:.1f}%")
     st.caption(f"Matured expiries: {validation.get('completed_expiry_count', 0)} · Complete for backtest: {validation.get('complete_expiries', 0)} · Pending future expiries: {validation.get('pending_expiries', 0)}")
     if validation.get("completed_expiry_count", 0) < 30:
         st.warning("Fewer than 30 matured expiry cycles are available. Backfill the full history before relying on the statistics.")
