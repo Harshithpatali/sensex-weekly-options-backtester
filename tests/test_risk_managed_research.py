@@ -67,6 +67,7 @@ def test_risk_managed_research_builds_baseline_and_exit_variants():
             "high": 130.0,
             "low": 70.0,
             "close": 110.0,
+            "volume": 100, "open_interest": 100,
         })
 
     monthly, board, report = run_risk_managed_research(
