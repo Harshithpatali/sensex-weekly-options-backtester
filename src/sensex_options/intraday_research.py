@@ -170,8 +170,8 @@ def evaluate_intraday_put_filters(
         "Close below intraday mean": test["close_vs_intraday_mean_pct"] < 0,
         "Bearish + below intraday mean": (test["session_return_pct"] < 0) & (test["close_vs_intraday_mean_pct"] < 0),
         "Bearish + lower volatility": (test["session_return_pct"] < 0) & (test["range_pct"] <= range_cutoff),
-        "Bearish + below VWAP + lower volatility": (
-            (test["session_return_pct"] < 0) & (test["close_vs_vwap_pct"] < 0)
+        "Bearish + below intraday mean + lower volatility": (
+            (test["session_return_pct"] < 0) & (test["close_vs_intraday_mean_pct"] < 0)
             & (test["range_pct"] <= range_cutoff)
         ),
     }
