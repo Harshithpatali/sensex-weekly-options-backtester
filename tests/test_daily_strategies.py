@@ -66,3 +66,24 @@ def test_daily_holdout_is_chronological_and_reports_only_test_window():
     assert result["holdout_sessions"] == 6
     assert result["holdout_start"] > result["train_end"]
     assert result["holdout_metrics"][0]["trades"] == 6
+
+
+
+def test_extended_daily_indicators_are_replayed_when_history_is_sufficient():
+    dates = pd.date_range("2024-01-01", periods=40, freq="B")
+    closes = list(range(1020, 1000, -1)) + list(range(1001, 1021))
+    index = pd.DataFrame({"date": dates, "close": closes})
+    rows = []
+    expiry = dates[-1] + pd.Timedelta(days=7)
+    for i, day in enumerate(dates):
+        strike = float(closes[i - 1] if i > 0 else closes[0])
+        for typ in ("CE", "PE"):
+            rows.append({
+                "trade_date": day, "expiry_date": expiry, "symbol": f"SENSEX_{typ}",
+                "strike": strike, "option_type": typ,
+                "close": float(20 + i if typ == "CE" else 60 - i * 0.5),
+                "lot_size": 10,
+            })
+    ledger, board, _ = run_daily_strategy_suite(index, pd.DataFrame(rows), capital=10000, cost=CostConfig())
+    assert {"DAILY_5D_MOMENTUM", "DAILY_EMA_TREND", "DAILY_RSI_REVERSAL"}.issubset(set(board["strategy"]))
+    assert {"CE", "PE"}.issubset(set(ledger["option_type"]))
