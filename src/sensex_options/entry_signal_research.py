@@ -520,6 +520,337 @@ def _option_debit_vertical_outcomes(
     ).reset_index(drop=True)
 
 
+
+def _option_chain_market_features(
+    index: pd.DataFrame,
+    options: pd.DataFrame,
+) -> pd.DataFrame:
+    """Compute past-only option-chain PCR, OI build-up and straddle/RV features.
+
+    Values are calculated from the option bhavcopy for the completed signal
+    session and the same expiry selected for the eventual trade. OI/premium
+    changes use the previous available observation of the exact contract.
+    """
+    required = {"date", "close"}
+    if index is None or index.empty or not required.issubset(index.columns):
+        return pd.DataFrame()
+    if options is None or options.empty:
+        return pd.DataFrame()
+
+    idx = index.copy()
+    idx["date"] = pd.to_datetime(idx["date"], errors="coerce").dt.normalize()
+    idx["close"] = pd.to_numeric(idx["close"], errors="coerce")
+    idx = idx.dropna(subset=["date", "close"]).sort_values("date").drop_duplicates("date")
+    idx["realized_vol20"] = idx["close"].pct_change().rolling(20, min_periods=15).std()
+    spot_by_date = dict(zip(idx["date"], idx["close"]))
+    vol_by_date = dict(zip(idx["date"], idx["realized_vol20"]))
+
+    opt = options.copy()
+    needed = {"trade_date", "expiry_date", "strike", "option_type", "close"}
+    if not needed.issubset(opt.columns):
+        return pd.DataFrame()
+    opt["trade_date"] = pd.to_datetime(opt["trade_date"], errors="coerce").dt.normalize()
+    opt["expiry_date"] = pd.to_datetime(opt["expiry_date"], errors="coerce").dt.normalize()
+    for col in ("strike", "close", "volume", "open_interest"):
+        if col not in opt.columns:
+            opt[col] = np.nan
+        opt[col] = pd.to_numeric(opt[col], errors="coerce")
+    opt["symbol"] = opt["symbol"].astype(str).str.strip().str.upper() if "symbol" in opt else "SENSEX"
+    opt["option_type"] = opt["option_type"].astype(str).str.strip().str.upper()
+    opt = opt.dropna(subset=["trade_date", "expiry_date", "strike", "close"])
+    opt = opt[
+        (opt["strike"] > 0)
+        & (opt["close"] >= 0)
+        & opt["option_type"].isin(["CE", "PE"])
+    ].drop_duplicates(
+        ["trade_date", "expiry_date", "strike", "symbol", "option_type"],
+        keep="last",
+    ).sort_values(["expiry_date", "strike", "symbol", "option_type", "trade_date"])
+
+    contract_keys = ["expiry_date", "strike", "symbol", "option_type"]
+    grouped = opt.groupby(contract_keys, sort=False)
+    opt["previous_oi"] = grouped["open_interest"].shift(1)
+    opt["previous_close"] = grouped["close"].shift(1)
+    opt["oi_change"] = opt["open_interest"] - opt["previous_oi"]
+    opt["oi_change_pct"] = opt["oi_change"] / opt["previous_oi"].replace(0, np.nan)
+    opt["premium_change_pct"] = (
+        opt["close"] / opt["previous_close"].replace(0, np.nan) - 1
+    )
+
+    rows = []
+    for (trade_date, expiry), chain in opt.groupby(["trade_date", "expiry_date"], sort=False):
+        spot = spot_by_date.get(trade_date)
+        if not _finite(spot) or float(spot) <= 0:
+            continue
+        strikes = sorted(chain["strike"].dropna().unique())
+        if not strikes:
+            continue
+        atm = float(min(strikes, key=lambda value: abs(float(value) - float(spot))))
+        atm_pos = strikes.index(atm)
+        near_strikes = set(float(value) for value in strikes[max(0, atm_pos - 2):atm_pos + 3])
+        near = chain[chain["strike"].isin(near_strikes)]
+        side_stats = {}
+        for option_type in ("CE", "PE"):
+            side = near[near["option_type"] == option_type]
+            if side.empty:
+                side_stats[option_type] = {
+                    "volume": np.nan, "oi": np.nan, "previous_oi": np.nan,
+                    "oi_change": np.nan, "oi_change_pct": np.nan,
+                    "premium_change_pct": np.nan,
+                }
+                continue
+            volume = side["volume"].sum(min_count=1)
+            oi = side["open_interest"].sum(min_count=1)
+            previous_oi = side["previous_oi"].sum(min_count=1)
+            oi_change = side["oi_change"].sum(min_count=1)
+            side_stats[option_type] = {
+                "volume": float(volume) if _finite(volume) else np.nan,
+                "oi": float(oi) if _finite(oi) else np.nan,
+                "previous_oi": float(previous_oi) if _finite(previous_oi) else np.nan,
+                "oi_change": float(oi_change) if _finite(oi_change) else np.nan,
+                "oi_change_pct": (
+                    float(oi_change / previous_oi)
+                    if _finite(oi_change) and _finite(previous_oi) and float(previous_oi) > 0
+                    else np.nan
+                ),
+                "premium_change_pct": (
+                    float(side["premium_change_pct"].median())
+                    if side["premium_change_pct"].notna().any() else np.nan
+                ),
+            }
+
+        atm_rows = chain[chain["strike"] == atm]
+        call_atm = atm_rows[atm_rows["option_type"] == "CE"]
+        put_atm = atm_rows[atm_rows["option_type"] == "PE"]
+        call_premium = float(call_atm.iloc[0]["close"]) if not call_atm.empty else np.nan
+        put_premium = float(put_atm.iloc[0]["close"]) if not put_atm.empty else np.nan
+        call_volume = side_stats["CE"]["volume"]
+        put_volume = side_stats["PE"]["volume"]
+        call_oi = side_stats["CE"]["oi"]
+        put_oi = side_stats["PE"]["oi"]
+        pcr_volume = (
+            put_volume / call_volume
+            if _finite(put_volume) and _finite(call_volume) and call_volume > 0 else np.nan
+        )
+        pcr_oi = (
+            put_oi / call_oi
+            if _finite(put_oi) and _finite(call_oi) and call_oi > 0 else np.nan
+        )
+        straddle_pct = (
+            (call_premium + put_premium) / float(spot)
+            if _finite(call_premium) and _finite(put_premium) else np.nan
+        )
+        tenor_sessions = max((pd.Timestamp(expiry) - pd.Timestamp(trade_date)).days * 5 / 7, 1.0)
+        implied_daily_move = (
+            straddle_pct / np.sqrt(2 * tenor_sessions / np.pi)
+            if _finite(straddle_pct) else np.nan
+        )
+        realized_vol = vol_by_date.get(trade_date)
+        implied_rv_ratio = (
+            implied_daily_move / float(realized_vol)
+            if _finite(implied_daily_move) and _finite(realized_vol) and float(realized_vol) > 0
+            else np.nan
+        )
+        call_change = side_stats["CE"]["oi_change_pct"]
+        put_change = side_stats["PE"]["oi_change_pct"]
+        call_premium_ret = side_stats["CE"]["premium_change_pct"]
+        put_premium_ret = side_stats["PE"]["premium_change_pct"]
+        # A rising premium with rising OI is classified as long build-up;
+        # falling premium with rising OI as writer build-up. Direction is a
+        # hypothesis, not proof of buyer/seller identity from OI alone.
+        call_build = (
+            float(np.sign(call_change) * np.sign(call_premium_ret))
+            if _finite(call_change) and _finite(call_premium_ret) else np.nan
+        )
+        put_build = (
+            float(-np.sign(put_change) * np.sign(put_premium_ret))
+            if _finite(put_change) and _finite(put_premium_ret) else np.nan
+        )
+        rows.append({
+            "signal_date": pd.Timestamp(trade_date),
+            "expiry_date": pd.Timestamp(expiry),
+            "pcr_volume_near_atm": pcr_volume,
+            "pcr_oi_near_atm": pcr_oi,
+            "call_oi_change_pct": call_change,
+            "put_oi_change_pct": put_change,
+            "call_premium_change_pct": call_premium_ret,
+            "put_premium_change_pct": put_premium_ret,
+            "call_build_up_score": call_build,
+            "put_build_up_score": put_build,
+            "positioning_score": (
+                call_build + put_build
+                if _finite(call_build) and _finite(put_build) else np.nan
+            ),
+            "atm_straddle_pct": straddle_pct,
+            "implied_daily_move_proxy": implied_daily_move,
+            "implied_to_realized_vol_ratio": implied_rv_ratio,
+            "near_atm_call_oi": call_oi,
+            "near_atm_put_oi": put_oi,
+            "near_atm_call_volume": call_volume,
+            "near_atm_put_volume": put_volume,
+        })
+    return pd.DataFrame(rows)
+
+
+def _option_credit_vertical_outcomes(
+    index: pd.DataFrame,
+    options: pd.DataFrame,
+    holding_periods: tuple[int, ...] = (1, 2, 3, 5),
+    spread_width_steps: tuple[int, ...] = (1, 2, 3),
+    capital: float = 10000.0,
+    cost: CostConfig | None = None,
+) -> pd.DataFrame:
+    """Build defined-risk bull-put and bear-call credit spreads from real quotes.
+
+    Risk is bounded by observed strike distance less entry credit. A position is
+    skipped when estimated maximum loss plus entry fees exceeds available
+    capital. This is a conservative risk budget, not a broker margin quote.
+    """
+    if index is None or index.empty or options is None or options.empty:
+        return pd.DataFrame()
+    required = {"date", "close"}
+    opt_required = {"trade_date", "expiry_date", "strike", "option_type", "close", "lot_size"}
+    if not required.issubset(index.columns) or not opt_required.issubset(options.columns):
+        return pd.DataFrame()
+    cfg = cost or _default_signal_cost()
+    idx = index.copy()
+    idx["date"] = pd.to_datetime(idx["date"], errors="coerce").dt.normalize()
+    idx["close"] = pd.to_numeric(idx["close"], errors="coerce")
+    idx = idx.dropna(subset=["date", "close"]).sort_values("date").drop_duplicates("date").reset_index(drop=True)
+
+    opt = options.copy()
+    opt["trade_date"] = pd.to_datetime(opt["trade_date"], errors="coerce").dt.normalize()
+    opt["expiry_date"] = pd.to_datetime(opt["expiry_date"], errors="coerce").dt.normalize()
+    for col in ("strike", "close", "lot_size"):
+        opt[col] = pd.to_numeric(opt[col], errors="coerce")
+    opt["symbol"] = opt["symbol"].astype(str).str.strip().str.upper() if "symbol" in opt else "SENSEX"
+    opt["option_type"] = opt["option_type"].astype(str).str.strip().str.upper()
+    opt = opt.dropna(subset=["trade_date", "expiry_date", "strike", "close"])
+    opt = opt[
+        (opt["strike"] > 0) & (opt["close"] >= 0)
+        & opt["option_type"].isin(["CE", "PE"])
+    ].sort_values(["trade_date", "expiry_date", "strike", "symbol"])
+    by_day = {day: frame for day, frame in opt.groupby("trade_date", sort=False)}
+    rows = []
+
+    for hold in sorted(set(int(h) for h in holding_periods if int(h) > 0)):
+        for entry_pos in range(1, len(idx) - hold):
+            signal_row = idx.iloc[entry_pos - 1]
+            entry_row = idx.iloc[entry_pos]
+            exit_row = idx.iloc[entry_pos + hold]
+            entry_day = pd.Timestamp(entry_row["date"])
+            exit_day = pd.Timestamp(exit_row["date"])
+            entry_options = by_day.get(entry_day)
+            exit_options = by_day.get(exit_day)
+            if entry_options is None or exit_options is None:
+                continue
+            eligible = entry_options.loc[
+                entry_options["expiry_date"] >= exit_day, "expiry_date"
+            ].dropna().unique()
+            if not len(eligible):
+                continue
+            expiry = pd.Timestamp(min(eligible))
+            chain = entry_options[entry_options["expiry_date"] == expiry]
+            strikes = sorted(pd.to_numeric(chain["strike"], errors="coerce").dropna().unique())
+            if len(strikes) < 2:
+                continue
+            atm = float(min(strikes, key=lambda value: abs(float(value) - float(signal_row["close"]))))
+            atm_pos = strikes.index(atm)
+            higher = [float(v) for v in strikes[atm_pos + 1:]]
+            lower = [float(v) for v in reversed(strikes[:atm_pos])]
+            exit_chain = exit_options[exit_options["expiry_date"] == expiry]
+            for width in sorted(set(int(w) for w in spread_width_steps if int(w) > 0)):
+                spread_specs = (
+                    # Bullish: sell ATM PE, buy lower-strike PE hedge.
+                    ("PE", atm, lower[width - 1] if len(lower) >= width else None, "BULL_PUT_CREDIT"),
+                    # Bearish: sell ATM CE, buy higher-strike CE hedge.
+                    ("CE", atm, higher[width - 1] if len(higher) >= width else None, "BEAR_CALL_CREDIT"),
+                )
+                pnl_by_direction = {}
+                for option_type, short_strike, long_strike, label in spread_specs:
+                    if long_strike is None:
+                        continue
+                    short_entries = chain[
+                        (chain["strike"] == short_strike) & (chain["option_type"] == option_type)
+                    ]
+                    long_entries = chain[
+                        (chain["strike"] == long_strike) & (chain["option_type"] == option_type)
+                    ]
+                    if short_entries.empty or long_entries.empty:
+                        continue
+                    short_entry, long_entry = short_entries.iloc[0], long_entries.iloc[0]
+                    short_symbol = str(short_entry.get("symbol", "SENSEX")).strip().upper()
+                    long_symbol = str(long_entry.get("symbol", "SENSEX")).strip().upper()
+                    short_lot, long_lot = short_entry.get("lot_size"), long_entry.get("lot_size")
+                    if (
+                        not _finite(short_lot) or not _finite(long_lot)
+                        or int(short_lot) <= 0 or int(short_lot) != int(long_lot)
+                        or short_symbol != long_symbol
+                    ):
+                        continue
+                    lot_size = int(short_lot)
+                    short_entry_premium = float(short_entry["close"])
+                    long_entry_premium = float(long_entry["close"])
+                    entry_credit = short_entry_premium - long_entry_premium
+                    if not _finite(entry_credit) or entry_credit <= 0:
+                        continue
+                    short_exits = exit_chain[
+                        (exit_chain["strike"] == short_strike)
+                        & (exit_chain["option_type"] == option_type)
+                        & (exit_chain["symbol"] == short_symbol)
+                    ]
+                    long_exits = exit_chain[
+                        (exit_chain["strike"] == long_strike)
+                        & (exit_chain["option_type"] == option_type)
+                        & (exit_chain["symbol"] == long_symbol)
+                    ]
+                    if short_exits.empty or long_exits.empty:
+                        continue
+                    short_exit_premium = float(short_exits.iloc[-1]["close"])
+                    long_exit_premium = float(long_exits.iloc[-1]["close"])
+                    if (
+                        not _finite(short_exit_premium) or not _finite(long_exit_premium)
+                        or short_exit_premium < 0 or long_exit_premium < 0
+                    ):
+                        continue
+                    exit_debit = short_exit_premium - long_exit_premium
+                    if exit_debit < 0:
+                        # Reject inverted spread marks rather than clipping liability.
+                        continue
+                    quantity = lot_size
+                    entry_fees = _debit_vertical_entry_fees(
+                        long_entry_premium, short_entry_premium, quantity, cfg
+                    )
+                    max_loss = (abs(float(short_strike) - float(long_strike)) - entry_credit) * quantity
+                    if max_loss <= 0 or max_loss + entry_fees > capital:
+                        continue
+                    charges = _debit_vertical_costs(
+                        long_entry_premium, short_entry_premium,
+                        long_exit_premium, short_exit_premium,
+                        quantity, cfg,
+                    )
+                    net = (entry_credit - exit_debit) * quantity - charges["total_cost"]
+                    pnl_by_direction[label] = round(net, 2)
+                if pnl_by_direction:
+                    rows.append({
+                        "entry_date": entry_day,
+                        "exit_date": exit_day,
+                        "signal_date": pd.Timestamp(signal_row["date"]),
+                        "holding_sessions": hold,
+                        "expiry_date": expiry,
+                        "strike": atm,
+                        "month": exit_day.strftime("%Y-%m"),
+                        "option_family": f"CREDIT_SPREADS_W{width}",
+                        "spread_width_steps": width,
+                        "call_pnl": pnl_by_direction.get("BEAR_CALL_CREDIT", np.nan),
+                        "put_pnl": pnl_by_direction.get("BULL_PUT_CREDIT", np.nan),
+                    })
+    if not rows:
+        return pd.DataFrame()
+    return pd.DataFrame(rows).sort_values(
+        ["entry_date", "holding_sessions"]
+    ).reset_index(drop=True)
+
 def _paired_option_outcomes(daily_ledger: pd.DataFrame) -> pd.DataFrame:
     required = {"strategy", "entry_date", "exit_date", "expiry_date", "strike", "net_pnl"}
     if daily_ledger is None or daily_ledger.empty or not required.issubset(daily_ledger.columns):
