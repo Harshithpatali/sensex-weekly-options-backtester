@@ -234,3 +234,23 @@ def test_parser_supports_actual_spaced_bse_legacy_archive_schema(tmp_path: Path)
     # The expiry-day row has an index-level close, not an option premium.
     expiry_row = options[options["trade_date"] == pd.Timestamp("2024-07-05")].iloc[0]
     assert pd.isna(expiry_row["close"])
+
+
+def test_archive_session_overrides_legacy_last_traded_date(tmp_path: Path):
+    raw = pd.DataFrame({
+        "Contract Type": ["IO"],
+        "Symbol": ["SENSEX2351963000CE"],
+        "Expiry": ["19 May 2023"],
+        "Strike": [63000.0],
+        "Option Type": ["CALL"],
+        "Open": [60.15], "High": [92.0], "Low": [45.1], "Close": [54.4],
+        "L T Date": ["15 May 2023"],
+        "Contracts Traded": [84], "Open Interest": [250],
+    })
+    path = tmp_path / "legacy.csv"
+    raw.to_csv(path, index=False)
+
+    parsed = parse_bse_fo_file(path, trade_date="2023-05-16")
+
+    assert len(parsed) == 1
+    assert parsed.iloc[0]["trade_date"] == pd.Timestamp("2023-05-16")
