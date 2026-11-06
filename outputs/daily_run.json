@@ -1,5 +1,5 @@
 {
-  "run_time_utc": "2026-11-06T18:08:32.616922+00:00",
+  "run_time_utc": "2026-11-06T18:13:27.513553+00:00",
   "target_data_date": "2026-11-05",
   "downloaded_option_dates": [
     "2026-11-02",
@@ -3034,47 +3034,53 @@
   },
   "entry_signal_research": {
     "status": "no_candidate_met_research_screen",
-    "paired_trades": 224,
-    "candidate_rules_tested": 41,
+    "option_outcome_sessions": 1866,
+    "candidate_rules_tested": 164,
+    "holding_periods_tested": [
+      1,
+      2,
+      3,
+      5
+    ],
     "candidate_pass_count": 0,
-    "training_end": "2025-12-30",
-    "holdout_start": "2026-01-01",
+    "training_end": "2026-02-27",
+    "holdout_start": "2026-03-02",
     "top_training_rule": {
-      "strategy": "RSI35_65_REVERSAL",
-      "train_net_pnl": 56725.19,
-      "train_aggregate_pf": 1.416306156650216,
-      "holdout_net_pnl": -4127.78,
-      "holdout_aggregate_pf": 0.9082800753174484
+      "strategy": "H5D_BB_Z2_0_REVERSAL",
+      "train_net_pnl": 143995.93,
+      "train_aggregate_pf": 6.559570356614048,
+      "holdout_net_pnl": -11507.7,
+      "holdout_aggregate_pf": 0.0
     },
     "rolling_selector_summary": [
       {
         "strategy": "ROLLING_3M_SELECTOR",
-        "train_trades": 76,
-        "train_net_pnl": -47737.43,
-        "train_aggregate_pf": 0.6625577169408045,
-        "train_active_months": 9,
-        "train_monthly_target_hit_pct": 22.22,
+        "train_trades": 158,
+        "train_net_pnl": -377143.05,
+        "train_aggregate_pf": 0.2999815818354244,
+        "train_active_months": 15,
+        "train_monthly_target_hit_pct": 13.33,
         "train_positive_months": 3,
-        "holdout_trades": 30,
-        "holdout_net_pnl": -7731.1,
-        "holdout_aggregate_pf": 0.8830431562296904,
-        "holdout_active_months": 5,
-        "holdout_monthly_target_hit_pct": 20.0,
-        "holdout_positive_months": 1
+        "holdout_trades": 70,
+        "holdout_net_pnl": -165351.97,
+        "holdout_aggregate_pf": 0.24465206557904257,
+        "holdout_active_months": 7,
+        "holdout_monthly_target_hit_pct": 0.0,
+        "holdout_positive_months": 0
       },
       {
         "strategy": "ROLLING_6M_SELECTOR",
-        "train_trades": 69,
-        "train_net_pnl": -52731.7,
-        "train_aggregate_pf": 0.6498128687662741,
-        "train_active_months": 8,
-        "train_monthly_target_hit_pct": 12.5,
-        "train_positive_months": 1,
-        "holdout_trades": 45,
-        "holdout_net_pnl": 13596.38,
-        "holdout_aggregate_pf": 1.1268503388832072,
-        "holdout_active_months": 6,
-        "holdout_monthly_target_hit_pct": 33.33,
+        "train_trades": 60,
+        "train_net_pnl": 17691.83,
+        "train_aggregate_pf": 1.1087186469941301,
+        "train_active_months": 10,
+        "train_monthly_target_hit_pct": 50.0,
+        "train_positive_months": 6,
+        "holdout_trades": 59,
+        "holdout_net_pnl": 17589.12,
+        "holdout_aggregate_pf": 1.1422030201260893,
+        "holdout_active_months": 8,
+        "holdout_monthly_target_hit_pct": 12.5,
         "holdout_positive_months": 2
       }
     ]
