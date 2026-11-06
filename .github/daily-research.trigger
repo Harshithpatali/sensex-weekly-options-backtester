@@ -1,1 +1,2 @@
 Regenerate daily strategy results with trade-distribution and concentration diagnostics.
+Intraday SENSEX candles and Daily ATM Put filter validation are collected and saved by the scheduled workflow; the dashboard only reads persisted outputs.
