@@ -363,22 +363,19 @@ def download_bse_options_range(
         return empty
 
     combined = pd.concat(frames, ignore_index=True)
-    # Keep only Call options with positive strike
-    calls = combined[
-        (combined["option_type"] == "CE")
+    # Keep both Calls and Puts: the multi-strategy research suite requires both sides.
+    options = combined[
+        (combined["option_type"].isin(["CE", "PE"]))
         & (combined["strike"].notna())
         & (combined["strike"] > 0)
     ].copy()
-
-    # Prefer symbols containing SENSEX
-    sensex = calls[calls["symbol"].str.contains("SENSEX", case=False, na=False)]
+    sensex = options[options["symbol"].str.contains("SENSEX", case=False, na=False)]
     if len(sensex) > 0:
-        calls = sensex
-
+        options = sensex
     out_path = DEFAULT_PATHS.processed / "sensex_options.csv"
-    calls.to_csv(out_path, index=False)
-    logger.info("Wrote %d SENSEX Call option rows to %s", len(calls), out_path)
-    return calls
+    options.to_csv(out_path, index=False)
+    logger.info("Wrote %d SENSEX Call/Put option rows to %s", len(options), out_path)
+    return options
 
 
 def load_options(path: Optional[Path] = None) -> pd.DataFrame:
