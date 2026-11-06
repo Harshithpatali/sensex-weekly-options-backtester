@@ -233,6 +233,9 @@ Pages:
 5. **Performance Dashboard** – metrics + equity curve (Plotly)  
 6. **Trade Ledger** – every completed and skipped trade  
 7. **Reports** – downloadable CSV/JSON  
+8. **Strategy Leaderboard** – historical strategy ranking  
+9. **Daily / Weekly / Monthly P&L** – realized expiry-trade P&L  
+10. **Research & Walk-Forward** – editable execution costs, risk metrics, chronological holdout and rolling expiry tests  
 
 Dark financial-terminal theme.
 
@@ -293,7 +296,7 @@ MIT for the code. Market data remains subject to exchange terms.
 
 GitHub Actions is scheduled for **06:30 Asia/Kolkata (01:00 UTC), Monday–Friday**. It attempts to fetch the previous calendar day's BSE FO bhavcopy, refreshes SENSEX index history, validates the accumulated datasets, replays five transparent option-buying baselines, and publishes daily/weekly/monthly realized simulated P&L plus a ranked leaderboard.
 
-Strategies: ATM call, ATM put, one-step OTM call, one-step OTM put, and ATM long straddle. The leaderboard ranks the complete available historical replay by net P&L (not a prediction of tomorrow's best strategy). P&L is simulated from daily closing marks, not live fills. Estimated costs in this first version include configurable brokerage and slippage only; statutory charges, spread, impact, funding, margin and taxes are not fully modelled.
+Strategies: ATM call, ATM put, one-step OTM call, one-step OTM put, and ATM long straddle. The leaderboard ranks the complete available historical replay by net P&L (not a prediction of tomorrow's best strategy). P&L is simulated from daily closing marks, not live fills. Estimated costs include editable brokerage, STT, exchange charges, GST, stamp duty, other charges, bid/ask spread proxy, slippage and market-impact proxy. Funding, margin and guaranteed execution are not modelled.
 
 **Important setup:** this workflow needs an initial historical dataset to be useful. The first scheduled run only adds the latest available day; it does not backfill all history. Run a historical BSE data bootstrap separately before relying on rankings. The workflow commits processed index/options history and reports to this repository so the Streamlit app can read them; this increases repository size over time. GitHub rejects individual files at 100 MB. For long-term production, move market history to object storage or a database and keep only compact reports in Git.
 
