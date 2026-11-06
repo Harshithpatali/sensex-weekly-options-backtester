@@ -14,7 +14,7 @@ def daily_fixture():
                 "trade_date": day, "expiry_date": dates[-1] + pd.Timedelta(days=2),
                 "symbol": f"SENSEX_{typ}", "strike": 101.0, "option_type": typ,
                 "close": 10.0 + day_i if typ == "CE" else 12.0 - day_i,
-                "lot_size": 10,
+                "lot_size": 10, "volume": 100, "open_interest": 500,
             })
     return index, pd.DataFrame(rows)
 
