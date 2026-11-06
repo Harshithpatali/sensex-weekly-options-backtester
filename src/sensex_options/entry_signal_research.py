@@ -297,9 +297,13 @@ def _option_horizon_outcomes(
                         )
                         + cfg.stamp_duty_pct * entry_turnover
                     )
-                    # Long options can lose the full premium. Enforce the account
-                    # risk budget, not merely the cash-affordability ceiling.
-                    if entry_turnover + entry_fees > capital * risk_pct:
+                    # Long options can lose the full premium. Include the full
+                    # conservative round-trip cost at a zero-value exit.
+                    worst_case_costs = compute_transaction_costs(
+                        entry_premium, 0.0, lot_size, 1, cfg
+                    )
+                    worst_case_loss = entry_premium * lot_size + worst_case_costs["total_cost"]
+                    if worst_case_loss > capital * risk_pct:
                         continue
 
                     exit_candidates = exit_options[
@@ -562,8 +566,14 @@ def _option_debit_vertical_outcomes(
                     entry_fees = _debit_vertical_entry_fees(
                         entry_long_premium, entry_short_premium, quantity, cfg
                     )
-                    # Debit spread max loss is the debit plus entry fees.
-                    if entry_debit * quantity + entry_fees > capital * risk_pct:
+                    # Debit spread max loss is the debit plus full round-trip
+                    # costs under a worthless-expiry exit.
+                    worst_case_costs = _debit_vertical_costs(
+                        entry_long_premium, entry_short_premium, 0.0, 0.0,
+                        quantity, cfg,
+                    )
+                    worst_case_loss = entry_debit * quantity + worst_case_costs["total_cost"]
+                    if worst_case_loss > capital * risk_pct:
                         continue
                     charges = _debit_vertical_costs(
                         entry_long_premium, entry_short_premium,
@@ -905,8 +915,14 @@ def _option_credit_vertical_outcomes(
                         long_entry_premium, short_entry_premium, quantity, cfg
                     )
                     max_loss = (abs(float(short_strike) - float(long_strike)) - entry_credit) * quantity
-                    # Credit spread max loss is width less credit, plus entry fees.
-                    if max_loss <= 0 or max_loss + entry_fees > capital * risk_pct:
+                    # Credit spread max loss is width less credit plus full
+                    # round-trip costs at the theoretical max-loss exit.
+                    worst_case_costs = _debit_vertical_costs(
+                        long_entry_premium, short_entry_premium, 0.0,
+                        spread_width, quantity, cfg,
+                    )
+                    worst_case_loss = max_loss + worst_case_costs["total_cost"]
+                    if max_loss <= 0 or worst_case_loss > capital * risk_pct:
                         continue
                     charges = _debit_vertical_costs(
                         long_entry_premium, short_entry_premium,
