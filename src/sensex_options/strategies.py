@@ -60,8 +60,10 @@ def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: floa
                 if xr.empty: break
                 entry_rows.append(er.iloc[0]); exit_rows.append(xr.iloc[0])
             if len(entry_rows)!=len(legs): continue
-            lots=int(entry_rows[0].get("lot_size",0) or 0)
-            if lots<=0 or any(int(r.get("lot_size",0) or 0)!=lots for r in entry_rows): continue
+            lot_values=[pd.to_numeric(r.get("lot_size"),errors="coerce") for r in entry_rows]
+            if any(pd.isna(v) or float(v)<=0 for v in lot_values): continue
+            lots=int(lot_values[0])
+            if any(int(v)!=lots for v in lot_values): continue
             entry_debit=sum(float(r.close) for r in entry_rows)+len(legs)*slippage_points
             exit_credit=sum(max(0.0,float(r.close)-slippage_points) for r in exit_rows)
             if entry_debit<=0: continue
