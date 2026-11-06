@@ -96,7 +96,7 @@ def test_debit_vertical_spread_grid_evaluates_multiple_available_widths():
             })
     result = _option_debit_vertical_outcomes(
         index, pd.DataFrame(quotes), holding_periods=(1,),
-        spread_width_steps=(1, 2, 3), cost=CostConfig(),
+        spread_width_steps=(1, 2, 3), risk_pct=0.03, cost=CostConfig(),
     )
     first_entry = result[result["entry_date"] == dates[1]]
     assert set(first_entry["spread_width_steps"].astype(int)) == {1, 2, 3}
