@@ -284,10 +284,236 @@ def _option_horizon_outcomes(
     )
     combined = calls.merge(puts, on=keys, how="outer", validate="one_to_one")
     combined["month"] = pd.to_datetime(combined["exit_date"]).dt.strftime("%Y-%m")
+    combined["option_family"] = "LONG_OPTIONS"
     combined["signal_date"] = pd.to_datetime(combined["entry_date"]).map(
         dict(zip(sessions["date"], sessions["date"].shift(1)))
     )
     return combined.dropna(subset=["signal_date"]).sort_values(
+        ["entry_date", "holding_sessions"]
+    ).reset_index(drop=True)
+
+
+def _debit_vertical_costs(
+    entry_long: float,
+    entry_short: float,
+    exit_long: float,
+    exit_short: float,
+    quantity: int,
+    cost: CostConfig,
+) -> dict[str, float]:
+    """Estimate charges for four orders across a defined-risk debit spread."""
+    turnover = quantity * (entry_long + entry_short + exit_long + exit_short)
+    brokerage = cost.brokerage_per_lot * 4 + cost.brokerage_pct * turnover
+    exchange = cost.exchange_charges_pct * turnover
+    gst = cost.gst_pct * (brokerage + exchange)
+    # Sell-side STT: short leg opened and long leg closed.
+    stt = cost.stt_pct * quantity * (entry_short + exit_long)
+    # Buy-side stamp duty: long leg opened and short leg closed.
+    stamp = cost.stamp_duty_pct * quantity * (entry_long + exit_short)
+    other = cost.other_charges * 4
+    slippage = (cost.entry_slippage + cost.exit_slippage) * quantity * 2
+    spread = cost.spread_points * quantity * 2
+    market_impact = cost.market_impact_points * quantity * 4
+    total = brokerage + exchange + gst + stt + stamp + other + slippage + spread + market_impact
+    return {
+        "brokerage": round(brokerage, 4),
+        "exchange": round(exchange, 4),
+        "gst": round(gst, 4),
+        "stt": round(stt, 4),
+        "stamp_duty": round(stamp, 4),
+        "other": round(other, 4),
+        "slippage": round(slippage, 4),
+        "spread": round(spread, 4),
+        "market_impact": round(market_impact, 4),
+        "total_cost": round(total, 4),
+    }
+
+
+def _debit_vertical_entry_fees(
+    entry_long: float,
+    entry_short: float,
+    quantity: int,
+    cost: CostConfig,
+) -> float:
+    """Entry-only fees and conservative execution costs for both spread legs."""
+    turnover = quantity * (entry_long + entry_short)
+    brokerage = cost.brokerage_per_lot * 2 + cost.brokerage_pct * turnover
+    exchange = cost.exchange_charges_pct * turnover
+    gst = cost.gst_pct * (brokerage + exchange)
+    stt = cost.stt_pct * quantity * entry_short
+    stamp = cost.stamp_duty_pct * quantity * entry_long
+    other = cost.other_charges * 2
+    slippage = cost.entry_slippage * quantity * 2
+    spread = cost.spread_points * quantity
+    market_impact = cost.market_impact_points * quantity * 2
+    return brokerage + exchange + gst + stt + stamp + other + slippage + spread + market_impact
+
+
+def _option_debit_vertical_outcomes(
+    index: pd.DataFrame,
+    options: pd.DataFrame,
+    holding_periods: tuple[int, ...] = (1, 2, 3, 5),
+    capital: float = 10000.0,
+    cost: CostConfig | None = None,
+) -> pd.DataFrame:
+    """Generate ATM debit vertical spread outcomes from observed BSE option candles.
+
+    Bull call spread: long ATM CE, short the next higher strike CE.
+    Bear put spread: long ATM PE, short the next lower strike PE.
+    Both legs must share expiry and lot size, and both entry/exit quotes must exist.
+    """
+    if index is None or index.empty or options is None or options.empty:
+        return pd.DataFrame()
+    if not {"date", "close"}.issubset(index.columns):
+        return pd.DataFrame()
+    required = {"trade_date", "expiry_date", "strike", "option_type", "close", "lot_size"}
+    if not required.issubset(options.columns):
+        return pd.DataFrame()
+
+    cfg = cost or _default_signal_cost()
+    idx = index.copy()
+    idx["date"] = pd.to_datetime(idx["date"], errors="coerce").dt.normalize()
+    idx["close"] = pd.to_numeric(idx["close"], errors="coerce")
+    idx = idx.dropna(subset=["date", "close"]).sort_values("date").drop_duplicates("date").reset_index(drop=True)
+
+    opt = options.copy()
+    opt["trade_date"] = pd.to_datetime(opt["trade_date"], errors="coerce").dt.normalize()
+    opt["expiry_date"] = pd.to_datetime(opt["expiry_date"], errors="coerce").dt.normalize()
+    for col in ("strike", "close", "lot_size"):
+        opt[col] = pd.to_numeric(opt[col], errors="coerce")
+    opt["symbol"] = opt["symbol"].astype(str).str.strip().str.upper() if "symbol" in opt else "SENSEX"
+    opt["option_type"] = opt["option_type"].astype(str).str.strip().str.upper()
+    opt = opt.dropna(subset=["trade_date", "expiry_date", "strike", "close"])
+    opt = opt[
+        (opt["strike"] > 0)
+        & (opt["close"] >= 0)
+        & (opt["option_type"].isin(["CE", "PE"]))
+    ].sort_values(["trade_date", "expiry_date", "strike", "symbol"])
+    by_day = {day: frame for day, frame in opt.groupby("trade_date", sort=False)}
+    sessions = idx.reset_index(drop=True)
+    rows = []
+
+    for hold in sorted(set(int(h) for h in holding_periods if int(h) > 0)):
+        for entry_pos in range(1, len(sessions) - hold):
+            signal_row = sessions.iloc[entry_pos - 1]
+            entry_row = sessions.iloc[entry_pos]
+            exit_row = sessions.iloc[entry_pos + hold]
+            entry_day = pd.Timestamp(entry_row["date"])
+            exit_day = pd.Timestamp(exit_row["date"])
+            reference_spot = float(signal_row["close"])
+            entry_options = by_day.get(entry_day)
+            exit_options = by_day.get(exit_day)
+            if entry_options is None or exit_options is None or entry_options.empty or exit_options.empty:
+                continue
+
+            eligible_expiries = sorted(
+                entry_options.loc[entry_options["expiry_date"] >= exit_day, "expiry_date"].dropna().unique()
+            )
+            if not eligible_expiries:
+                continue
+            expiry = pd.Timestamp(eligible_expiries[0])
+            chain = entry_options[entry_options["expiry_date"] == expiry]
+            strikes = sorted(pd.to_numeric(chain["strike"], errors="coerce").dropna().unique())
+            if len(strikes) < 2:
+                continue
+            atm = float(min(strikes, key=lambda strike: abs(float(strike) - reference_spot)))
+            higher = [float(strike) for strike in strikes if float(strike) > atm]
+            lower = [float(strike) for strike in strikes if float(strike) < atm]
+            short_call_strike = min(higher) if higher else None
+            short_put_strike = max(lower) if lower else None
+
+            spread_specs = (
+                ("CE", atm, short_call_strike, "BULL_CALL_DEBIT_SPREAD", "call_pnl"),
+                ("PE", atm, short_put_strike, "BEAR_PUT_DEBIT_SPREAD", "put_pnl"),
+            )
+            result_by_direction = {}
+            for option_type, long_strike, short_strike, label, _ in spread_specs:
+                if short_strike is None:
+                    continue
+                long_entry_rows = chain[
+                    (chain["strike"] == long_strike) & (chain["option_type"] == option_type)
+                ]
+                short_entry_rows = chain[
+                    (chain["strike"] == short_strike) & (chain["option_type"] == option_type)
+                ]
+                if long_entry_rows.empty or short_entry_rows.empty:
+                    continue
+                long_entry = long_entry_rows.iloc[0]
+                short_entry = short_entry_rows.iloc[0]
+                long_symbol = str(long_entry.get("symbol", "SENSEX")).strip().upper()
+                short_symbol = str(short_entry.get("symbol", "SENSEX")).strip().upper()
+                long_lot = long_entry.get("lot_size")
+                short_lot = short_entry.get("lot_size")
+                if (
+                    not _finite(long_lot) or not _finite(short_lot)
+                    or int(long_lot) <= 0 or int(short_lot) != int(long_lot)
+                    or long_symbol != short_symbol
+                ):
+                    continue
+                lot_size = int(long_lot)
+                entry_long_premium = float(long_entry["close"])
+                entry_short_premium = float(short_entry["close"])
+                entry_debit = entry_long_premium - entry_short_premium
+                if not _finite(entry_debit) or entry_debit <= 0:
+                    continue
+
+                long_exit_rows = exit_options[
+                    (exit_options["expiry_date"] == expiry)
+                    & (exit_options["strike"] == long_strike)
+                    & (exit_options["option_type"] == option_type)
+                    & (exit_options["symbol"] == long_symbol)
+                ]
+                short_exit_rows = exit_options[
+                    (exit_options["expiry_date"] == expiry)
+                    & (exit_options["strike"] == short_strike)
+                    & (exit_options["option_type"] == option_type)
+                    & (exit_options["symbol"] == short_symbol)
+                ]
+                if long_exit_rows.empty or short_exit_rows.empty:
+                    continue
+                exit_long_premium = float(long_exit_rows.iloc[-1]["close"])
+                exit_short_premium = float(short_exit_rows.iloc[-1]["close"])
+                if (
+                    not _finite(exit_long_premium) or not _finite(exit_short_premium)
+                    or exit_long_premium < 0 or exit_short_premium < 0
+                ):
+                    continue
+                exit_credit = exit_long_premium - exit_short_premium
+                if exit_credit < 0:
+                    # Reject inverted/possibly stale spread marks instead of fabricating a floor.
+                    continue
+
+                quantity = lot_size
+                entry_fees = _debit_vertical_entry_fees(
+                    entry_long_premium, entry_short_premium, quantity, cfg
+                )
+                if entry_debit * quantity + entry_fees > capital:
+                    continue
+                charges = _debit_vertical_costs(
+                    entry_long_premium, entry_short_premium,
+                    exit_long_premium, exit_short_premium,
+                    quantity, cfg,
+                )
+                net = (exit_credit - entry_debit) * quantity - charges["total_cost"]
+                result_by_direction[label] = round(net, 2)
+
+            if result_by_direction:
+                rows.append({
+                    "entry_date": entry_day,
+                    "exit_date": exit_day,
+                    "signal_date": pd.Timestamp(signal_row["date"]),
+                    "holding_sessions": hold,
+                    "expiry_date": expiry,
+                    "strike": atm,
+                    "month": exit_day.strftime("%Y-%m"),
+                    "option_family": "DEBIT_SPREADS",
+                    "call_pnl": result_by_direction.get("BULL_CALL_DEBIT_SPREAD", np.nan),
+                    "put_pnl": result_by_direction.get("BEAR_PUT_DEBIT_SPREAD", np.nan),
+                })
+
+    if not rows:
+        return pd.DataFrame()
+    return pd.DataFrame(rows).sort_values(
         ["entry_date", "holding_sessions"]
     ).reset_index(drop=True)
 
@@ -583,11 +809,15 @@ def run_entry_signal_research(
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict]:
     """Test predeclared signals across one-, two-, three- and five-session holds."""
     if options is not None:
-        pairs = _option_horizon_outcomes(index, options, holding_periods=holding_periods)
+        long_outcomes = _option_horizon_outcomes(index, options, holding_periods=holding_periods)
+        spread_outcomes = _option_debit_vertical_outcomes(index, options, holding_periods=holding_periods)
+        frames = [frame for frame in (long_outcomes, spread_outcomes) if frame is not None and not frame.empty]
+        pairs = pd.concat(frames, ignore_index=True, sort=False) if frames else pd.DataFrame()
     else:
         pairs = _paired_option_outcomes(daily_ledger)
         if not pairs.empty:
             pairs["holding_sessions"] = 1
+            pairs["option_family"] = "LONG_OPTIONS"
     if pairs.empty:
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), {
             "status": "insufficient_paired_option_data",
@@ -623,13 +853,14 @@ def run_entry_signal_research(
     signals = _candidate_signals(paired)
     records = []
     for name, signal in signals.items():
-        for holding, horizon in paired.groupby("holding_sessions", sort=True):
+        for (family, holding), horizon in paired.groupby(["option_family", "holding_sessions"], sort=True):
             chosen = horizon.copy()
             chosen["signal"] = signal.loc[chosen.index].to_numpy()
             chosen = chosen[chosen["signal"].isin(["CE", "PE"])].copy()
             if chosen.empty:
                 continue
-            chosen["strategy"] = f"H{int(holding)}D_{name}"
+            prefix = "LONG" if family == "LONG_OPTIONS" else "SPREAD"
+            chosen["strategy"] = f"{prefix}_H{int(holding)}D_{name}"
             chosen["net_pnl"] = np.where(
                 chosen["signal"] == "CE",
                 chosen["call_pnl"],
@@ -642,7 +873,7 @@ def run_entry_signal_research(
             chosen["option_type"] = chosen["signal"]
             chosen["holding_sessions"] = int(holding)
             records.append(chosen[[
-                "strategy", "holding_sessions", "entry_date", "exit_date",
+                "strategy", "option_family", "holding_sessions", "entry_date", "exit_date",
                 "signal_date", "month", "signal", "option_type", "strike",
                 "net_pnl", "call_pnl", "put_pnl",
             ]])
@@ -774,7 +1005,9 @@ def run_entry_signal_research(
             "Chronological training/holdout split is aligned to realized exit months so a multi-session "
             "position cannot spill across the validation boundary. Predeclared lagged index indicator and "
             "regime signals choose between same-date, same-expiry, "
-            "same-strike ATM Call/Put outcomes for one-, two-, three- and five-session holds. "
+            "same-strike ATM Call/Put outcomes and bounded-risk ATM debit vertical spread outcomes "
+            "for one-, two-, three- and five-session holds. Debit spreads require both observed legs at entry "
+            "and exit, and reject inverted spread marks. "
             "Option outcomes are rebuilt from observed BSE daily candles, with the exact same contract "
             "held through the selected exit session. A missing side is not fabricated; that direction is "
             "skipped when its observed quote is unavailable. Signals use only the last completed index "
@@ -786,6 +1019,7 @@ def run_entry_signal_research(
         "sample_end": str(paired["entry_date"].max().date()),
         "distinct_entry_sessions": int(paired["entry_date"].nunique()),
         "holding_periods_tested": sorted(paired["holding_sessions"].dropna().astype(int).unique().tolist()),
+        "instrument_families_tested": sorted(paired["option_family"].dropna().astype(str).unique().tolist()),
         "candidate_rules_tested": int(len(candidate_names)),
         "training_end": str(train_end.date()),
         "holdout_start": str(holdout_start.date()) if holdout_start is not None else None,
