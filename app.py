@@ -181,7 +181,7 @@ def page_backtest_config():
     start = c1.date_input("Start (expiry filter)", value=None)
     end = c2.date_input("End (expiry filter)", value=None)
     st.subheader("Transaction costs (research defaults = zero)")
-    brokerage = st.number_input("Brokerage per lot (₹, round-trip flat)", min_value=0.0, value=0.0)
+    brokerage = st.number_input("Brokerage per lot per order (₹)", min_value=0.0, value=0.0)
     stt = st.number_input("STT % on exit premium turnover", min_value=0.0, value=0.0, format="%.4f")
     entry_slip = st.number_input("Entry slippage (points)", min_value=0.0, value=0.0)
     exit_slip = st.number_input("Exit slippage (points)", min_value=0.0, value=0.0)
