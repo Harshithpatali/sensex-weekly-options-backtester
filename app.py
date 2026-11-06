@@ -93,7 +93,8 @@ def page_overview():
     c4.metric("Available expiries", report.get("expiries", 0))
     c5, c6 = st.columns(2)
     c5.metric("Option-session coverage", f"{report.get('option_session_coverage_pct', 0) or 0:.1f}%")
-    c6.metric("Expiries with CE + PE", f"{report.get('expiry_completeness_pct', 0) or 0:.1f}%")
+    c6.metric("Complete matured expiries", f"{report.get('expiry_completeness_pct', 0) or 0:.1f}%")
+    st.caption(f"Matured: {report.get('completed_expiry_count', 0)} · Complete: {report.get('complete_expiries', 0)} · Pending: {report.get('pending_expiries', 0)}")
 
     st.subheader("Data coverage")
     st.write(f"**Index:** {report.get('index_start', '—')} → {report.get('index_end', '—')}")
