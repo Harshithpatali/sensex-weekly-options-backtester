@@ -315,3 +315,36 @@ def test_defined_risk_credit_spreads_use_observed_hedge_and_fit_risk_budget():
     # route to bear-call credit spreads in the shared candidate engine.
     assert float(outcomes.iloc[0]["call_pnl"]) > 0
     assert float(outcomes.iloc[0]["put_pnl"]) < 0
+
+
+def test_vertical_spreads_reject_quotes_outside_strike_width():
+    dates = pd.bdate_range("2024-01-01", periods=5)
+    index = pd.DataFrame({
+        "date": dates,
+        "open": [100.0] * len(dates),
+        "high": [101.0] * len(dates),
+        "low": [99.0] * len(dates),
+        "close": [100.0] * len(dates),
+    })
+    expiry = dates[-1] + pd.Timedelta(days=10)
+    option_rows = []
+    for day in dates:
+        for strike in (99.0, 100.0, 101.0):
+            for option_type in ("CE", "PE"):
+                # Premium differences are 145 points against only 1 point
+                # strike width: these cannot be valid vertical-spread marks.
+                premium = 150.0 if strike == 100.0 else 5.0
+                option_rows.append({
+                    "trade_date": day, "expiry_date": expiry, "strike": strike,
+                    "symbol": "SENSEX", "option_type": option_type,
+                    "close": premium, "lot_size": 1,
+                })
+    options = pd.DataFrame(option_rows)
+    debit = _option_debit_vertical_outcomes(
+        index, options, holding_periods=(1,), spread_width_steps=(1,), cost=CostConfig()
+    )
+    credit = _option_credit_vertical_outcomes(
+        index, options, holding_periods=(1,), spread_width_steps=(1,), cost=CostConfig()
+    )
+    assert debit.empty
+    assert credit.empty
