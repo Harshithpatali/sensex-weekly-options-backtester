@@ -14,7 +14,7 @@ permissions:
 
 concurrency:
   group: sensex-data-pipeline
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   collect-train-test-rank:
