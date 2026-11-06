@@ -108,7 +108,7 @@ def test_entry_signal_research_returns_out_of_sample_and_monthly_outputs():
         common = {
             "entry_date": entry, "exit_date": exit_, "expiry_date": expiry,
             "strike": round(close[i - 1] / 100) * 100, "quantity": 10,
-            "lot_size": 10, "lots": 1,
+            "lot_size": 10, "volume": 100, "open_interest": 100, "lots": 1,
         }
         ledger_rows.append({
             **common, "strategy": "DAILY_ATM_CALL", "net_pnl": 300 if i % 4 < 2 else -100,
@@ -152,7 +152,7 @@ def test_option_horizon_outcomes_use_same_contract_for_multiple_holds():
                     "symbol": "SENSEX",
                     "option_type": option_type,
                     "close": premium,
-                    "lot_size": 10,
+                    "lot_size": 10, "volume": 100, "open_interest": 100,
                 })
     outcomes = _option_horizon_outcomes(
         index, pd.DataFrame(option_rows), holding_periods=(1, 2)
@@ -207,12 +207,12 @@ def test_option_horizon_outcomes_do_not_invent_missing_option_side():
     for day in dates:
         option_rows.append({
             "trade_date": day, "expiry_date": expiry, "strike": 100.0,
-            "symbol": "SENSEX", "option_type": "CE", "close": 10.0, "lot_size": 10,
+            "symbol": "SENSEX", "option_type": "CE", "close": 10.0, "lot_size": 10, "volume": 100, "open_interest": 100,
         })
         if day != dates[3]:
             option_rows.append({
                 "trade_date": day, "expiry_date": expiry, "strike": 100.0,
-                "symbol": "SENSEX", "option_type": "PE", "close": 10.0, "lot_size": 10,
+                "symbol": "SENSEX", "option_type": "PE", "close": 10.0, "lot_size": 10, "volume": 100, "open_interest": 100,
             })
     outcomes = _option_horizon_outcomes(
         index, pd.DataFrame(option_rows), holding_periods=(1,)
@@ -338,7 +338,7 @@ def test_defined_risk_credit_spreads_use_observed_hedge_and_fit_risk_budget():
                 option_rows.append({
                     "trade_date": day, "expiry_date": expiry, "strike": strike,
                     "symbol": "SENSEX", "option_type": option_type,
-                    "close": premium, "lot_size": 10,
+                    "close": premium, "lot_size": 10, "volume": 100, "open_interest": 100,
                 })
     outcomes = _option_credit_vertical_outcomes(
         index, pd.DataFrame(option_rows), holding_periods=(1,), spread_width_steps=(1,),
@@ -386,3 +386,31 @@ def test_vertical_spreads_reject_quotes_outside_strike_width():
     )
     assert debit.empty
     assert credit.empty
+
+
+def test_option_horizon_outcomes_reject_illiquid_entry_and_exit_marks():
+    dates = pd.bdate_range("2024-02-01", periods=6)
+    index = pd.DataFrame({
+        "date": dates, "open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0,
+    })
+    expiry = dates[-1] + pd.Timedelta(days=7)
+    rows = []
+    for day in dates:
+        for side in ("CE", "PE"):
+            rows.append({
+                "trade_date": day, "expiry_date": expiry, "strike": 100.0,
+                "symbol": "SENSEX", "option_type": side, "close": 10.0,
+                "lot_size": 10, "volume": 100, "open_interest": 100,
+            })
+    for row in rows:
+        if row["trade_date"] == dates[1] and row["option_type"] == "CE":
+            row["volume"] = 1
+        if row["trade_date"] == dates[2] and row["option_type"] == "PE":
+            row["open_interest"] = 1
+    outcomes = _option_horizon_outcomes(index, pd.DataFrame(rows), holding_periods=(1,))
+    first = outcomes[outcomes["entry_date"] == dates[1]].iloc[0]
+    assert pd.isna(first["call_pnl"])
+    assert pd.notna(first["put_pnl"])
+    second = outcomes[outcomes["entry_date"] == dates[2]].iloc[0]
+    assert pd.notna(second["call_pnl"])
+    assert pd.isna(second["put_pnl"])
