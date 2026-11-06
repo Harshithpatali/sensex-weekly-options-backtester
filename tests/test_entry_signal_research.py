@@ -3,6 +3,7 @@ import pandas as pd
 from sensex_options.entry_signal_research import (
     _build_monthly_selector,
     _paired_option_outcomes,
+    _option_horizon_outcomes,
     build_lagged_features,
     run_entry_signal_research,
 )
@@ -107,3 +108,71 @@ def test_entry_signal_research_returns_out_of_sample_and_monthly_outputs():
     assert not board.empty
     assert {"ROLLING_3M_SELECTOR", "ROLLING_6M_SELECTOR"}.issubset(set(selector["strategy"]))
     assert {"train_aggregate_pf", "holdout_aggregate_pf", "candidate_pass"}.issubset(board.columns)
+
+
+def test_option_horizon_outcomes_use_same_contract_for_multiple_holds():
+    dates = pd.bdate_range("2024-01-01", periods=18)
+    close = [100.0 + i * 0.1 for i in range(len(dates))]
+    index = pd.DataFrame({
+        "date": dates,
+        "open": close,
+        "high": [v + 1 for v in close],
+        "low": [v - 1 for v in close],
+        "close": close,
+    })
+    expiry = dates[-1] + pd.Timedelta(days=7)
+    option_rows = []
+    for i, day in enumerate(dates):
+        for option_type, premium in (("CE", 10.0 + i), ("PE", 12.0 - i * 0.2)):
+            option_rows.append({
+                "trade_date": day,
+                "expiry_date": expiry,
+                "strike": 100.0,
+                "symbol": "SENSEX",
+                "option_type": option_type,
+                "close": premium,
+                "lot_size": 10,
+            })
+    outcomes = _option_horizon_outcomes(
+        index, pd.DataFrame(option_rows), holding_periods=(1, 2)
+    )
+    assert set(outcomes["holding_sessions"].unique()) == {1, 2}
+    h1 = outcomes[outcomes["holding_sessions"] == 1].sort_values("entry_date").iloc[0]
+    h2 = outcomes[outcomes["holding_sessions"] == 2].sort_values("entry_date").iloc[0]
+    assert h1["entry_date"] == dates[1]
+    assert h1["signal_date"] == dates[0]
+    assert h1["exit_date"] == dates[2]
+    assert h2["exit_date"] == dates[3]
+    assert pd.notna(h1["call_pnl"])
+    assert pd.notna(h1["put_pnl"])
+
+
+def test_option_horizon_outcomes_do_not_invent_missing_option_side():
+    dates = pd.bdate_range("2024-01-01", periods=8)
+    index = pd.DataFrame({
+        "date": dates,
+        "open": [100.0] * len(dates),
+        "high": [101.0] * len(dates),
+        "low": [99.0] * len(dates),
+        "close": [100.0] * len(dates),
+    })
+    expiry = dates[-1] + pd.Timedelta(days=7)
+    option_rows = []
+    for day in dates:
+        option_rows.append({
+            "trade_date": day, "expiry_date": expiry, "strike": 100.0,
+            "symbol": "SENSEX", "option_type": "CE", "close": 10.0, "lot_size": 10,
+        })
+        if day != dates[3]:
+            option_rows.append({
+                "trade_date": day, "expiry_date": expiry, "strike": 100.0,
+                "symbol": "SENSEX", "option_type": "PE", "close": 10.0, "lot_size": 10,
+            })
+    outcomes = _option_horizon_outcomes(
+        index, pd.DataFrame(option_rows), holding_periods=(1,)
+    )
+    row = outcomes[
+        (outcomes["entry_date"] == dates[2]) & (outcomes["holding_sessions"] == 1)
+    ].iloc[0]
+    assert pd.notna(row["call_pnl"])
+    assert pd.isna(row["put_pnl"])
