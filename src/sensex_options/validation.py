@@ -138,27 +138,54 @@ def validate_all(index: pd.DataFrame, options: pd.DataFrame) -> dict[str, Any]:
                 )
 
         expiry_rows = []
+        index_dates = pd.to_datetime(index["date"], errors="coerce").dt.normalize().dropna() if "date" in index.columns else pd.Series(dtype="datetime64[ns]")
+        latest_index_date = index_dates.max() if not index_dates.empty else pd.NaT
         for expiry in sorted(expiries):
-            exp_frame = opt[opt["expiry_date"].dt.normalize().eq(expiry)]
+            expiry_ts = pd.Timestamp(expiry).normalize()
+            exp_frame = opt[opt["expiry_date"].dt.normalize().eq(expiry_ts)]
             calls = exp_frame[exp_frame["option_type"].eq("CE")]
             puts = exp_frame[exp_frame["option_type"].eq("PE")]
             trade_days = sorted(exp_frame["trade_date"].dropna().dt.normalize().unique())
+            prior_sessions = index_dates[index_dates < expiry_ts]
+            exit_sessions = index_dates[index_dates <= expiry_ts]
+            entry_day = prior_sessions.max() if not prior_sessions.empty else pd.NaT
+            exit_day = exit_sessions.max() if not exit_sessions.empty else pd.NaT
+            entry_obs = exp_frame[exp_frame["trade_date"].dt.normalize().eq(entry_day)] if pd.notna(entry_day) else exp_frame.iloc[0:0]
+            exit_obs = exp_frame[exp_frame["trade_date"].dt.normalize().eq(exit_day)] if pd.notna(exit_day) else exp_frame.iloc[0:0]
+            entry_ce = entry_obs[entry_obs["option_type"].eq("CE")]
+            entry_pe = entry_obs[entry_obs["option_type"].eq("PE")]
+            exit_ce = exit_obs[exit_obs["option_type"].eq("CE")]
+            exit_pe = exit_obs[exit_obs["option_type"].eq("PE")]
+            matured = bool(pd.notna(latest_index_date) and expiry_ts <= latest_index_date)
+            complete = bool(matured and len(entry_ce) and len(entry_pe) and len(exit_ce) and len(exit_pe))
             expiry_rows.append({
-                "expiry_date": pd.Timestamp(expiry).strftime("%Y-%m-%d"),
+                "expiry_date": expiry_ts.strftime("%Y-%m-%d"),
                 "trade_days": int(len(trade_days)),
                 "call_rows": int(len(calls)),
                 "put_rows": int(len(puts)),
                 "call_contracts": int(calls["strike"].nunique()),
                 "put_contracts": int(puts["strike"].nunique()),
-                "has_both_sides": bool(len(calls) and len(puts)),
+                "expected_entry_session": entry_day.strftime("%Y-%m-%d") if pd.notna(entry_day) else None,
+                "expected_exit_session": exit_day.strftime("%Y-%m-%d") if pd.notna(exit_day) else None,
+                "entry_has_both_sides": bool(len(entry_ce) and len(entry_pe)),
+                "exit_has_both_sides": bool(len(exit_ce) and len(exit_pe)),
+                "matured_expiry": matured,
+                "complete_for_backtest": complete,
                 "first_observation": pd.Timestamp(trade_days[0]).strftime("%Y-%m-%d") if trade_days else None,
                 "last_observation": pd.Timestamp(trade_days[-1]).strftime("%Y-%m-%d") if trade_days else None,
             })
+        matured_rows = [row for row in expiry_rows if row["matured_expiry"]]
         report["expiry_coverage"] = expiry_rows[:250]
-        report["expiries_with_both_sides"] = int(sum(row["has_both_sides"] for row in expiry_rows))
+        report["completed_expiry_count"] = len(matured_rows)
+        report["complete_expiries"] = int(sum(row["complete_for_backtest"] for row in matured_rows))
+        report["pending_expiries"] = int(len(expiry_rows) - len(matured_rows))
         report["expiry_completeness_pct"] = round(
-            100.0 * report["expiries_with_both_sides"] / len(expiry_rows), 2
-        ) if expiry_rows else 0.0
+            100.0 * report["complete_expiries"] / len(matured_rows), 2
+        ) if matured_rows else None
+        if matured_rows and report["expiry_completeness_pct"] < 95:
+            report["warnings"].append(
+                f"Only {report['complete_expiries']} of {len(matured_rows)} matured expiries have both CE/PE entry and exit observations."
+            )
 
         if "symbol" in opt.columns:
             non_sensex = int((~opt["symbol"].astype(str).str.upper().str.startswith("SENSEX")).sum())
