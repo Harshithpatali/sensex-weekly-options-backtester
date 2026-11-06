@@ -197,12 +197,20 @@ def run_daily_strategy_suite(
         curve = pd.concat([pd.Series([start_capital]), equity.reset_index(drop=True)], ignore_index=True)
         peak = curve.cummax()
         drawdown = curve - peak
+        positive = pnl[pnl > 0]
+        negative = pnl[pnl < 0]
         rows.append({
             "strategy": name, "description": DAILY_STRATEGIES[name], "trades": len(group),
             "net_pnl": round(float(pnl.sum()), 2),
             "win_rate_pct": round(float((pnl > 0).mean() * 100), 2),
             "profit_factor": round(gains / losses, 4) if losses else None,
             "expectancy": round(float(pnl.mean()), 2),
+            "median_trade_pnl": round(float(pnl.median()), 2),
+            "avg_win": round(float(positive.mean()), 2) if len(positive) else None,
+            "avg_loss": round(float(negative.mean()), 2) if len(negative) else None,
+            "best_trade": round(float(pnl.max()), 2),
+            "worst_trade": round(float(pnl.min()), 2),
+            "top3_wins_share_of_net_pct": round(float(positive.nlargest(3).sum() / pnl.sum() * 100), 2) if pnl.sum() > 0 and len(positive) else None,
             "avg_return_pct": round(float(group["return_pct"].mean()), 4),
             "max_drawdown": round(float(drawdown.min()), 2),
             "max_drawdown_pct": round(float((drawdown / peak.replace(0, pd.NA) * 100).min()), 2),
@@ -245,12 +253,18 @@ def daily_holdout_evaluation(ledger: pd.DataFrame) -> dict:
     for strategy, group in test.groupby("strategy"):
         pnl = pd.to_numeric(group["net_pnl"], errors="coerce").dropna()
         gains, losses = float(pnl[pnl > 0].sum()), float(-pnl[pnl < 0].sum())
+        positive = pnl[pnl > 0]
+        negative = pnl[pnl < 0]
         metrics.append({
             "strategy": strategy, "trades": int(len(pnl)),
             "net_pnl": round(float(pnl.sum()), 2),
             "win_rate_pct": round(float((pnl > 0).mean() * 100), 2) if len(pnl) else None,
             "profit_factor": round(gains / losses, 4) if losses else None,
             "expectancy": round(float(pnl.mean()), 2) if len(pnl) else None,
+            "median_trade_pnl": round(float(pnl.median()), 2) if len(pnl) else None,
+            "best_trade": round(float(pnl.max()), 2) if len(pnl) else None,
+            "worst_trade": round(float(pnl.min()), 2) if len(pnl) else None,
+            "top3_wins_share_of_net_pct": round(float(positive.nlargest(3).sum() / pnl.sum() * 100), 2) if pnl.sum() > 0 and len(positive) else None,
         })
     return {
         "status": "ok", "method": "chronological 70/30 split by entry session",
