@@ -8,7 +8,6 @@ explicit timestamped quotes and uses ask-to-buy / bid-to-sell, never midpoint.
 
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 
@@ -95,6 +94,9 @@ def executable_round_trip_pnl(
     t["entry_quote_timestamp"] = pd.to_datetime(t["entry_quote_timestamp"], utc=True, errors="coerce")
     t["exit_quote_timestamp"] = pd.to_datetime(t["exit_quote_timestamp"], utc=True, errors="coerce")
     t["expiry_date"] = pd.to_datetime(t["expiry_date"], errors="coerce").dt.normalize()
+    t["symbol"] = t["symbol"].astype(str).str.strip().str.upper()
+    t["option_type"] = t["option_type"].astype(str).str.strip().str.upper()
+    t["strike"] = pd.to_numeric(t["strike"], errors="coerce")
     keys = ["expiry_date", "symbol", "strike", "option_type"]
     entry = q[keys + ["quote_timestamp", "ask"]].rename(
         columns={"quote_timestamp": "entry_quote_timestamp", "ask": "executable_entry_ask"}
