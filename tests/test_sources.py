@@ -191,3 +191,42 @@ def test_parser_supports_legacy_bse_zip_archive(tmp_path: Path):
     assert parsed.iloc[0]["close"] == 132
     assert parsed.iloc[0]["lot_size"] == 10
 
+
+
+def test_parser_supports_actual_spaced_bse_legacy_archive_schema(tmp_path: Path):
+    raw = pd.DataFrame({
+        "Contract Type": ["IF", "IO", "IO", "IO"],
+        "Symbol": [
+            "SENSEX23519FUT", "SENSEX2351963000CE",
+            "SENSEX2351961500PE", "SENSEX2470580000CE",
+        ],
+        "Expiry": ["19 May 2023", "19 May 2023", "19 May 2023", "05 Jul 2024"],
+        "Strike": [0.0, 63000.0, 61500.0, 80000.0],
+        "Option Type": [None, "CALL", "PUT", "CALL"],
+        "Open": [62175.0, 60.15, 48.35, 186.95],
+        "High": [63080.0, 92.0, 77.15, 186.95],
+        "Low": [62073.8, 45.1, 37.4, 0.2],
+        "Close": [62358.55, 54.4, 65.35, 79996.6],
+        "L T Date": ["15 May 2023", "15 May 2023", "15 May 2023", "05 Jul 2024"],
+        "Contracts Traded": [454, 84, 107, 43963272],
+        "Open Interest": [420, 250, 260, 0],
+        "Is Traded": ["Y", "Y", "Y", "Y"],
+    })
+    path = tmp_path / "bhavcopy15-05-23.csv"
+    raw.to_csv(path, index=False)
+
+    parsed = parse_bse_fo_file(path)
+
+    # Futures are excluded; Calls and Puts are decoded and receive the
+    # documented 10-unit legacy SENSEX lot size.
+    assert len(parsed) == 3
+    options = parsed[parsed["option_type"].isin(["CE", "PE"])]
+    assert set(options["option_type"]) == {"CE", "PE"}
+    assert options["lot_size"].eq(10).all()
+    assert options["volume"].tolist()[:2] == [84, 107]
+    assert options["open_interest"].tolist()[:2] == [250, 260]
+    assert options["trade_date"].eq(pd.Timestamp("2023-05-15")).sum() == 2
+    assert options["instrument_type"].eq("OPTIDX").all()
+    # The expiry-day row has an index-level close, not an option premium.
+    expiry_row = options[options["trade_date"] == pd.Timestamp("2024-07-05")].iloc[0]
+    assert pd.isna(expiry_row["close"])
