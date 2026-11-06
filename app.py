@@ -911,7 +911,7 @@ def page_daily_options_research():
         else:
             st.warning(holdout.get("note", "Not enough daily sessions for holdout testing."))
 
-    st.subheader("Alternative entry signals and market regimes")
+    st.subheader("Alternative signals, market regimes and debit spreads")
     signal_report_path = out / "entry_signal_research.json"
     signal_board_path = out / "entry_signal_leaderboard.csv"
     signal_monthly_path = out / "entry_signal_monthly.csv"
@@ -924,7 +924,7 @@ def page_daily_options_research():
         except (OSError, json.JSONDecodeError):
             signal_report = {}
         s1, s2, s3, s4 = st.columns(4)
-        s1.metric("ATM outcome sessions", f"{signal_report.get('option_outcome_sessions', 0):,}")
+        s1.metric("Option outcome samples", f"{signal_report.get('option_outcome_sessions', 0):,}")
         s2.metric("Signal rules tested", f"{signal_report.get('candidate_rules_tested', 0):,}")
         s3.metric("Rules passing screen", f"{signal_report.get('candidate_pass_count', 0)}")
         s4.metric("Monthly target PF", f"{signal_report.get('monthly_target_profit_factor', 1.2):.2f}")
@@ -935,6 +935,12 @@ def page_daily_options_research():
             f"Chronological holdout from {signal_report.get('holdout_start', '—')} "
             f"to {signal_report.get('holdout_end', '—')}"
         )
+        st.caption(
+            "Candidate pass rule: every month with at least 3 trades must have PF ≥ 1.20 "
+            "in both training and holdout. Candidate backtests use one lot and one open position at a time."
+        )
+        if signal_report.get("position_sizing"):
+            st.caption(signal_report["position_sizing"])
         if signal_report.get("status") == "candidates_found":
             st.success("At least one predeclared entry rule passed the training and holdout research screens. Review its monthly records before paper testing.")
         elif signal_report.get("status") == "no_candidate_met_research_screen":
