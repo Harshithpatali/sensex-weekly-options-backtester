@@ -931,6 +931,39 @@ def page_daily_options_research():
     ledger["exit_date"] = pd.to_datetime(ledger["exit_date"], errors="coerce")
     ledger["net_pnl"] = pd.to_numeric(ledger["net_pnl"], errors="coerce").fillna(0)
 
+    # Lead with the cash-constrained result. The unit-lot signal leaderboard
+    # below is retained only as a research comparison, not an account return.
+    controlled_path = out / "daily_capital_controlled_leaderboard.csv"
+    controlled_holdout_path = out / "daily_capital_controlled_holdout.csv"
+    controls_report_path = out / "daily_capital_controls.json"
+    if controlled_path.exists():
+        controlled = pd.read_csv(controlled_path)
+        st.subheader("₹10,000 cash-account feasibility")
+        st.caption(
+            "Each strategy is replayed as a separate ₹10,000 account. One lot maximum, "
+            "no leverage, no overlapping positions, 2% maximum premium-risk budget per trade, "
+            "and a 2% daily realized-loss stop. Candidates exceeding the risk budget are skipped."
+        )
+        if controlled.empty:
+            st.warning("No strategy has a completed trade that passes the ₹10,000 cash/risk controls.")
+        else:
+            st.dataframe(controlled, use_container_width=True, hide_index=True)
+        if controlled_holdout_path.exists():
+            st.subheader("Chronological capital-constrained validation")
+            st.dataframe(pd.read_csv(controlled_holdout_path), use_container_width=True, hide_index=True)
+        if controls_report_path.exists():
+            try:
+                import json
+                controls_report = json.loads(controls_report_path.read_text(encoding="utf-8"))
+                st.caption(
+                    f"Capital screen: {controls_report.get('feasible_trades', 0)} feasible of "
+                    f"{controls_report.get('candidate_trades', 0)} candidate trades. "
+                    "A zero-trade result means the ₹10,000 capital and 2% risk budget are incompatible "
+                    "with the observed one-lot premiums."
+                )
+            except (OSError, ValueError):
+                st.caption("Capital-control summary is unavailable; see the saved CSV reports.")
+
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Daily strategies", f"{len(board)}")
     c2.metric("Completed daily trades", f"{len(ledger):,}")
