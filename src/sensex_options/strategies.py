@@ -56,7 +56,9 @@ def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: floa
         opt["symbol"] = opt["symbol"].astype(str).str.strip().str.upper()
     opt["option_type"] = opt["option_type"].astype(str).str.strip().str.upper()
     opt=opt.dropna(subset=["trade_date","expiry_date","strike","close"])
-    opt=opt[(opt.close>0)&(opt.strike>0)&(opt.option_type.isin(["CE","PE"]))]
+    # Zero close is a valid observed expiry payoff for a worthless option.
+    # Entry premiums are checked separately and must be strictly positive.
+    opt=opt[(opt.close>=0)&(opt.strike>0)&(opt.option_type.isin(["CE","PE"]))]
     trades=[]
     # Each strategy has its own isolated, sequential capital curve. It is not
     # a shared portfolio and it does not imply concurrent positions.
@@ -108,6 +110,8 @@ def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: floa
             if any(pd.isna(v) or float(v)<=0 for v in lot_values): continue
             lots=int(lot_values[0])
             if any(int(v)!=lots for v in lot_values): continue
+            if any(float(r.close) <= 0 for r in entry_rows):
+                continue
             raw_entry_debit = sum(float(r.close) for r in entry_rows)
             raw_exit_credit = sum(float(r.close) for r in exit_rows)
             entry_adjustment = cost.entry_slippage + cost.spread_points / 2 + cost.market_impact_points
