@@ -1,8 +1,7 @@
 """
 Transaction cost model.
 
-Rates are configurable because historical brokerage/STT/stamp schedules change.
-Default research setting is zero costs; README warns that zero-cost returns are unrealistic.
+Rates and execution assumptions are configurable. Research defaults are illustrative estimates, not broker quotes or guaranteed fills.
 """
 
 from __future__ import annotations
@@ -45,13 +44,13 @@ def compute_transaction_costs(
     stamp = cost.stamp_duty_pct * entry_turn
     other = cost.other_charges * n_lots * 2 * n_legs
 
-    # Slippage applied to P&L separately (price adjustment)
-    slippage_cost = (
-        cost.entry_slippage + cost.exit_slippage + cost.spread_points
-        + 2 * cost.market_impact_points
-    ) * qty * n_legs
+    # Execution adjustments are reported separately because they are already
+    # embedded in adjusted entry/exit prices in the backtest calculations.
+    slippage_cost = (cost.entry_slippage + cost.exit_slippage) * qty * n_legs
+    spread_cost = cost.spread_points * qty * n_legs
+    market_impact_cost = 2 * cost.market_impact_points * qty * n_legs
 
-    total = brokerage + stt + exchange + gst + stamp + other + slippage_cost
+    total = brokerage + stt + exchange + gst + stamp + other + slippage_cost + spread_cost + market_impact_cost
 
     return {
         "brokerage": round(brokerage, 4),
@@ -61,6 +60,8 @@ def compute_transaction_costs(
         "stamp_duty": round(stamp, 4),
         "other": round(other, 4),
         "slippage": round(slippage_cost, 4),
+        "spread": round(spread_cost, 4),
+        "market_impact": round(market_impact_cost, 4),
         "total_cost": round(total, 4),
     }
 

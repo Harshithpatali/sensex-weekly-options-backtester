@@ -202,11 +202,13 @@ def run_backtest(
         cost_break = compute_transaction_costs(
             adj_entry, adj_exit, lot_size, n_lots, config.cost,
         )
-        # Note: slippage already embedded in adj premiums; cost module still reports it
-        # Slippage is already reflected in adjusted entry/exit premiums. Subtract
-        # all remaining fees once, avoiding double-counting the slippage component.
-        cost_wo_slip = cost_break["total_cost"] - cost_break["slippage"]
-        net_pnl = gross_pnl - cost_wo_slip
+        # Execution costs are embedded in adjusted premiums; subtract only
+        # statutory/transaction fees here to avoid double-counting execution.
+        embedded_execution = (
+            cost_break["slippage"] + cost_break["spread"] + cost_break["market_impact"]
+        )
+        cost_wo_execution = cost_break["total_cost"] - embedded_execution
+        net_pnl = gross_pnl - cost_wo_execution
 
         ending_capital = capital + net_pnl
         if ending_capital < 0:
