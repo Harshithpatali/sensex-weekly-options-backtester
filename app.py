@@ -477,7 +477,7 @@ def page_daily_options_research():
         {"Strategy": "Daily Mean Reversion", "Rule": "Buy PE after a positive prior-session move; CE after a negative move"},
     ])
     st.dataframe(definitions, use_container_width=True, hide_index=True)
-    st.caption("Each strategy has its own isolated ₹10,000 capital curve by default. These rows are not a combined portfolio.")
+    st.caption("Each strategy is tested at one lot per eligible session. ₹10,000 is only the one-lot affordability filter; cumulative unit-lot P&L is not a compounded portfolio return.")
 
     st.subheader("Daily strategy comparison")
     st.dataframe(board, use_container_width=True, hide_index=True)
