@@ -1,1 +1,1 @@
-Run the daily Call/Put research suite against the historical archive.
+Re-run historical daily one-lot Call/Put experiments after sizing correction.
