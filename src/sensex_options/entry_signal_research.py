@@ -1174,7 +1174,19 @@ def _candidate_signals(features: pd.DataFrame) -> dict[str, pd.Series]:
                     ratio >= threshold, ""
                 )
 
-    return signals
+    # Remove exact duplicates: different threshold labels can collapse to
+    # identical CE/PE/flat sequences on a finite historical sample. They are
+    # the same executable rule and must not be counted as separate discoveries.
+    unique_signals = {}
+    seen_signatures = set()
+    for name, series in signals.items():
+        normalized = series.fillna("").astype(str)
+        signature = tuple(normalized.tolist())
+        if signature in seen_signatures:
+            continue
+        seen_signatures.add(signature)
+        unique_signals[name] = normalized
+    return unique_signals
 
 
 def _one_position_at_a_time(frame: pd.DataFrame) -> tuple[pd.DataFrame, int]:
