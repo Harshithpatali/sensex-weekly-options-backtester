@@ -898,6 +898,7 @@ def run_entry_signal_research(
                 "strategy", "option_family", "holding_sessions", "entry_date", "exit_date",
                 "signal_date", "month", "signal", "option_type", "strike",
                 "net_pnl", "call_pnl", "put_pnl",
+                "overlap_skipped_trades_for_rule",
             ]])
     trades = pd.concat(records, ignore_index=True) if records else pd.DataFrame()
     if trades.empty:
