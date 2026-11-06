@@ -44,7 +44,7 @@ def test_intraday_features_and_chronological_filter_validation():
         })
     features = intraday_session_features(pd.DataFrame(bars))
     assert len(features) == 20
-    assert {"session_return_pct", "close_vs_vwap_pct", "range_pct"}.issubset(features.columns)
+    assert {"session_return_pct", "close_vs_intraday_mean_pct", "range_pct"}.issubset(features.columns)
 
     joined, report, _ = evaluate_intraday_put_filters(pd.DataFrame(ledger), pd.DataFrame(bars))
     assert report["status"] == "ok"
