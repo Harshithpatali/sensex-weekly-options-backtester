@@ -1,5 +1,5 @@
 {
-  "run_time_utc": "2026-11-06T18:27:32.484855+00:00",
+  "run_time_utc": "2026-11-06T18:57:21.448259+00:00",
   "target_data_date": "2026-11-05",
   "downloaded_option_dates": [
     "2026-11-02",
@@ -3034,8 +3034,8 @@
   },
   "entry_signal_research": {
     "status": "no_candidate_met_research_screen",
-    "option_outcome_sessions": 8652,
-    "candidate_rules_tested": 656,
+    "option_outcome_sessions": 18902,
+    "candidate_rules_tested": 5544,
     "holding_periods_tested": [
       1,
       2,
@@ -3043,60 +3043,70 @@
       5
     ],
     "instrument_families_tested": [
+      "CREDIT_SPREADS_W1",
+      "CREDIT_SPREADS_W2",
+      "CREDIT_SPREADS_W3",
       "DEBIT_SPREADS_W1",
       "DEBIT_SPREADS_W2",
       "DEBIT_SPREADS_W3",
-      "LONG_OPTIONS"
+      "LONG_OPTIONS_ATM",
+      "LONG_OPTIONS_ITM1",
+      "LONG_OPTIONS_OTM1"
+    ],
+    "moneyness_variants_tested": [
+      "ATM",
+      "ITM1",
+      "OTM1"
     ],
     "position_sizing": "One lot per candidate, one open position at a time; new entry allowed on the previous position's exit session after the EOD exit.",
-    "overlapping_candidate_entries_skipped": 87886,
+    "overlapping_candidate_entries_skipped": 502893,
     "candidate_pass_count": 0,
     "training_end": "2026-02-27",
     "holdout_start": "2026-03-02",
     "top_training_rule": {
-      "strategy": "LONG_H2D_BB_Z2_0_REVERSAL",
-      "train_net_pnl": 34054.29,
-      "train_aggregate_pf": 2.835086639665641,
-      "holdout_net_pnl": -26097.77,
-      "holdout_aggregate_pf": 0.057141050745319624
+      "strategy": "DEBIT_W1_H2D_DONCHIAN10_BREAKOUT_CHEAP_STRADDLE90",
+      "train_net_pnl": 861.69,
+      "train_aggregate_pf": 31.491507430997878,
+      "holdout_net_pnl": -2719.7,
+      "holdout_aggregate_pf": 0.17953312698728738
     },
     "rolling_selector_summary": [
       {
         "strategy": "ROLLING_3M_SELECTOR",
-        "train_trades": 147,
-        "train_net_pnl": -71688.76,
-        "train_aggregate_pf": 0.6016143317735877,
+        "train_trades": 117,
+        "train_net_pnl": -38087.84,
+        "train_aggregate_pf": 0.7723211184766063,
         "train_active_months": 16,
-        "train_monthly_target_hit_pct": 12.5,
+        "train_monthly_target_hit_pct": 31.25,
         "train_positive_months": 5,
-        "holdout_trades": 66,
-        "holdout_net_pnl": 29419.93,
-        "holdout_aggregate_pf": 1.31677980822178,
+        "holdout_trades": 63,
+        "holdout_net_pnl": -37377.98,
+        "holdout_aggregate_pf": 0.608138577571001,
         "holdout_active_months": 8,
-        "holdout_monthly_target_hit_pct": 50.0,
-        "holdout_positive_months": 6
+        "holdout_monthly_target_hit_pct": 25.0,
+        "holdout_positive_months": 2
       },
       {
         "strategy": "ROLLING_6M_SELECTOR",
-        "train_trades": 57,
-        "train_net_pnl": -71351.08,
-        "train_aggregate_pf": 0.3042741104862295,
-        "train_active_months": 10,
-        "train_monthly_target_hit_pct": 20.0,
-        "train_positive_months": 3,
-        "holdout_trades": 37,
-        "holdout_net_pnl": -31778.48,
-        "holdout_aggregate_pf": 0.5319437869709187,
+        "train_trades": 49,
+        "train_net_pnl": -1619.2,
+        "train_aggregate_pf": 0.9518931095317124,
+        "train_active_months": 13,
+        "train_monthly_target_hit_pct": 46.15,
+        "train_positive_months": 6,
+        "holdout_trades": 36,
+        "holdout_net_pnl": -45707.2,
+        "holdout_aggregate_pf": 0.3386196837450513,
         "holdout_active_months": 7,
-        "holdout_monthly_target_hit_pct": 28.57,
-        "holdout_positive_months": 3
+        "holdout_monthly_target_hit_pct": 14.29,
+        "holdout_positive_months": 2
       }
     ]
   },
   "intraday_research": {
     "status": "ok",
-    "bars": 3071,
-    "matched_sessions": 28,
+    "bars": 2996,
+    "matched_sessions": 27,
     "validation_start": "2026-10-26",
     "validation_end": "2026-11-05",
     "note": null

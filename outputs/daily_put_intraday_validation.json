@@ -2,14 +2,14 @@
   "status": "ok",
   "strategy": "DAILY_ATM_PUT",
   "interval_note": "Features use bars timestamped before 15:15 IST, observable before the 15:30 EOD entry mark.",
-  "matched_sessions": 28,
-  "training_sessions": 19,
+  "matched_sessions": 27,
+  "training_sessions": 18,
   "validation_sessions": 9,
-  "training_start": "2026-09-08",
+  "training_start": "2026-09-10",
   "training_end": "2026-10-16",
   "validation_start": "2026-10-26",
   "validation_end": "2026-11-05",
-  "training_median_range_pct": 0.82033,
+  "training_median_range_pct": 0.82121,
   "threshold_fitted_on": "training sessions only",
   "validation_metrics": [
     {
