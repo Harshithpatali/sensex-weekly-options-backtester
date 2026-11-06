@@ -251,6 +251,22 @@ Tests cover strike selection, whole-lot sizing, capital floor, missing premium/l
 
 ---
 
+## Strict candidate eligibility and risk controls
+
+The comparative option research applies the same minimum liquidity checks to entry and exit observations:
+
+- Daily traded volume must be at least **25 contracts**.
+- Open interest must be at least **50 contracts**.
+- A missing liquidity field, zero premium, or inactive candle is rejected rather than treated as an executable mark.
+- Long-option maximum loss is the full premium debit plus conservative round-trip costs.
+- Debit and credit spread risk uses theoretical maximum loss plus full estimated round-trip costs.
+- Candidate maximum loss is capped at **2% of the ₹10,000 research account (₹200)**. A contract that cannot fit this limit is not traded in the simulated account.
+- Long-option research includes ATM, ITM1, and OTM1/2/3/5 contracts to test lower-premium alternatives. These are candidates, not recommendations.
+
+The source is daily OHLC/volume/open-interest bhavcopy, not historical bid/ask or order-book data. Liquidity filters reduce stale-mark risk but do not prove a fill was available. All results remain EOD research approximations until validated with timestamped executable quotes.
+
+---
+
 ## Historical data limitations
 
 - Yahoo Finance index data is convenient for research; verify against official BSE index series when accuracy matters.  
