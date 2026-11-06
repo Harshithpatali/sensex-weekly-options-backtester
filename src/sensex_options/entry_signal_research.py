@@ -994,9 +994,9 @@ def _candidate_signals(features: pd.DataFrame) -> dict[str, pd.Series]:
     # put writing), so both directional interpretations are tested explicitly.
     if "pcr_oi_near_atm" in f.columns:
         pcr = f["pcr_oi_near_atm"]
-        for threshold in (0.80, 1.00, 1.20, 1.50):
-            high = pcr >= threshold
-            low = pcr <= (1.0 / threshold if threshold > 1 else 0.80)
+        for threshold in (0.80, 0.90, 1.20, 1.50):
+            high = pcr >= max(threshold, 1.0 / threshold)
+            low = pcr <= min(threshold, 1.0 / threshold)
             for label, call_when_high in (
                 ("PUT_HEAVY_SUPPORT", True),
                 ("PUT_HEAVY_DEMAND", False),
@@ -1011,9 +1011,9 @@ def _candidate_signals(features: pd.DataFrame) -> dict[str, pd.Series]:
                 signals[f"PCR_OI_{int(threshold * 100)}_{label}"] = sig
     if "pcr_volume_near_atm" in f.columns:
         pcr = f["pcr_volume_near_atm"]
-        for threshold in (0.80, 1.00, 1.20, 1.50):
-            high = pcr >= threshold
-            low = pcr <= (1.0 / threshold if threshold > 1 else 0.80)
+        for threshold in (0.80, 0.90, 1.20, 1.50):
+            high = pcr >= max(threshold, 1.0 / threshold)
+            low = pcr <= min(threshold, 1.0 / threshold)
             for label, call_when_high in (
                 ("PUT_HEAVY_SUPPORT", True),
                 ("PUT_HEAVY_DEMAND", False),
@@ -1057,12 +1057,10 @@ def _candidate_signals(features: pd.DataFrame) -> dict[str, pd.Series]:
     if "positioning_score" in f.columns:
         score = f["positioning_score"]
         for threshold in (0.0, 0.5, 1.0):
-            signals[f"POSITIONING_SCORE_{int(threshold * 10)}"] = direction(
-                score > threshold, score.notna()
-            )
-            signals[f"POSITIONING_SCORE_NEG_{int(threshold * 10)}"] = direction(
-                score < -threshold, score.notna()
-            )
+            sig = pd.Series("", index=f.index, dtype="object")
+            sig.loc[score > threshold] = "CE"
+            sig.loc[score < -threshold] = "PE"
+            signals[f"POSITIONING_SCORE_{int(threshold * 10)}"] = sig
 
     # Use the ATM straddle-implied daily move proxy as a premium-cost regime.
     # A low implied/realised ratio gates long-option entries; all gates are
