@@ -177,3 +177,22 @@ class TestNoFabrication:
         index = _index(["2023-06-01"], [80000.0])
         result = run_backtest(index, pd.DataFrame(), BacktestConfig())
         assert result["trades"].empty or result["summary"].get("completed_trades", 0) == 0
+
+
+
+def test_exit_matches_exact_contract_symbol_not_just_strike():
+    index = _index(["2023-06-01", "2023-06-08"], [80125.0, 80500.0])
+    options = _opts([
+        {"trade_date": "2023-06-01", "expiry_date": "2023-06-08",
+         "strike": 80200, "close": 120, "lot_size": 10, "option_type": "CE", "symbol": "SENSEX_A"},
+        # Same expiry/strike but a different series must not be used as the exit.
+        {"trade_date": "2023-06-08", "expiry_date": "2023-06-08",
+         "strike": 80200, "close": 999, "lot_size": 10, "option_type": "CE", "symbol": "SENSEX_B"},
+        {"trade_date": "2023-06-08", "expiry_date": "2023-06-08",
+         "strike": 80200, "close": 150, "lot_size": 10, "option_type": "CE", "symbol": "SENSEX_A"},
+    ])
+    result = run_backtest(index, options, BacktestConfig(initial_capital=10000))
+    completed = result["trades"][result["trades"]["status"] == "completed"]
+    assert len(completed) == 1
+    assert completed.iloc[0]["option_symbol"] == "SENSEX_A"
+    assert completed.iloc[0]["exit_premium"] == 150
