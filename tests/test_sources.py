@@ -66,3 +66,24 @@ def test_no_download_does_not_overwrite_existing_processed_history(tmp_path, mon
     saved = pd.read_csv(existing_path)
     assert len(saved) == 1
     assert float(saved.iloc[0]["close"]) == 123.0
+
+
+
+def test_downloader_does_not_cache_html_as_bhavcopy(tmp_path):
+    from datetime import datetime
+    from sensex_options.sources.bse import download_one_day
+
+    class Response:
+        status_code = 200
+        content = b"<!doctype html><html><body>Access denied</body></html>"
+
+    class Session:
+        def get(self, *args, **kwargs):
+            return Response()
+
+    path, status = download_one_day(
+        datetime(2026, 11, 5), tmp_path, session=Session(), retries=1
+    )
+    assert path is None
+    assert "html_instead_of_csv" in status
+    assert not list(tmp_path.glob("*.csv"))
