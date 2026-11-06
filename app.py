@@ -476,6 +476,9 @@ def page_daily_options_research():
         {"Strategy": "Daily ATM Put", "Rule": "Buy nearest ATM PE every eligible session"},
         {"Strategy": "Daily Momentum", "Rule": "Buy CE after a positive prior-session move; PE after a negative move"},
         {"Strategy": "Daily Mean Reversion", "Rule": "Buy PE after a positive prior-session move; CE after a negative move"},
+        {"Strategy": "5-Day Momentum", "Rule": "Buy CE or PE using the prior five-session SENSEX return"},
+        {"Strategy": "EMA Trend", "Rule": "Buy CE when prior EMA-5 is above EMA-20; otherwise PE"},
+        {"Strategy": "RSI Reversal", "Rule": "Buy CE when prior RSI-14 is below 30; PE when above 70"},
     ])
     st.dataframe(definitions, use_container_width=True, hide_index=True)
     st.caption("Each strategy is tested at one lot per eligible session. ₹10,000 is only the one-lot affordability filter; cumulative unit-lot P&L is not a compounded portfolio return.")
