@@ -1,0 +1,139 @@
+name: Backfill BSE UDiFF options history
+
+on:
+  push:
+    paths:
+      - ".github/udiff-backfill.trigger"
+  workflow_dispatch:
+    inputs:
+      start_date:
+        description: "UDiFF start date (YYYY-MM-DD)"
+        required: true
+        default: "2024-07-08"
+      end_date:
+        description: "UDiFF end date (YYYY-MM-DD)"
+        required: true
+        default: "2026-11-06"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sensex-data-pipeline
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      - name: Preserve legacy collection manifest
+        run: |
+          mkdir -p data/reports
+          if [ -f data/reports/options_collection_manifest.csv ]; then
+            cp data/reports/options_collection_manifest.csv data/reports/legacy_options_collection_manifest.csv
+          fi
+      - name: Download and merge UDiFF SENSEX options
+        env:
+          START_DATE: ${{ github.event.inputs.start_date || '2024-07-08' }}
+          END_DATE: ${{ github.event.inputs.end_date || '2026-11-06' }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import pandas as pd
+          from sensex_options.config import DEFAULT_PATHS
+          from sensex_options.sources.bse import download_bse_options_range, load_options
+
+          start = pd.Timestamp(os.environ["START_DATE"])
+          end = pd.Timestamp(os.environ["END_DATE"])
+          DEFAULT_PATHS.ensure()
+          download_bse_options_range(start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d"), sleep=0.5)
+
+          reports = DEFAULT_PATHS.reports
+          current_manifest = reports / "options_collection_manifest.csv"
+          udiff_manifest = reports / "udiff_options_collection_manifest.csv"
+          if current_manifest.exists():
+              udiff_frame = pd.read_csv(current_manifest)
+              udiff_frame["source_period"] = "UDiFF"
+              udiff_frame.to_csv(udiff_manifest, index=False)
+          legacy_path = reports / "legacy_options_collection_manifest.csv"
+          if legacy_path.exists() and udiff_manifest.exists():
+              legacy_frame = pd.read_csv(legacy_path)
+              legacy_frame["source_period"] = "legacy"
+              combined_manifest = pd.concat([legacy_frame, udiff_frame], ignore_index=True)
+              combined_manifest.to_csv(current_manifest, index=False)
+
+          options = load_options()
+          if options.empty:
+              raise SystemExit("No SENSEX options remain after UDiFF backfill.")
+          udiff = options[options["trade_date"].between(start, end)].copy()
+          if udiff.empty:
+              raise SystemExit("UDiFF archives downloaded, but no SENSEX option rows were parsed.")
+          if udiff["lot_size"].isna().any():
+              raise SystemExit("UDiFF rows are missing NewBrdLotQty lot-size metadata.")
+          sessions = int(udiff["trade_date"].nunique())
+          if sessions < 100:
+              raise SystemExit(f"Only {sessions} UDiFF option sessions parsed; refusing to report a complete backfill.")
+          liquid = udiff[
+              (pd.to_numeric(udiff["volume"], errors="coerce") >= 25)
+              & (pd.to_numeric(udiff["open_interest"], errors="coerce") >= 50)
+              & (pd.to_numeric(udiff["close"], errors="coerce") > 0)
+          ]
+          summary = {
+              "requested_start": start.strftime("%Y-%m-%d"),
+              "requested_end": end.strftime("%Y-%m-%d"),
+              "udiff_rows": int(len(udiff)),
+              "udiff_sessions": sessions,
+              "udiff_start": str(udiff["trade_date"].min().date()),
+              "udiff_end": str(udiff["trade_date"].max().date()),
+              "lot_sizes": sorted(udiff["lot_size"].dropna().astype(int).unique().tolist()),
+              "liquid_rows_volume_25_oi_50": int(len(liquid)),
+          }
+          (reports / "udiff_backfill_summary.json").write_text(
+              json.dumps(summary, indent=2), encoding="utf-8"
+          )
+          print(json.dumps(summary, indent=2))
+          PY
+      - name: Validate and generate strategy leaderboard
+        run: python -m sensex_options.daily_pipeline
+      - name: Persist dataset and research outputs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f -A data/processed outputs data/reports
+          git add -u
+          git diff --cached --quiet || git commit -m "data: backfill BSE UDiFF SENSEX options history"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Working tree is not clean after committing generated research outputs:"
+            git status --short
+            exit 1
+          fi
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            if ! git rebase origin/main; then
+              echo "::error::Rebase conflict while integrating origin/main; refusing to overwrite remote history."
+              git rebase --abort || true
+              exit 1
+            fi
+            if git push origin HEAD:main; then
+              echo "Successfully pushed UDiFF data and research outputs to main."
+              exit 0
+            fi
+            sleep $((attempt * 3))
+          done
+          echo "::error::Could not push after five safe retries."
+          exit 1
