@@ -653,24 +653,23 @@ def run_entry_signal_research(
             "note": "No candidate generated a trade from the observed paired option outcomes.",
         }
 
-    dates = sorted(paired["entry_date"].drop_duplicates())
-    entry_months = sorted(paired["entry_date"].dt.strftime("%Y-%m").unique())
-    if len(entry_months) < 2:
+    exit_months = sorted(paired["month"].dropna().astype(str).unique())
+    if len(exit_months) < 2:
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), {
             "status": "insufficient_months",
-            "note": "At least two distinct calendar months are required for a month-aligned holdout.",
+            "note": "At least two distinct realized exit months are required for a month-aligned holdout.",
         }
-    split_month_at = max(1, min(len(entry_months) - 1, int(len(entry_months) * 0.70)))
-    train_month_end = entry_months[split_month_at - 1]
-    train_dates = paired.loc[
-        paired["entry_date"].dt.strftime("%Y-%m") <= train_month_end, "entry_date"
+    split_month_at = max(1, min(len(exit_months) - 1, int(len(exit_months) * 0.70)))
+    train_month_end = exit_months[split_month_at - 1]
+    train_exit_dates = paired.loc[
+        paired["month"] <= train_month_end, "exit_date"
     ]
-    train_end = pd.Timestamp(train_dates.max())
-    holdout_dates = paired.loc[
-        paired["entry_date"].dt.strftime("%Y-%m") > train_month_end, "entry_date"
+    train_end = pd.Timestamp(train_exit_dates.max())
+    holdout_exit_dates = paired.loc[
+        paired["month"] > train_month_end, "exit_date"
     ]
-    holdout_start = pd.Timestamp(holdout_dates.min()) if not holdout_dates.empty else None
-    trades["split"] = np.where(trades["entry_date"] <= train_end, "train", "holdout")
+    holdout_start = pd.Timestamp(holdout_exit_dates.min()) if not holdout_exit_dates.empty else None
+    trades["split"] = np.where(trades["month"] <= train_month_end, "train", "holdout")
 
     monthly = _monthly_stats(trades)
     leaderboard_rows = []
@@ -788,7 +787,7 @@ def run_entry_signal_research(
         "candidate_rules_tested": int(len(candidate_names)),
         "training_end": str(train_end.date()),
         "holdout_start": str(holdout_start.date()) if holdout_start is not None else None,
-        "holdout_end": str(paired["entry_date"].max().date()),
+        "holdout_end": str(paired["exit_date"].max().date()),
         "candidate_pass_count": int(leaderboard["candidate_pass"].sum()),
         "top_training_rule": leaderboard.iloc[0].to_dict() if not leaderboard.empty else None,
         "rolling_selector_rules": ["ROLLING_3M_SELECTOR", "ROLLING_6M_SELECTOR"],
