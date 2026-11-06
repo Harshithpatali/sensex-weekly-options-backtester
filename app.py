@@ -442,6 +442,29 @@ def page_research_lab():
     if validation.get("missing_option_sessions"):
         with st.expander("Missing option sessions"):
             st.write(", ".join(validation["missing_option_sessions"]))
+    expiry_rows = validation.get("expiry_coverage", [])
+    if expiry_rows:
+        with st.expander("Latest expiry-by-expiry completeness diagnostics"):
+            expiry_frame = pd.DataFrame(expiry_rows)
+            if "complete_for_backtest" in expiry_frame:
+                expiry_frame["coverage_status"] = expiry_frame["complete_for_backtest"].map(
+                    {True: "Complete", False: "Incomplete"}
+                )
+                coverage_filter = st.selectbox(
+                    "Expiry coverage filter",
+                    ["All", "Complete", "Incomplete"],
+                    key="expiry_coverage_filter",
+                )
+                if coverage_filter != "All":
+                    expiry_frame = expiry_frame[
+                        expiry_frame["coverage_status"] == coverage_filter
+                    ]
+            st.dataframe(expiry_frame, use_container_width=True, hide_index=True)
+            st.caption(
+                "An expiry is complete only when both CE and PE have at least one "
+                "same-strike round trip with a positive entry premium, observed exit "
+                "mark and verified lot size."
+            )
 
     st.subheader("Execution and cost assumptions")
     x1, x2, x3 = st.columns(3)
@@ -495,6 +518,22 @@ def page_research_lab():
                 st.warning("Small sample: these results are not statistically reliable. Backfill additional historical expiries.")
             st.json(meta)
 
+    # The scheduled GitHub Actions pipeline writes the same reports that
+    # this page reads, so deployed UI reflects the latest repository refresh.
+    daily_run_path = DEFAULT_PATHS.outputs / "daily_run.json"
+    if daily_run_path.exists():
+        try:
+            with open(daily_run_path, encoding="utf-8") as handle:
+                daily_run = json.load(handle)
+            st.subheader("Latest automated research run")
+            run_cols = st.columns(4)
+            run_cols[0].metric("Last refresh (UTC)", str(daily_run.get("run_time_utc", "—"))[:19].replace("T", " "))
+            run_cols[1].metric("Historical option rows", f"{daily_run.get('option_rows', 0):,}")
+            run_cols[2].metric("Expiry cycles", daily_run.get("data_quality", {}).get("expiries", 0))
+            run_cols[3].metric("Walk-forward status", daily_run.get("walk_forward_status", "—"))
+        except (OSError, json.JSONDecodeError):
+            st.warning("The latest automated research summary could not be read.")
+
     metrics = st.session_state.get("research_metrics")
     trades = st.session_state.get("research_trades")
     walk = st.session_state.get("research_walk_forward")
@@ -509,9 +548,23 @@ def page_research_lab():
         st.subheader("Strategy performance comparison")
         st.dataframe(metrics, use_container_width=True)
         st.caption("Sharpe is based on trade-level returns annualised at 52 expiry cycles/year. It is approximate, not a daily mark-to-market Sharpe ratio.")
+        chart_left, chart_right = st.columns(2)
         fig = px.bar(metrics, x="strategy", y="expectancy", title="Net expectancy per completed trade")
         fig.update_layout(template="plotly_dark", yaxis_title="Expectancy (₹)")
-        st.plotly_chart(fig, use_container_width=True)
+        chart_left.plotly_chart(fig, use_container_width=True)
+        drawdown = metrics.dropna(subset=["max_drawdown_pct"])
+        dd_fig = px.bar(
+            drawdown, x="strategy", y="max_drawdown_pct",
+            title="Maximum drawdown (%) — lower magnitude is better",
+        )
+        dd_fig.update_layout(template="plotly_dark", yaxis_title="Maximum drawdown (%)")
+        chart_right.plotly_chart(dd_fig, use_container_width=True)
+        if "profit_factor" in metrics.columns:
+            pf = metrics.dropna(subset=["profit_factor"])
+            if not pf.empty:
+                pf_fig = px.bar(pf, x="strategy", y="profit_factor", title="Profit factor")
+                pf_fig.update_layout(template="plotly_dark", yaxis_title="Gross profit / gross loss")
+                st.plotly_chart(pf_fig, use_container_width=True)
     if walk:
         st.subheader("Out-of-sample and walk-forward results")
         st.write(f"**Status:** {walk.get('status', 'not run')}")
