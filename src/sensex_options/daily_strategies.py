@@ -24,6 +24,9 @@ def run_daily_strategy_suite(
     options: pd.DataFrame,
     capital: float = 10000.0,
     cost: CostConfig | None = None,
+    min_volume: float = 25.0,
+    min_open_interest: float = 50.0,
+    max_atm_distance_pct: float = 0.0075,
 ) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
     """Replay one-session holds using only prior-session direction and observed quotes.
 
@@ -55,7 +58,9 @@ def run_daily_strategy_suite(
     opt = options.copy()
     opt["trade_date"] = pd.to_datetime(opt["trade_date"], errors="coerce").dt.normalize()
     opt["expiry_date"] = pd.to_datetime(opt["expiry_date"], errors="coerce").dt.normalize()
-    for col in ("strike", "close", "lot_size"):
+    for col in ("strike", "close", "lot_size", "volume", "open_interest"):
+        if col not in opt:
+            opt[col] = float("nan")
         opt[col] = pd.to_numeric(opt[col], errors="coerce")
     opt["option_type"] = opt["option_type"].astype(str).str.strip().str.upper()
     if "symbol" not in opt:
@@ -124,10 +129,25 @@ def run_daily_strategy_suite(
         for strategy, option_type in directions.items():
             if option_type is None:
                 continue
-            entry_candidates = chain[(chain["strike"] == atm) & (chain["option_type"] == option_type)]
+            entry_candidates = chain[chain["option_type"] == option_type].copy()
+            entry_candidates["atm_distance_pct"] = (
+                (entry_candidates["strike"] - reference_spot).abs() / reference_spot
+            )
+            # Daily volume/OI are observable in bhavcopy; bid/ask quotes are not.
+            entry_candidates = entry_candidates[
+                (entry_candidates["close"] > 0)
+                & (entry_candidates["lot_size"] > 0)
+                & (entry_candidates["volume"] >= min_volume)
+                & (entry_candidates["open_interest"] >= min_open_interest)
+                & (entry_candidates["atm_distance_pct"] <= max_atm_distance_pct)
+            ]
             if entry_candidates.empty:
                 continue
-            selected = entry_candidates.iloc[0]
+            selected = entry_candidates.sort_values(
+                ["atm_distance_pct", "volume", "open_interest"],
+                ascending=[True, False, False],
+            ).iloc[0]
+            atm = float(selected["strike"])
             entry_premium = float(selected["close"])
             lot_value = selected.get("lot_size")
             if not pd.notna(lot_value) or float(lot_value) <= 0 or entry_premium <= 0:
@@ -173,6 +193,9 @@ def run_daily_strategy_suite(
                 "signal_direction": "UP" if prior_return > 0 else "DOWN" if prior_return < 0 else "FLAT",
                 "option_type": option_type, "spot_reference": reference_spot,
                 "strike": float(atm), "symbol": symbol, "entry_premium": entry_premium,
+                "entry_volume": float(selected["volume"]),
+                "entry_open_interest": float(selected["open_interest"]),
+                "atm_distance_pct": float(selected["atm_distance_pct"]),
                 "exit_premium": exit_premium, "lot_size": lot_size, "lots": n_lots,
                 "quantity": qty, "starting_capital": round(starting_equity, 2),
                 "ending_capital": round(ending, 2), "gross_pnl": round(gross, 2),
@@ -220,7 +243,13 @@ def run_daily_strategy_suite(
     meta = {
         "holding_period": "one SENSEX trading session (entry EOD close to next-session EOD close)",
         "signal_timing": "prior-session return; no same-day signal look-ahead",
-        "strike_selection": "nearest ATM using prior-session SENSEX close",
+        "strike_selection": "liquid contract within 0.75% of prior-session ATM; nearest strike first, then highest volume/OI",
+        "liquidity_filter": {
+            "minimum_daily_volume": min_volume,
+            "minimum_open_interest": min_open_interest,
+            "missing_volume_or_oi": "rejected",
+            "bid_ask_data": "not available in daily BSE bhavcopy; spread stress assumptions are not observed quotes",
+        },
         "expiry_selection": "nearest available expiry not earlier than exit session",
         "position_sizing": "one historical lot per eligible session; fixed unit-lot research, not compounded sizing",
         "capital": "capital is used only as a one-lot affordability filter; each strategy has its own cumulative unit-lot P&L curve",
