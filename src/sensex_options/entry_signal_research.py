@@ -1421,8 +1421,10 @@ def run_entry_signal_research(
 
     signals = _candidate_signals(paired)
     records = []
+    # Group expensive outcome frames once; reuse them for each predeclared signal.
+    horizon_groups = list(paired.groupby(["option_family", "holding_sessions"], sort=True))
     for name, signal in signals.items():
-        for (family, holding), horizon in paired.groupby(["option_family", "holding_sessions"], sort=True):
+        for (family, holding), horizon in horizon_groups:
             chosen = horizon.copy()
             chosen["signal"] = signal.loc[chosen.index].to_numpy()
             chosen = chosen[chosen["signal"].isin(["CE", "PE"])].copy()
