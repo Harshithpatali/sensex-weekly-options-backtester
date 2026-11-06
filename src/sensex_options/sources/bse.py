@@ -177,7 +177,7 @@ def parse_bse_fo_file(path: Path, trade_date: Optional[datetime] = None) -> pd.D
 
     # Prefer column from file; fall back to explicit trade_date argument
     if trad_c:
-        out["trade_date"] = pd.to_datetime(raw[trad_c], errors="coerce").dt.normalize()
+        out["trade_date"] = _parse_bse_date(raw[trad_c])
     elif trade_date is not None:
         out["trade_date"] = pd.Timestamp(trade_date).normalize()
     else:
@@ -190,7 +190,7 @@ def parse_bse_fo_file(path: Path, trade_date: Optional[datetime] = None) -> pd.D
             out["trade_date"] = pd.NaT
 
     if exp_c:
-        out["expiry_date"] = pd.to_datetime(raw[exp_c], errors="coerce").dt.normalize()
+        out["expiry_date"] = _parse_bse_date(raw[exp_c])
     else:
         out["expiry_date"] = pd.NaT
 
