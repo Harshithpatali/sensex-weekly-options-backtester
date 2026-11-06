@@ -289,7 +289,10 @@ def parse_bse_fo_file(path: Path, trade_date: Optional[datetime] = None) -> pd.D
     # Legacy BSE archives use spaced display headers (Expiry, Strike,
     # Option Type, Contract Type) and do not carry a lot-size column.
     # SENSEX contracts in this pre-UDiFF archive window used a 10-unit lot.
-    legacy_schema = {"expiry", "strike", "option type", "contract type"}.issubset(lower)
+    legacy_schema = (
+        {"expiry_dt", "strike_pr"}.issubset(lower)
+        or {"expiry", "strike", "option type", "contract type"}.issubset(lower)
+    )
     if legacy_schema and lot_c is None:
         sensex_rows = out["symbol"].astype(str).str.startswith("SENSEX", na=False)
         out.loc[sensex_rows, "lot_size"] = 10
