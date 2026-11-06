@@ -262,7 +262,7 @@ Tests cover strike selection, whole-lot sizing, capital floor, missing premium/l
 
 ## Transaction-cost limitations
 
-Default research configuration uses **zero** brokerage/STT/slippage. This is **unrealistic**. Configure costs in the Streamlit form or via `CostConfig` / CLI flags. Historical rate schedules change; assumptions must be labelled.
+The original single-strategy Backtest Configuration page retains zero-cost defaults for compatibility and must not be used for realistic net-return claims without entering costs. The comparative strategy suite and scheduled daily replay use illustrative non-zero assumptions for brokerage, STT, exchange charges, GST, stamp duty, spread, slippage and market impact. Review and edit those assumptions in the Streamlit **Research & Walk-Forward** page. Historical rate schedules vary; these are estimates, not broker quotes or tax advice.
 
 ---
 
