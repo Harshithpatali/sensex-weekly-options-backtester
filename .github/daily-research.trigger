@@ -12,3 +12,5 @@ Test ATM, one-strike ITM and one-strike OTM long options with lagged volatility/
 Run the latest validated option-flow, moneyness, debit/credit spread and regime-signal research with the corrected bullish-put/bearish-call credit-spread mapping and vertical payoff bounds.
 Replay with exact-duplicate signal sequences removed; keep chronological monthly PF validation and save all result tables.
 Run full option-flow, moneyness, volatility-regime and debit/credit spread signal grid with compressed trade-ledger persistence and read-only dashboard outputs.
+
+Apply liquidity-aware option selection and strict ₹10,000 cash/risk feasibility controls. Rebuild all strategy results, regime filters, risk-managed variants, and validation artifacts from the accumulated BSE options archive. Do not report signal-level unit-lot P&L as account-level returns.
