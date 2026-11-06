@@ -129,7 +129,7 @@ def parse_bse_fo_file(path: Path, trade_date: Optional[datetime] = None) -> pd.D
     try:
         if path.suffix.lower() == ".zip":
             with zipfile.ZipFile(path, "r") as zf:
-                names = zf.namelist()
+                names = [name for name in zf.namelist() if name.lower().endswith(".csv")]
                 if not names:
                     return pd.DataFrame()
                 with zf.open(names[0]) as f:
@@ -241,12 +241,13 @@ def parse_bse_fo_file(path: Path, trade_date: Optional[datetime] = None) -> pd.D
     # Prefer last / settle / intrinsic when close looks like the index level.
     out = _sanitise_premiums(out)
 
-    # Filter to SENSEX related contracts when possible
-    sensex_mask = out["symbol"].str.contains("SENSEX", case=False, na=False)
-    if sensex_mask.any():
-        out = out[sensex_mask].copy()
-
-    out = out.dropna(subset=["strike"], how="all")
+    # This project is specifically a SENSEX options backtester. Never silently
+    # return every index/stock derivative when a source schema changes.
+    sensex_mask = out["symbol"].str.fullmatch(r"SENSEX", case=False, na=False) | out["symbol"].str.startswith("SENSEX", na=False)
+    out = out[sensex_mask].copy()
+    out = out.dropna(subset=["trade_date", "expiry_date", "strike"], how="any")
+    out = out[out["option_type"].isin(["CE", "PE"])]
+    out = out[(out["strike"] > 0) & (out["close"].isna() | (out["close"] >= 0))]
     return out.reset_index(drop=True)
 
 
@@ -350,28 +351,32 @@ def download_bse_options_range(
     logger.info("Manifest written to %s (%d days)", manifest_path, len(manifest))
 
     if not frames:
-        logger.warning("No option rows parsed. Check network / BSE availability / date range.")
-        empty = pd.DataFrame(columns=[
-            "trade_date", "expiry_date", "instrument_type", "symbol", "strike",
-            "option_type", "open", "high", "low", "close", "volume",
-            "open_interest", "lot_size",
-        ])
-        empty.to_csv(DEFAULT_PATHS.processed / "sensex_options.csv", index=False)
-        return empty
+        logger.warning("No option rows parsed. Existing processed history is preserved.")
+        return pd.DataFrame()
 
     combined = pd.concat(frames, ignore_index=True)
-    # Keep both Calls and Puts: the multi-strategy research suite requires both sides.
+    # Keep both Calls and Puts, and reject every non-SENSEX instrument.
     options = combined[
-        (combined["option_type"].isin(["CE", "PE"]))
-        & (combined["strike"].notna())
+        combined["symbol"].astype(str).str.startswith("SENSEX", na=False)
+        & combined["option_type"].isin(["CE", "PE"])
+        & combined["strike"].notna()
         & (combined["strike"] > 0)
     ].copy()
-    sensex = options[options["symbol"].str.contains("SENSEX", case=False, na=False)]
-    if len(sensex) > 0:
-        options = sensex
+
     out_path = DEFAULT_PATHS.processed / "sensex_options.csv"
-    options.to_csv(out_path, index=False)
-    logger.info("Wrote %d SENSEX Call/Put option rows to %s", len(options), out_path)
+    compressed_path = Path(str(out_path) + ".gz")
+    existing = pd.DataFrame()
+    if out_path.exists():
+        existing = pd.read_csv(out_path)
+    elif compressed_path.exists():
+        existing = pd.read_csv(compressed_path, compression="gzip")
+    if not existing.empty:
+        options = pd.concat([existing, options], ignore_index=True)
+    if not options.empty:
+        keys = ["trade_date", "expiry_date", "symbol", "strike", "option_type"]
+        options = options.drop_duplicates(subset=keys, keep="last").sort_values(keys).reset_index(drop=True)
+        options.to_csv(out_path, index=False)
+    logger.info("Merged %d SENSEX Call/Put option rows into %s", len(options), out_path)
     return options
 
 
