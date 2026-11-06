@@ -353,13 +353,14 @@ def _option_debit_vertical_outcomes(
     index: pd.DataFrame,
     options: pd.DataFrame,
     holding_periods: tuple[int, ...] = (1, 2, 3, 5),
+    spread_width_steps: tuple[int, ...] = (1, 2, 3),
     capital: float = 10000.0,
     cost: CostConfig | None = None,
 ) -> pd.DataFrame:
     """Generate ATM debit vertical spread outcomes from observed BSE option candles.
 
-    Bull call spread: long ATM CE, short the next higher strike CE.
-    Bear put spread: long ATM PE, short the next lower strike PE.
+    Bull call spread: long ATM CE, short the 1st/2nd/3rd higher available CE strike.
+    Bear put spread: long ATM PE, short the 1st/2nd/3rd lower available PE strike.
     Both legs must share expiry and lot size, and both entry/exit quotes must exist.
     """
     if index is None or index.empty or options is None or options.empty:
@@ -419,17 +420,17 @@ def _option_debit_vertical_outcomes(
             atm = float(min(strikes, key=lambda strike: abs(float(strike) - reference_spot)))
             higher = [float(strike) for strike in strikes if float(strike) > atm]
             lower = [float(strike) for strike in strikes if float(strike) < atm]
-            short_call_strike = min(higher) if higher else None
-            short_put_strike = max(lower) if lower else None
-
-            spread_specs = (
-                ("CE", atm, short_call_strike, "BULL_CALL_DEBIT_SPREAD", "call_pnl"),
-                ("PE", atm, short_put_strike, "BEAR_PUT_DEBIT_SPREAD", "put_pnl"),
-            )
-            result_by_direction = {}
-            for option_type, long_strike, short_strike, label, _ in spread_specs:
-                if short_strike is None:
-                    continue
+            for width in sorted(set(int(w) for w in spread_width_steps if int(w) > 0)):
+                short_call_strike = higher[width - 1] if len(higher) >= width else None
+                short_put_strike = lower[-width] if len(lower) >= width else None
+                spread_specs = (
+                    ("CE", atm, short_call_strike, "BULL_CALL_DEBIT_SPREAD"),
+                    ("PE", atm, short_put_strike, "BEAR_PUT_DEBIT_SPREAD"),
+                )
+                result_by_direction = {}
+                for option_type, long_strike, short_strike, label in spread_specs:
+                    if short_strike is None:
+                        continue
                 long_entry_rows = chain[
                     (chain["strike"] == long_strike) & (chain["option_type"] == option_type)
                 ]
@@ -495,21 +496,22 @@ def _option_debit_vertical_outcomes(
                     quantity, cfg,
                 )
                 net = (exit_credit - entry_debit) * quantity - charges["total_cost"]
-                result_by_direction[label] = round(net, 2)
+                    result_by_direction[label] = round(net, 2)
 
-            if result_by_direction:
-                rows.append({
-                    "entry_date": entry_day,
-                    "exit_date": exit_day,
-                    "signal_date": pd.Timestamp(signal_row["date"]),
-                    "holding_sessions": hold,
-                    "expiry_date": expiry,
-                    "strike": atm,
-                    "month": exit_day.strftime("%Y-%m"),
-                    "option_family": "DEBIT_SPREADS",
-                    "call_pnl": result_by_direction.get("BULL_CALL_DEBIT_SPREAD", np.nan),
-                    "put_pnl": result_by_direction.get("BEAR_PUT_DEBIT_SPREAD", np.nan),
-                })
+                if result_by_direction:
+                    rows.append({
+                        "entry_date": entry_day,
+                        "exit_date": exit_day,
+                        "signal_date": pd.Timestamp(signal_row["date"]),
+                        "holding_sessions": hold,
+                        "expiry_date": expiry,
+                        "strike": atm,
+                        "month": exit_day.strftime("%Y-%m"),
+                        "option_family": f"DEBIT_SPREADS_W{width}",
+                        "spread_width_steps": width,
+                        "call_pnl": result_by_direction.get("BULL_CALL_DEBIT_SPREAD", np.nan),
+                        "put_pnl": result_by_direction.get("BEAR_PUT_DEBIT_SPREAD", np.nan),
+                    })
 
     if not rows:
         return pd.DataFrame()
@@ -876,7 +878,10 @@ def run_entry_signal_research(
             chosen = chosen[chosen["signal"].isin(["CE", "PE"])].copy()
             if chosen.empty:
                 continue
-            prefix = "LONG" if family == "LONG_OPTIONS" else "SPREAD"
+            if family == "LONG_OPTIONS":
+                prefix = "LONG"
+            else:
+                prefix = str(family).replace("DEBIT_SPREADS", "SPREAD")
             chosen["strategy"] = f"{prefix}_H{int(holding)}D_{name}"
             chosen["net_pnl"] = np.where(
                 chosen["signal"] == "CE",
@@ -1031,7 +1036,8 @@ def run_entry_signal_research(
             "position cannot spill across the validation boundary. Predeclared lagged index indicator and "
             "regime signals choose between same-date, same-expiry, "
             "same-strike ATM Call/Put outcomes and bounded-risk ATM debit vertical spread outcomes "
-            "for one-, two-, three- and five-session holds. Debit spreads require both observed legs at entry "
+            "at one-, two- and three-available-strike widths for one-, two-, three- and five-session holds. "
+            "Debit spreads require both observed legs at entry "
             "and exit, and reject inverted spread marks. "
             "Option outcomes are rebuilt from observed BSE daily candles, with the exact same contract "
             "held through the selected exit session. A missing side is not fabricated; that direction is "
@@ -1045,6 +1051,11 @@ def run_entry_signal_research(
         "distinct_entry_sessions": int(paired["entry_date"].nunique()),
         "holding_periods_tested": sorted(paired["holding_sessions"].dropna().astype(int).unique().tolist()),
         "instrument_families_tested": sorted(paired["option_family"].dropna().astype(str).unique().tolist()),
+        "spread_width_steps_tested": sorted(
+            int(str(family).split("_W")[-1])
+            for family in paired["option_family"].dropna().astype(str).unique()
+            if str(family).startswith("DEBIT_SPREADS_W")
+        ),
         "candidate_rules_tested": int(len(candidate_names)),
         "position_sizing": "One lot per candidate, one open position at a time; new entry allowed on the previous position's exit session after the EOD exit.",
         "overlapping_candidate_entries_skipped": int(
