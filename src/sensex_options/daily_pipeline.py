@@ -20,6 +20,7 @@ from sensex_options.validation import validate_all, save_validation_report
 from sensex_options.strategies import run_strategy_suite, period_pnl
 from sensex_options.analytics import strategy_performance_metrics, walk_forward_evaluation
 from sensex_options.daily_strategies import run_daily_strategy_suite, daily_holdout_evaluation
+from sensex_options.intraday_research import download_sensex_intraday, evaluate_intraday_put_filters
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("daily_pipeline")
@@ -154,6 +155,42 @@ def run() -> dict:
                 output_dir / f"daily_options_{period}_pnl.csv", index=False
             )
 
+    # Intraday SENSEX context is collected by the scheduled workflow, never by Streamlit.
+    # Yahoo's recent-window limit means this is a rolling 60-calendar-day dataset.
+    intraday_status = {"status": "not_run"}
+    try:
+        intraday_bars = download_sensex_intraday(
+            interval="5m", period="60d",
+            output_path=output_dir / "sensex_intraday_5m.csv",
+        )
+        if not intraday_bars.empty and not daily_trades.empty:
+            _, intraday_report, intraday_features = evaluate_intraday_put_filters(daily_trades, intraday_bars)
+            intraday_features.to_csv(output_dir / "sensex_intraday_session_features.csv", index=False)
+            with open(output_dir / "daily_put_intraday_validation.json", "w", encoding="utf-8") as handle:
+                json.dump(intraday_report, handle, indent=2, default=str)
+            if intraday_report.get("status") == "ok":
+                pd.DataFrame(intraday_report.get("validation_metrics", [])).to_csv(
+                    output_dir / "daily_put_intraday_validation.csv", index=False
+                )
+            intraday_status = {
+                "status": intraday_report.get("status"),
+                "bars": int(len(intraday_bars)),
+                "matched_sessions": intraday_report.get("matched_sessions", 0),
+                "validation_start": intraday_report.get("validation_start"),
+                "validation_end": intraday_report.get("validation_end"),
+                "note": intraday_report.get("note"),
+            }
+        else:
+            intraday_status = {
+                "status": "insufficient_data",
+                "bars": int(len(intraday_bars)),
+                "note": "Intraday download empty or daily option ledger unavailable.",
+            }
+    except Exception as exc:
+        # Do not lose the daily BSE collection/replay if Yahoo intraday is temporarily unavailable.
+        log.exception("Intraday SENSEX refresh failed")
+        intraday_status = {"status": "download_error", "error": str(exc)}
+
     run_info = {
         "run_time_utc": datetime.now(timezone.utc).isoformat(),
         "target_data_date": target.isoformat(),
@@ -168,6 +205,7 @@ def run() -> dict:
         "daily_strategy_count": int(len(daily_ranking)),
         "daily_strategy_trades": int(len(daily_trades)),
         "daily_holdout_status": daily_holdout.get("status"),
+        "intraday_research": intraday_status,
         "pnl_semantics": "realized P&L grouped by trade exit date; not daily mark-to-market",
         "validation_report": str(validation_path),
     }
