@@ -451,10 +451,10 @@ def run_advanced_signal_research(
         atm = min(strikes, key=lambda value: abs(float(value) - spot_reference))
         exit_chain = exit_options[exit_options["expiry_date"] == expiry]
 
-        for strategy in signal_names:
-            option_type = signal_arrays[strategy][i - 1]
-            if option_type not in ("CE", "PE"):
-                continue
+        # Price the ATM Call and Put once per session, then reuse those marks
+        # for every candidate signal. This keeps the broad grid computationally tractable.
+        side_marks: dict[str, dict] = {}
+        for option_type in ("CE", "PE"):
             candidates = chain[
                 (chain["strike"] == atm) & (chain["option_type"] == option_type)
             ]
@@ -498,25 +498,33 @@ def run_advanced_signal_research(
             )
             gross = (exit_premium - entry_premium) * lot_size
             net = gross - float(charges["total_cost"])
-            trades.append({
-                "strategy": strategy,
-                "signal_date": signal_day,
-                "entry_date": entry_day,
-                "exit_date": exit_day,
+            side_marks[option_type] = {
                 "expiry_date": expiry,
                 "option_type": option_type,
-                "spot_reference": spot_reference,
                 "strike": float(atm),
                 "symbol": symbol,
                 "entry_premium": entry_premium,
                 "exit_premium": exit_premium,
                 "lot_size": lot_size,
-                "lots": 1,
                 "quantity": lot_size,
                 "gross_pnl": round(gross, 2),
                 "estimated_costs": charges["total_cost"],
                 "net_pnl": round(net, 2),
                 "return_pct": round(net / max(entry_premium * lot_size, 1e-9) * 100, 4),
+            }
+
+        for strategy in signal_names:
+            option_type = signal_arrays[strategy][i - 1]
+            mark = side_marks.get(option_type)
+            if mark is None:
+                continue
+            trades.append({
+                "strategy": strategy,
+                "signal_date": signal_day,
+                "entry_date": entry_day,
+                "exit_date": exit_day,
+                **mark,
+                "spot_reference": spot_reference,
                 "signal_ret1": signal.get("ret1"),
                 "signal_ret3": signal.get("ret3"),
                 "signal_ret5": signal.get("ret5"),
