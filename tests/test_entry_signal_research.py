@@ -294,9 +294,9 @@ def test_defined_risk_credit_spreads_use_observed_hedge_and_fit_risk_budget():
                 # A rising index regime: puts cheapen (bull-put credit wins),
                 # while calls reprice higher (bear-call credit loses).
                 if option_type == "PE":
-                    premium = (15.0 if strike == 72000 else 5.0) - 0.5 * i
+                    premium = 15.0 - 1.0 * i if strike == 72000 else 5.0 - 0.2 * i
                 else:
-                    premium = (15.0 if strike == 72000 else 5.0) + 0.5 * i
+                    premium = 15.0 + 1.0 * i if strike == 72000 else 5.0 + 0.2 * i
                 option_rows.append({
                     "trade_date": day, "expiry_date": expiry, "strike": strike,
                     "symbol": "SENSEX", "option_type": option_type,
