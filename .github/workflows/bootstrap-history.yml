@@ -56,6 +56,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f data/processed/sensex_index.csv data/processed/sensex_options.csv outputs/strategy_trade_ledger.csv outputs/strategy_leaderboard.csv outputs/daily_strategy_pnl.csv outputs/weekly_strategy_pnl.csv outputs/monthly_strategy_pnl.csv outputs/daily_run.json data/reports/data_validation.json
+          git add -f data/processed/sensex_index.csv data/processed/sensex_options.csv.gz outputs/strategy_trade_ledger.csv outputs/strategy_leaderboard.csv outputs/daily_strategy_pnl.csv outputs/weekly_strategy_pnl.csv outputs/monthly_strategy_pnl.csv outputs/daily_run.json data/reports/data_validation.json
           git diff --cached --quiet || git commit -m "data: bootstrap historical SENSEX options research dataset"
           git push
