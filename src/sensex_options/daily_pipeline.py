@@ -24,6 +24,7 @@ from sensex_options.intraday_research import download_sensex_intraday, evaluate_
 from sensex_options.risk_managed_research import run_risk_managed_research
 from sensex_options.entry_signal_research import run_entry_signal_research
 from sensex_options.regime_research import run_regime_research
+from sensex_options.capital_controls import apply_capital_controls
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("daily_pipeline")
@@ -169,6 +170,27 @@ def run() -> dict:
                 output_dir / f"daily_options_{period}_pnl.csv", index=False
             )
 
+
+    # Convert one-lot research candidates into cash-constrained ₹10,000 books.
+    # Each candidate strategy is evaluated as a separate hypothetical account.
+    capital_control_status = {"status": "not_run"}
+    if not daily_trades.empty:
+        controlled_trades, controlled_board, capital_report = apply_capital_controls(
+            daily_trades, initial_capital=10_000.0,
+            risk_per_trade_pct=0.02, daily_loss_limit_pct=0.02,
+        )
+        controlled_trades.to_csv(output_dir / "daily_capital_controlled_ledger.csv", index=False)
+        controlled_board.to_csv(output_dir / "daily_capital_controlled_leaderboard.csv", index=False)
+        with open(output_dir / "daily_capital_controls.json", "w", encoding="utf-8") as handle:
+            json.dump(capital_report, handle, indent=2, default=str)
+        capital_control_status = {
+            "status": capital_report.get("status"),
+            "candidate_trades": capital_report.get("candidate_trades", 0),
+            "feasible_trades": capital_report.get("feasible_trades", 0),
+            "rejected_trades": capital_report.get("rejected_trades", 0),
+            "best_strategy": controlled_board.iloc[0]["strategy"] if not controlled_board.empty else None,
+            "best_strategy_net_pnl": controlled_board.iloc[0]["net_pnl"] if not controlled_board.empty else None,
+        }
 
     # Additional predeclared regime-gated analysis against observed option outcomes.
     regime_research_status = {"status": "not_run"}
@@ -320,6 +342,7 @@ def run() -> dict:
         "daily_strategy_count": int(len(daily_ranking)),
         "daily_strategy_trades": int(len(daily_trades)),
         "daily_holdout_status": daily_holdout.get("status"),
+        "capital_controlled_research": capital_control_status,
         "risk_managed_research": risk_research_status,
         "regime_research": regime_research_status,
         "entry_signal_research": entry_signal_status,
