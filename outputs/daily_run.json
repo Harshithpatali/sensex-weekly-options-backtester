@@ -1,5 +1,5 @@
 {
-  "run_time_utc": "2026-11-06T18:57:21.448259+00:00",
+  "run_time_utc": "2026-11-06T19:31:09.491951+00:00",
   "target_data_date": "2026-11-05",
   "downloaded_option_dates": [
     "2026-11-02",
@@ -3015,8 +3015,19 @@
   ],
   "walk_forward_status": "insufficient_data",
   "daily_strategy_count": 7,
-  "daily_strategy_trades": 2383,
+  "daily_strategy_trades": 2375,
   "daily_holdout_status": "ok",
+  "capital_controlled_research": {
+    "status": "complete",
+    "candidate_trades": 2375,
+    "feasible_trades": 3,
+    "rejected_trades": 2372,
+    "best_strategy": "DAILY_5D_MOMENTUM",
+    "best_strategy_net_pnl": 0.0,
+    "holdout_status": "complete",
+    "holdout_start": "2026-02-10",
+    "holdout_board_rows": 7
+  },
   "risk_managed_research": {
     "status": "no_candidate_met_monthly_target",
     "variants": 294,
@@ -3024,13 +3035,18 @@
     "approved_candidate_count": 0,
     "top_training_ranked_strategy": {
       "strategy": "DAILY_RSI_REVERSAL__SL20_TP40",
-      "train_net_pnl": -3172.89,
-      "train_aggregate_pf": 0.9385394129560398,
+      "train_net_pnl": -2025.33,
+      "train_aggregate_pf": 0.9598762326062014,
       "train_target_hit_pct": 63.64,
       "holdout_net_pnl": -27017.22,
       "holdout_aggregate_pf": 0.13075399910760224,
       "holdout_target_hit_pct": 0.0
     }
+  },
+  "regime_research": {
+    "status": "screen_complete",
+    "candidates": 28,
+    "prospective_paper_candidates": 0
   },
   "entry_signal_research": {
     "status": "no_candidate_met_research_screen",

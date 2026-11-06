@@ -2,11 +2,11 @@
   "status": "ok",
   "method": "chronological 70/30 split by entry session",
   "train_start": "2024-07-08",
-  "train_end": "2026-02-06",
-  "holdout_start": "2026-02-09",
+  "train_end": "2026-02-09",
+  "holdout_start": "2026-02-10",
   "holdout_end": "2026-11-05",
-  "distinct_entry_sessions": 534,
-  "holdout_sessions": 161,
+  "distinct_entry_sessions": 531,
+  "holdout_sessions": 160,
   "holdout_metrics": [
     {
       "strategy": "DAILY_5D_MOMENTUM",
@@ -34,15 +34,15 @@
     },
     {
       "strategy": "DAILY_ATM_PUT",
-      "trades": 113,
-      "net_pnl": 96286.14,
-      "win_rate_pct": 39.82,
-      "profit_factor": 1.4794,
-      "expectancy": 852.09,
-      "median_trade_pnl": -966.76,
+      "trades": 112,
+      "net_pnl": 98792.08,
+      "win_rate_pct": 40.18,
+      "profit_factor": 1.4981,
+      "expectancy": 882.07,
+      "median_trade_pnl": -940.5,
       "best_trade": 34967.46,
       "worst_trade": -9559.83,
-      "top3_wins_share_of_net_pct": 87.09
+      "top3_wins_share_of_net_pct": 84.88
     },
     {
       "strategy": "DAILY_EMA_TREND",
@@ -58,15 +58,15 @@
     },
     {
       "strategy": "DAILY_MEAN_REVERSION",
-      "trades": 100,
-      "net_pnl": 24503.92,
-      "win_rate_pct": 40.0,
-      "profit_factor": 1.1267,
-      "expectancy": 245.04,
-      "median_trade_pnl": -1276.68,
+      "trades": 99,
+      "net_pnl": 27009.86,
+      "win_rate_pct": 40.4,
+      "profit_factor": 1.1415,
+      "expectancy": 272.83,
+      "median_trade_pnl": -1233.43,
       "best_trade": 34967.46,
       "worst_trade": -8727.51,
-      "top3_wins_share_of_net_pct": 342.21
+      "top3_wins_share_of_net_pct": 310.46
     },
     {
       "strategy": "DAILY_MOMENTUM",
@@ -93,5 +93,5 @@
       "top3_wins_share_of_net_pct": null
     }
   ],
-  "warning": "This is a fixed-rule holdout, not a guarantee of future performance. Review sample size and execution assumptions."
+  "warning": "This is a signal-level unit-lot candidate comparison, NOT a \u20b910,000 capital-constrained portfolio. Use daily_capital_controlled_leaderboard.csv for cash/risk-feasible results. It is not a guarantee of future performance."
 }

@@ -1,0 +1,12 @@
+{
+  "status": "screen_complete",
+  "method": "Predeclared 5 signal families x 6 regime gates; features lagged one completed session; split by entry date with exit-date purging at the boundary; observed option ledger only.",
+  "train_end": "2026-02-09",
+  "validation_start": "2026-02-10",
+  "purged_overlap_trades": 1,
+  "last_entry_date": "2026-11-05",
+  "minimum_train_trades": 30,
+  "candidate_count": 28,
+  "prospective_paper_candidates": 0,
+  "important": "Index-only bars are not option-premium execution data. No intraday option stops, option VWAP, or live fills are simulated."
+}
