@@ -237,3 +237,78 @@ def run_full_analytics(
     logger.info("Analytics report -> %s", path)
     result["report_path"] = str(path)
     return result
+
+
+def strategy_performance_metrics(trades: pd.DataFrame, initial_capital: float = 10000.0) -> pd.DataFrame:
+    """Per-strategy trade metrics. Sharpe is approximate trade-level Sharpe."""
+    if trades.empty or "net_pnl" not in trades.columns:
+        return pd.DataFrame()
+    frame = trades.copy()
+    if "status" in frame.columns:
+        frame = frame[frame["status"].eq("completed")]
+    if frame.empty:
+        return pd.DataFrame()
+    frame["net_pnl"] = pd.to_numeric(frame["net_pnl"], errors="coerce")
+    frame["starting_capital"] = pd.to_numeric(frame.get("starting_capital", initial_capital), errors="coerce")
+    frame["trade_return"] = frame["net_pnl"] / frame["starting_capital"].replace(0, np.nan)
+    rows = []
+    for strategy, group in frame.groupby("strategy"):
+        group = group.sort_values("exit_date") if "exit_date" in group else group
+        pnl = group["net_pnl"].dropna()
+        returns = group["trade_return"].replace([np.inf, -np.inf], np.nan).dropna()
+        gains, losses = float(pnl[pnl > 0].sum()), float(-pnl[pnl < 0].sum())
+        equity = float(initial_capital) + pnl.cumsum().reset_index(drop=True)
+        peak = pd.concat([pd.Series([float(initial_capital)]), equity], ignore_index=True).cummax().iloc[1:].reset_index(drop=True)
+        dd = equity - peak
+        std = float(returns.std(ddof=1)) if len(returns) > 1 else np.nan
+        sharpe = float(returns.mean() / std * np.sqrt(52)) if pd.notna(std) and std > 0 else None
+        rows.append({
+            "strategy": strategy, "trades": int(len(pnl)), "net_pnl": round(float(pnl.sum()), 2),
+            "win_rate_pct": round(float((pnl > 0).mean() * 100), 2),
+            "profit_factor": round(gains / losses, 4) if losses > 0 else None,
+            "expectancy": round(float(pnl.mean()), 2),
+            "sharpe_trade_annualized": round(sharpe, 4) if sharpe is not None else None,
+            "max_drawdown": round(float(dd.min()), 2) if len(dd) else 0.0,
+            "max_drawdown_pct": round(float((dd / peak.replace(0, np.nan) * 100).min()), 2) if len(dd) else 0.0,
+            "sample_warning": "Small samples are not statistically reliable" if len(pnl) < 30 else "",
+        })
+    return pd.DataFrame(rows).sort_values("net_pnl", ascending=False).reset_index(drop=True)
+
+
+def walk_forward_evaluation(trades: pd.DataFrame, initial_capital: float = 10000.0,
+                            train_expiries: int = 8, test_expiries: int = 4) -> dict:
+    """Chronological 70/30 expiry holdout plus rolling expiry test windows."""
+    empty = {"status": "insufficient_data", "note": "Not enough distinct expiry cycles for chronological evaluation."}
+    if trades.empty or "expiry_date" not in trades.columns:
+        return empty
+    frame = trades.copy()
+    if "status" in frame.columns:
+        frame = frame[frame["status"].eq("completed")]
+    frame["expiry_date"] = pd.to_datetime(frame["expiry_date"], errors="coerce")
+    frame = frame.dropna(subset=["expiry_date"]).sort_values(["expiry_date", "strategy"])
+    expiries = sorted(frame["expiry_date"].drop_duplicates().tolist())
+    if len(expiries) < max(3, train_expiries + 1):
+        return {**empty, "distinct_expiries": len(expiries), "required_expiries": train_expiries + 1}
+    split = max(1, min(len(expiries) - 1, int(len(expiries) * 0.70)))
+    train_dates, test_dates = expiries[:split], expiries[split:]
+    holdout = frame[frame["expiry_date"].isin(test_dates)]
+    holdout_metrics = strategy_performance_metrics(holdout, initial_capital).to_dict("records")
+    folds, start = [], train_expiries
+    while start < len(expiries):
+        fold_dates = expiries[start:start + test_expiries]
+        if not fold_dates: break
+        sample = frame[frame["expiry_date"].isin(fold_dates)]
+        folds.append({
+            "train_expiries_before_test": int(start),
+            "test_expiries": [pd.Timestamp(x).strftime("%Y-%m-%d") for x in fold_dates],
+            "metrics": strategy_performance_metrics(sample, initial_capital).to_dict("records"),
+        })
+        start += test_expiries
+    return {
+        "status": "ok", "distinct_expiries": len(expiries), "train_expiries": len(train_dates),
+        "holdout_expiries": len(test_dates),
+        "holdout_start": pd.Timestamp(test_dates[0]).strftime("%Y-%m-%d"),
+        "holdout_end": pd.Timestamp(test_dates[-1]).strftime("%Y-%m-%d"),
+        "holdout_metrics": holdout_metrics, "walk_forward_folds": folds,
+        "methodology": "Chronological 70/30 expiry holdout plus rolling context/test windows. These are fixed rules, not fitted ML models. Position sizing follows the chronological replay. Trade Sharpe uses sqrt(52) annualisation and is not daily mark-to-market.",
+    }
