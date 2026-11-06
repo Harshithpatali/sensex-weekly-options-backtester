@@ -284,6 +284,13 @@ def parse_bse_fo_file(path: Path, trade_date: Optional[datetime] = None) -> pd.D
         else:
             out[dst] = float("nan") if dst != "lot_size" else pd.NA
 
+    # Legacy BSE SENSEX bhavcopies predate the UDiFF lot-size column.
+    # BSE relaunched SENSEX derivatives on 15-May-2023 with a 10-unit lot.
+    # Apply only to the identified legacy schema and SENSEX rows.
+    legacy_schema = "expiry_dt" in lower and "strike_pr" in lower
+    if legacy_schema and lot_c is None:
+        out.loc[out["symbol"].eq("SENSEX"), "lot_size"] = 10
+
     # Sanitise premium: on expiry BSE sometimes sets ClsPric ≈ underlying index.
     # Prefer last / settle / intrinsic when close looks like the index level.
     out = _sanitise_premiums(out)
