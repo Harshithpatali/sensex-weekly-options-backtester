@@ -12,7 +12,7 @@ def daily_fixture():
         for typ in ("CE", "PE"):
             rows.append({
                 "trade_date": day, "expiry_date": dates[-1] + pd.Timedelta(days=2),
-                "symbol": f"SENSEX_{typ}", "strike": 101.0, "option_type": typ,
+                "symbol": f"SENSEX_{typ}", "strike": float([100, 100, 101, 102, 100][day_i]), "option_type": typ,
                 "close": 10.0 + day_i if typ == "CE" else 12.0 - day_i,
                 "lot_size": 10, "volume": 100, "open_interest": 500,
             })
@@ -82,7 +82,7 @@ def test_extended_daily_indicators_are_replayed_when_history_is_sufficient():
                 "trade_date": day, "expiry_date": expiry, "symbol": f"SENSEX_{typ}",
                 "strike": strike, "option_type": typ,
                 "close": float(20 + i if typ == "CE" else 60 - i * 0.5),
-                "lot_size": 10,
+                "lot_size": 10, "volume": 100, "open_interest": 500,
             })
     ledger, board, _ = run_daily_strategy_suite(index, pd.DataFrame(rows), capital=10000, cost=CostConfig())
     assert {"DAILY_5D_MOMENTUM", "DAILY_EMA_TREND", "DAILY_RSI_REVERSAL"}.issubset(set(board["strategy"]))
