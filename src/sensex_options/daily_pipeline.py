@@ -27,14 +27,18 @@ def run():
     DEFAULT_PATHS.ensure()
     # At 06:30 IST collect the most recent completed calendar day. A BSE 404 is normal on holidays.
     target=(datetime.utcnow().date()-timedelta(days=1))
-    day=datetime.combine(target,datetime.min.time())
-    raw_path,status=download_one_day(day,DEFAULT_PATHS.raw_options)
-    log.info("BSE download %s: %s",target,status)
-    if raw_path:
-        daily=parse_bse_fo_file(raw_path,day)
-        daily=daily[daily.symbol.str.contains("SENSEX",case=False,na=False)]
-        if not daily.empty:
-            merge_csv(daily,DEFAULT_PATHS.processed/"sensex_options.csv",["trade_date","expiry_date","symbol","strike","option_type"])
+    # Check the last four calendar days so Monday runs can pick up Friday and
+    # exchange holidays do not permanently create gaps.
+    for offset in range(4,0,-1):
+        d=target-timedelta(days=offset-1)
+        day=datetime.combine(d,datetime.min.time())
+        raw_path,status=download_one_day(day,DEFAULT_PATHS.raw_options)
+        log.info("BSE download %s: %s",d,status)
+        if raw_path:
+            daily=parse_bse_fo_file(raw_path,day)
+            daily=daily[daily.symbol.str.contains("SENSEX",case=False,na=False)]
+            if not daily.empty:
+                merge_csv(daily,DEFAULT_PATHS.processed/"sensex_options.csv",["trade_date","expiry_date","symbol","strike","option_type"])
     # Refresh index history; merge so intermittent vendor gaps don't erase existing observations.
     end=target.isoformat()
     fresh=download_sensex_index(SENSEX_OPTIONS_LAUNCH,end,processed_path=DEFAULT_PATHS.processed/"index_refresh.csv")
