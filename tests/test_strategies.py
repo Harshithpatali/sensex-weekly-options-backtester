@@ -73,3 +73,19 @@ def test_strategy_capital_compounds_between_expiries():
     assert len(atm_calls) == 2
     assert atm_calls.iloc[0]["ending_capital"] == 12000.0
     assert atm_calls.iloc[1]["starting_capital"] == 12000.0
+
+
+def test_costed_strategy_suite_charges_both_straddle_legs():
+    from sensex_options.config import CostConfig
+    index, options = fixture()
+    cost = CostConfig(
+        brokerage_per_lot=10, stt_pct=0.001, exchange_charges_pct=0.0003,
+        gst_pct=0.18, stamp_duty_pct=0.00003, entry_slippage=0.5, exit_slippage=0.5,
+    )
+    trades, ranking, _ = run_strategy_suite(index, options, capital=10000, cost=cost)
+    assert not trades.empty
+    straddle = trades[trades.strategy == "ATM_STRADDLE"].iloc[0]
+    assert straddle["brokerage"] == 10 * straddle["lots"] * 4
+    assert straddle["estimated_costs"] > straddle["brokerage"]
+    assert straddle["net_pnl"] < straddle["gross_pnl"]
+    assert {"profit_factor", "max_drawdown_pct"}.issubset(ranking.columns)

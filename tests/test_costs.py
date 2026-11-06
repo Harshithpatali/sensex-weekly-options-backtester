@@ -26,3 +26,10 @@ def test_slippage_adjusts_premiums():
     e, x = apply_slippage_to_premiums(100, 150, c)
     assert e == 102
     assert x == 147
+
+
+def test_cost_model_scales_brokerage_and_slippage_by_legs():
+    c = CostConfig(brokerage_per_lot=20, entry_slippage=1, exit_slippage=1)
+    breakdown = compute_transaction_costs(10, 12, 10, 2, c, n_legs=2)
+    assert breakdown["brokerage"] == 160
+    assert breakdown["slippage"] == 80
