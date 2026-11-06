@@ -22,6 +22,8 @@ from sensex_options.validation import validate_all, save_validation_report
 from sensex_options.backtest import run_backtest
 from sensex_options.reports import write_backtest_reports
 from sensex_options.features import build_features
+from sensex_options.strategies import run_strategy_suite
+from sensex_options.analytics import strategy_performance_metrics, walk_forward_evaluation
 
 st.set_page_config(
     page_title="SENSEX Weekly Options Backtester",
@@ -56,6 +58,7 @@ PAGES = [
     "Reports",
     "Strategy Leaderboard",
     "Daily / Weekly / Monthly P&L",
+    "Research & Walk-Forward",
 ]
 
 
@@ -88,6 +91,9 @@ def page_overview():
     c2.metric("Index rows", report.get("index_rows", 0))
     c3.metric("Option rows", report.get("options_rows", 0))
     c4.metric("Available expiries", report.get("expiries", 0))
+    c5, c6 = st.columns(2)
+    c5.metric("Option-session coverage", f"{report.get('option_session_coverage_pct', 0) or 0:.1f}%")
+    c6.metric("Expiries with CE + PE", f"{report.get('expiry_completeness_pct', 0) or 0:.1f}%")
 
     st.subheader("Data coverage")
     st.write(f"**Index:** {report.get('index_start', '—')} → {report.get('index_end', '—')}")
@@ -157,6 +163,14 @@ def page_validation():
     if not options.empty:
         st.subheader("Options sample")
         st.dataframe(options.head(10))
+    if report.get("expiry_coverage"):
+        st.subheader("Expiry completeness")
+        coverage = pd.DataFrame(report["expiry_coverage"])
+        st.dataframe(coverage, use_container_width=True)
+        fig = px.bar(coverage, x="expiry_date", y=["call_rows", "put_rows"],
+                     barmode="group", title="CE / PE observations by expiry")
+        fig.update_layout(template="plotly_dark", xaxis_title="Expiry", yaxis_title="Option rows")
+        st.plotly_chart(fig, use_container_width=True)
 
 
 def page_backtest_config():
@@ -397,6 +411,108 @@ def page_period_pnl():
             st.download_button(f"Download {label.lower()} P&L CSV", view.to_csv(index=False),
                                filename, "text/csv", key=f"{key}_download")
 
+
+
+def page_research_lab():
+    st.title("Research & Walk-Forward")
+    st.caption("Cost-aware comparison, chronological holdout and rolling expiry evaluation. Fixed rule strategies are not trained or optimized.")
+    index = load_index()
+    options = load_options()
+    if index.empty or options.empty:
+        st.warning("Historical index and options data are required. Run the historical bootstrap workflow first.")
+        return
+    validation = validate_all(index, options)
+    st.subheader("Historical coverage")
+    a, b, c, d = st.columns(4)
+    a.metric("Option rows", f"{len(options):,}")
+    b.metric("Expiry cycles", validation.get("expiries", 0))
+    c.metric("Session coverage", f"{validation.get('option_session_coverage_pct', 0) or 0:.1f}%")
+    d.metric("CE + PE expiry coverage", f"{validation.get('expiry_completeness_pct', 0) or 0:.1f}%")
+    if validation.get("missing_option_sessions"):
+        with st.expander("Missing option sessions"):
+            st.write(", ".join(validation["missing_option_sessions"]))
+
+    st.subheader("Execution and cost assumptions")
+    x1, x2, x3 = st.columns(3)
+    capital = x1.number_input("Capital per strategy (₹)", min_value=1000.0, value=10000.0, step=1000.0, key="research_capital")
+    brokerage = x2.number_input("Brokerage (₹ / lot / order)", min_value=0.0, value=20.0, step=5.0, key="research_brokerage")
+    brokerage_pct = x3.number_input("Brokerage (% turnover)", min_value=0.0, value=0.0, format="%.4f", key="research_brokerage_pct")
+    y1, y2, y3 = st.columns(3)
+    stt = y1.number_input("STT (% sell premium turnover)", min_value=0.0, value=0.10, format="%.4f", key="research_stt")
+    exchange = y2.number_input("Exchange charges (% turnover)", min_value=0.0, value=0.03, format="%.4f", key="research_exchange")
+    gst = y3.number_input("GST (% brokerage + exchange)", min_value=0.0, value=18.0, format="%.2f", key="research_gst")
+    z1, z2, z3 = st.columns(3)
+    stamp = z1.number_input("Stamp duty (% buy turnover)", min_value=0.0, value=0.003, format="%.4f", key="research_stamp")
+    entry_slip = z2.number_input("Entry slippage (points / leg)", min_value=0.0, value=0.5, step=0.1, key="research_entry_slip")
+    exit_slip = z3.number_input("Exit slippage (points / leg)", min_value=0.0, value=0.5, step=0.1, key="research_exit_slip")
+    other = st.number_input("Other charges (₹ / lot / order)", min_value=0.0, value=0.0, key="research_other")
+    t1, t2 = st.columns(2)
+    train_expiries = t1.number_input("Walk-forward context expiries", min_value=2, max_value=100, value=8, step=1)
+    test_expiries = t2.number_input("Test expiries per fold", min_value=1, max_value=52, value=4, step=1)
+    st.caption("Rates are editable research assumptions, not broker quotes or tax advice. Verify the current BSE and broker tariff before relying on net P&L. Slippage is applied adversely to each leg on entry and exit.")
+    if st.button("Run cost-aware strategy research", type="primary"):
+        cost = CostConfig(
+            brokerage_per_lot=brokerage, brokerage_pct=brokerage_pct / 100.0,
+            stt_pct=stt / 100.0, exchange_charges_pct=exchange / 100.0,
+            gst_pct=gst / 100.0, stamp_duty_pct=stamp / 100.0,
+            other_charges=other, entry_slippage=entry_slip, exit_slippage=exit_slip,
+        )
+        with st.spinner("Replaying all available expiry cycles..."):
+            trades, ranking, meta = run_strategy_suite(index, options, capital=capital, cost=cost)
+            if trades.empty:
+                st.error(meta.get("error", "No complete trades were produced."))
+                return
+            metrics = strategy_performance_metrics(trades, capital)
+            walk = walk_forward_evaluation(trades, capital, int(train_expiries), int(test_expiries))
+            DEFAULT_PATHS.outputs.mkdir(parents=True, exist_ok=True)
+            trades.to_csv(DEFAULT_PATHS.outputs / "strategy_trade_ledger.csv", index=False)
+            ranking.to_csv(DEFAULT_PATHS.outputs / "strategy_leaderboard.csv", index=False)
+            metrics.to_csv(DEFAULT_PATHS.outputs / "strategy_performance_metrics.csv", index=False)
+            with open(DEFAULT_PATHS.outputs / "walk_forward_report.json", "w", encoding="utf-8") as handle:
+                json.dump(walk, handle, indent=2, default=str)
+            st.session_state["research_trades"] = trades
+            st.session_state["research_metrics"] = metrics
+            st.session_state["research_walk_forward"] = walk
+            st.success(f"Completed {len(trades):,} strategy trades across {trades['expiry_date'].nunique()} expiry cycles.")
+            st.json(meta)
+
+    metrics = st.session_state.get("research_metrics")
+    trades = st.session_state.get("research_trades")
+    walk = st.session_state.get("research_walk_forward")
+    metrics_path = DEFAULT_PATHS.outputs / "strategy_performance_metrics.csv"
+    walk_path = DEFAULT_PATHS.outputs / "walk_forward_report.json"
+    if metrics is None and metrics_path.exists():
+        metrics = pd.read_csv(metrics_path)
+    if walk is None and walk_path.exists():
+        with open(walk_path, encoding="utf-8") as handle:
+            walk = json.load(handle)
+    if metrics is not None and not metrics.empty:
+        st.subheader("Strategy performance comparison")
+        st.dataframe(metrics, use_container_width=True)
+        st.caption("Sharpe is based on trade-level returns annualised at 52 expiry cycles/year. It is approximate, not a daily mark-to-market Sharpe ratio.")
+        fig = px.bar(metrics, x="strategy", y="expectancy", title="Net expectancy per completed trade")
+        fig.update_layout(template="plotly_dark", yaxis_title="Expectancy (₹)")
+        st.plotly_chart(fig, use_container_width=True)
+    if walk:
+        st.subheader("Out-of-sample and walk-forward results")
+        st.write(f"**Status:** {walk.get('status', 'not run')}")
+        if walk.get("status") == "ok":
+            st.write(f"**Chronological holdout:** {walk.get('holdout_start')} to {walk.get('holdout_end')} ({walk.get('holdout_expiries')} expiry cycles)")
+            st.dataframe(pd.DataFrame(walk.get("holdout_metrics", [])), use_container_width=True)
+            for i, fold in enumerate(walk.get("walk_forward_folds", []), start=1):
+                with st.expander(f"Walk-forward fold {i}: {', '.join(fold['test_expiries'])}"):
+                    st.dataframe(pd.DataFrame(fold.get("metrics", [])), use_container_width=True)
+        else:
+            st.info(walk.get("note", "Insufficient expiry history for walk-forward testing."))
+        st.caption(walk.get("methodology", ""))
+    if trades is None and (DEFAULT_PATHS.outputs / "strategy_trade_ledger.csv").exists():
+        trades = pd.read_csv(DEFAULT_PATHS.outputs / "strategy_trade_ledger.csv")
+    if trades is not None and not trades.empty:
+        st.subheader("Research trade ledger")
+        st.dataframe(trades, use_container_width=True)
+        st.download_button("Download costed strategy ledger", trades.to_csv(index=False), "strategy_trade_ledger.csv", "text/csv")
+
+
 def main():
     page = sidebar()
     if page == "Overview":
@@ -417,6 +533,8 @@ def main():
         page_strategy_leaderboard()
     elif page == "Daily / Weekly / Monthly P&L":
         page_period_pnl()
+    elif page == "Research & Walk-Forward":
+        page_research_lab()
 
 
 if __name__ == "__main__":

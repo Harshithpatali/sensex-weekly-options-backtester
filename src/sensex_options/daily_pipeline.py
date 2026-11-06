@@ -18,6 +18,7 @@ from sensex_options.sources.bse import download_one_day, parse_bse_fo_file, load
 from sensex_options.sources.index import download_sensex_index, load_index
 from sensex_options.validation import validate_all, save_validation_report
 from sensex_options.strategies import run_strategy_suite, period_pnl
+from sensex_options.analytics import strategy_performance_metrics, walk_forward_evaluation
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("daily_pipeline")
@@ -128,6 +129,13 @@ def run() -> dict:
     for period, frame in periods.items():
         frame.to_csv(output_dir / f"{period}_strategy_pnl.csv", index=False)
 
+    performance = strategy_performance_metrics(trades)
+    if not performance.empty:
+        performance.to_csv(output_dir / "strategy_performance_metrics.csv", index=False)
+    walk_forward = walk_forward_evaluation(trades)
+    with open(output_dir / "walk_forward_report.json", "w", encoding="utf-8") as handle:
+        json.dump(walk_forward, handle, indent=2, default=str)
+
     run_info = {
         "run_time_utc": datetime.now(timezone.utc).isoformat(),
         "target_data_date": target.isoformat(),
@@ -137,6 +145,8 @@ def run() -> dict:
         "data_quality": quality,
         "strategy_run": meta,
         "strategy_count": int(len(ranking)),
+        "performance_metrics": performance.to_dict("records") if not performance.empty else [],
+        "walk_forward_status": walk_forward.get("status"),
         "pnl_semantics": "realized P&L grouped by trade exit date; not daily mark-to-market",
         "validation_report": str(validation_path),
     }

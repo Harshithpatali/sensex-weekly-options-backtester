@@ -116,6 +116,48 @@ def validate_all(index: pd.DataFrame, options: pd.DataFrame) -> dict[str, Any]:
         if duplicates:
             report["warnings"].append(f"Possible duplicate contract keys: {len(duplicates)} samples")
 
+        # Coverage is measured against observed SENSEX index sessions, not calendar days.
+        if not index.empty and {"date", "close"}.issubset(index.columns) and not valid_dates.empty:
+            idx_dates = pd.to_datetime(index["date"], errors="coerce").dt.normalize().dropna()
+            option_dates = pd.to_datetime(opt["trade_date"], errors="coerce").dt.normalize().dropna()
+            coverage_start, coverage_end = option_dates.min(), option_dates.max()
+            expected_sessions = sorted(set(idx_dates[(idx_dates >= coverage_start) & (idx_dates <= coverage_end)]))
+            observed_sessions = set(option_dates.unique())
+            missing_sessions = [d.strftime("%Y-%m-%d") for d in expected_sessions if d not in observed_sessions]
+            report["option_trading_days"] = int(option_dates.nunique())
+            report["index_sessions_in_option_range"] = int(len(expected_sessions))
+            report["option_session_coverage_pct"] = round(
+                100.0 * (len(expected_sessions) - len(missing_sessions)) / len(expected_sessions), 2
+            ) if expected_sessions else None
+            report["missing_option_sessions"] = missing_sessions[:100]
+            if missing_sessions:
+                report["warnings"].append(
+                    f"Missing option bhavcopy on {len(missing_sessions)} SENSEX index sessions in the covered date range."
+                )
+
+        expiry_rows = []
+        for expiry in sorted(expiries):
+            exp_frame = opt[opt["expiry_date"].dt.normalize().eq(expiry)]
+            calls = exp_frame[exp_frame["option_type"].eq("CE")]
+            puts = exp_frame[exp_frame["option_type"].eq("PE")]
+            trade_days = sorted(exp_frame["trade_date"].dropna().dt.normalize().unique())
+            expiry_rows.append({
+                "expiry_date": pd.Timestamp(expiry).strftime("%Y-%m-%d"),
+                "trade_days": int(len(trade_days)),
+                "call_rows": int(len(calls)),
+                "put_rows": int(len(puts)),
+                "call_contracts": int(calls["strike"].nunique()),
+                "put_contracts": int(puts["strike"].nunique()),
+                "has_both_sides": bool(len(calls) and len(puts)),
+                "first_observation": pd.Timestamp(trade_days[0]).strftime("%Y-%m-%d") if trade_days else None,
+                "last_observation": pd.Timestamp(trade_days[-1]).strftime("%Y-%m-%d") if trade_days else None,
+            })
+        report["expiry_coverage"] = expiry_rows[:250]
+        report["expiries_with_both_sides"] = int(sum(row["has_both_sides"] for row in expiry_rows))
+        report["expiry_completeness_pct"] = round(
+            100.0 * report["expiries_with_both_sides"] / len(expiry_rows), 2
+        ) if expiry_rows else 0.0
+
         if "symbol" in opt.columns:
             non_sensex = int((~opt["symbol"].astype(str).str.upper().str.startswith("SENSEX")).sum())
             if non_sensex:
