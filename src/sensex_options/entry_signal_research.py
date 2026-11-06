@@ -918,7 +918,8 @@ def run_entry_signal_research(
             and train_metrics["train_net_pnl"] > 0
             and train_metrics["train_aggregate_pf"] is not None
             and train_metrics["train_aggregate_pf"] >= TARGET_PF
-            and (train_metrics["train_monthly_target_hit_pct"] or 0) >= 60
+            and train_metrics["train_active_months"] > 0
+            and train_metrics["train_target_months"] == train_metrics["train_active_months"]
         )
         holdout_ok = (
             holdout_metrics["holdout_trades"] >= MIN_HOLDOUT_TRADES
@@ -926,7 +927,8 @@ def run_entry_signal_research(
             and holdout_metrics["holdout_net_pnl"] > 0
             and holdout_metrics["holdout_aggregate_pf"] is not None
             and holdout_metrics["holdout_aggregate_pf"] >= TARGET_PF
-            and (holdout_metrics["holdout_monthly_target_hit_pct"] or 0) >= 50
+            and holdout_metrics["holdout_active_months"] > 0
+            and holdout_metrics["holdout_target_months"] == holdout_metrics["holdout_active_months"]
         )
         leaderboard_rows.append({
             "strategy": name,
@@ -984,20 +986,20 @@ def run_entry_signal_research(
 
     report = {
         "status": "candidates_found" if bool(leaderboard["candidate_pass"].any()) else "no_candidate_met_research_screen",
-        "target_definition": "Monthly gross profit / gross loss >= 1.20 in at least 60% of active training months and 50% of active holdout months; aggregate PF >= 1.20 in both windows.",
+        "target_definition": "Every active month (at least 3 trades) must have gross profit / gross loss >= 1.20 in both training and holdout; aggregate PF must also be >= 1.20 in both windows.",
         "monthly_target_profit_factor": TARGET_PF,
         "minimum_trades_per_month_for_target_test": MIN_MONTH_TRADES,
         "training_screen": {
             "minimum_trades": MIN_TRAIN_TRADES,
             "minimum_active_months": 6,
-            "minimum_target_month_hit_pct": 60,
+            "minimum_target_month_hit_pct": 100,
             "minimum_aggregate_profit_factor": TARGET_PF,
             "net_pnl_must_be_positive": True,
         },
         "holdout_screen": {
             "minimum_trades": MIN_HOLDOUT_TRADES,
             "minimum_active_months": 4,
-            "minimum_target_month_hit_pct": 50,
+            "minimum_target_month_hit_pct": 100,
             "minimum_aggregate_profit_factor": TARGET_PF,
             "net_pnl_must_be_positive": True,
         },
