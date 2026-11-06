@@ -557,7 +557,7 @@ def page_daily_options_research():
     st.subheader("Intraday filters — Daily ATM Put")
     st.markdown(
         "Download recent **5-minute SENSEX index candles** from Yahoo Finance, then test whether end-of-session "
-        "bearish trend, VWAP position and volatility filters improve the later validation sample. "
+        "bearish trend, close versus the intraday average price, and volatility filters improve the later validation sample. "
         "This uses index candles to filter an EOD option entry; it does not treat index points as option premiums."
     )
     st.warning(
