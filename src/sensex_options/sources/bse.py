@@ -45,8 +45,8 @@ UDIFF_START = datetime(2024, 7, 8)
 def _parse_bse_date(values: pd.Series) -> pd.Series:
     """Parse ISO, compact YYYYMMDD, and day-first BSE dates without ambiguity."""
     text = values.astype("string").str.strip()
-    compact = text.str.fullmatch(r"\\d{8}", na=False)
-    iso = text.str.match(r"^\\d{4}-\\d{2}-\\d{2}(?:[ T].*)?$", na=False)
+    compact = text.str.fullmatch(r"\d{8}", na=False)
+    iso = text.str.match(r"^\d{4}-\d{2}-\d{2}(?:[ T].*)?$", na=False)
 
     parsed = pd.Series(pd.NaT, index=values.index, dtype="datetime64[ns]")
     if iso.any():
