@@ -1283,13 +1283,31 @@ def _build_monthly_selector(
                 "target_met": None,
             })
             continue
-        history = scored[scored["month"].isin(prior_months) & scored["strategy"].isin(candidates)]
-        eligible = []
-        for strategy, group in history.groupby("strategy"):
-            pnl = pd.to_numeric(group["net_pnl"], errors="coerce").dropna()
-            pf = _profit_factor(pnl)
-            if len(pnl) >= minimum_prior_trades and pf is not None and pf >= TARGET_PF:
-                eligible.append((float(pf), float(pnl.sum()), str(strategy), len(pnl)))
+        history = scored.loc[
+            scored["month"].isin(prior_months) & scored["strategy"].isin(candidates),
+            ["strategy", "net_pnl"],
+        ].copy()
+        history["net_pnl"] = pd.to_numeric(history["net_pnl"], errors="coerce")
+        history = history.dropna(subset=["net_pnl"])
+        history["gross_profit_component"] = history["net_pnl"].clip(lower=0)
+        history["gross_loss_component"] = (-history["net_pnl"]).clip(lower=0)
+        summary = history.groupby("strategy", sort=False).agg(
+            prior_trades=("net_pnl", "count"),
+            prior_net=("net_pnl", "sum"),
+            prior_gross_profit=("gross_profit_component", "sum"),
+            prior_gross_loss=("gross_loss_component", "sum"),
+        )
+        summary = summary[summary["prior_trades"] >= minimum_prior_trades]
+        summary["prior_pf"] = np.where(
+            summary["prior_gross_loss"] > 0,
+            summary["prior_gross_profit"] / summary["prior_gross_loss"],
+            np.where(summary["prior_gross_profit"] > 0, np.inf, np.nan),
+        )
+        eligible_frame = summary[summary["prior_pf"] >= TARGET_PF]
+        eligible = [
+            (float(row.prior_pf), float(row.prior_net), str(strategy), int(row.prior_trades))
+            for strategy, row in eligible_frame.iterrows()
+        ]
         if not eligible:
             rows.append({
                 "strategy": f"ROLLING_{lookback_months}M_SELECTOR",
@@ -1475,8 +1493,7 @@ def run_entry_signal_research(
     monthly = _monthly_stats(trades)
     leaderboard_rows = []
     candidate_names = sorted(trades["strategy"].unique())
-    for name in candidate_names:
-        group = trades[trades["strategy"] == name]
+    for name, group in trades.groupby("strategy", sort=True):
         train = group[group["split"] == "train"]
         holdout = group[group["split"] == "holdout"]
         train_metrics = _score(train, "train")
