@@ -71,7 +71,7 @@ jobs:
                       item["diagnostic_error"] = repr(exc)
               report["samples"].append(item)
 
-          output = Path("data/reports/legacy_archive_schema_diagnostic.json")
+          output = Path("data/reports/legacy_archive_schema_diagnostic_targeted.json")
           output.parent.mkdir(parents=True, exist_ok=True)
           output.write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
           print(json.dumps(report, indent=2, default=str))
@@ -80,14 +80,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: legacy-bse-schema-diagnostic
-          path: data/reports/legacy_archive_schema_diagnostic.json
+          path: data/reports/legacy_archive_schema_diagnostic_targeted.json
           if-no-files-found: error
           retention-days: 14
       - name: Persist diagnostic report
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f data/reports/legacy_archive_schema_diagnostic.json
+          git add -f data/reports/legacy_archive_schema_diagnostic_targeted.json
           git commit -m "data: record raw legacy BSE archive schema"
           for attempt in 1 2 3 4 5; do
             git fetch origin main
