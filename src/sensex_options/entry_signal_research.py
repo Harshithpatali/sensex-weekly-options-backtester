@@ -771,7 +771,9 @@ def run_entry_signal_research(
             "net_pnl_must_be_positive": True,
         },
         "method": (
-            "Predeclared lagged index indicator and regime signals choose between same-date, same-expiry, "
+            "Chronological training/holdout split is aligned to realized exit months so a multi-session "
+            "position cannot spill across the validation boundary. Predeclared lagged index indicator and "
+            "regime signals choose between same-date, same-expiry, "
             "same-strike ATM Call/Put outcomes for one-, two-, three- and five-session holds. "
             "Option outcomes are rebuilt from observed BSE daily candles, with the exact same contract "
             "held through the selected exit session. A missing side is not fabricated; that direction is "
