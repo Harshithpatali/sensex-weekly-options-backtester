@@ -2,43 +2,43 @@
   "status": "ok",
   "method": "chronological 70/30 split by entry session",
   "train_start": "2024-07-08",
-  "train_end": "2024-07-18",
-  "holdout_start": "2024-07-24",
-  "holdout_end": "2024-10-03",
-  "distinct_entry_sessions": 12,
-  "holdout_sessions": 4,
+  "train_end": "2026-02-06",
+  "holdout_start": "2026-02-09",
+  "holdout_end": "2026-11-05",
+  "distinct_entry_sessions": 534,
+  "holdout_sessions": 161,
   "holdout_metrics": [
     {
       "strategy": "DAILY_ATM_CALL",
-      "trades": 2,
-      "net_pnl": -2610.85,
-      "win_rate_pct": 0.0,
-      "profit_factor": 0.0,
-      "expectancy": -1305.43
+      "trades": 93,
+      "net_pnl": -87034.27,
+      "win_rate_pct": 32.26,
+      "profit_factor": 0.5869,
+      "expectancy": -935.85
     },
     {
       "strategy": "DAILY_ATM_PUT",
-      "trades": 1,
-      "net_pnl": -792.66,
-      "win_rate_pct": 0.0,
-      "profit_factor": 0.0,
-      "expectancy": -792.66
+      "trades": 113,
+      "net_pnl": 96286.14,
+      "win_rate_pct": 39.82,
+      "profit_factor": 1.4794,
+      "expectancy": 852.09
     },
     {
       "strategy": "DAILY_MEAN_REVERSION",
-      "trades": 2,
-      "net_pnl": -2477.58,
-      "win_rate_pct": 0.0,
-      "profit_factor": 0.0,
-      "expectancy": -1238.79
+      "trades": 100,
+      "net_pnl": 24503.92,
+      "win_rate_pct": 40.0,
+      "profit_factor": 1.1267,
+      "expectancy": 245.04
     },
     {
       "strategy": "DAILY_MOMENTUM",
-      "trades": 1,
-      "net_pnl": -396.33,
-      "win_rate_pct": 0.0,
-      "profit_factor": 0.0,
-      "expectancy": -396.33
+      "trades": 106,
+      "net_pnl": -15252.05,
+      "win_rate_pct": 33.02,
+      "profit_factor": 0.9301,
+      "expectancy": -143.89
     }
   ],
   "warning": "This is a fixed-rule holdout, not a guarantee of future performance. Review sample size and execution assumptions."

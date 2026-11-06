@@ -1,5 +1,5 @@
 strategy,description,trades,net_pnl,win_rate_pct,profit_factor,expectancy,avg_return_pct,max_drawdown,max_drawdown_pct,sample_warning
-DAILY_MOMENTUM,Buy Call after prior up day; Put after prior down day,5,-9881.88,20.0,0.194,-1976.38,-54.0621,-9881.88,-98.82,Small sample: fewer than 30 daily trades
-DAILY_ATM_PUT,Buy ATM Put every eligible session,5,-9895.11,20.0,0.1938,-1979.02,-48.5644,-9895.11,-98.95,Small sample: fewer than 30 daily trades
-DAILY_MEAN_REVERSION,Buy Put after prior up day; Call after prior down day,10,-9958.0,30.0,0.5237,-995.8,-17.2503,-14010.38,-99.7,Small sample: fewer than 30 daily trades
-DAILY_ATM_CALL,Buy ATM Call every eligible session,9,-9999.98,33.33,0.478,-1111.11,-16.9307,-12801.65,-100.0,Small sample: fewer than 30 daily trades
+DAILY_ATM_PUT,Buy ATM Put every eligible session,403,36175.99,34.49,1.0556,89.77,-1.8882,-77975.05,-779.75,
+DAILY_MEAN_REVERSION,Buy Put after prior up day; Call after prior down day,379,-22746.33,33.25,0.9651,-60.02,-8.7875,-102587.36,-403.81,
+DAILY_MOMENTUM,Buy Call after prior up day; Put after prior down day,379,-139252.27,32.19,0.7945,-367.42,-3.1361,-189482.49,-1894.82,
+DAILY_ATM_CALL,Buy ATM Call every eligible session,355,-198174.59,30.7,0.7078,-558.24,-10.5863,-265452.51,-716.86,
