@@ -256,3 +256,24 @@ def test_archive_session_overrides_legacy_last_traded_date(tmp_path: Path):
 
     assert len(parsed) == 1
     assert parsed.iloc[0]["trade_date"] == pd.Timestamp("2023-05-16")
+
+
+def test_load_options_accepts_mixed_date_and_timestamp_formats(tmp_path: Path):
+    path = tmp_path / "mixed_options.csv"
+    pd.DataFrame({
+        "trade_date": ["2023-05-15", "2024-07-08 00:00:00"],
+        "expiry_date": ["2023-05-19", "2024-07-12 00:00:00"],
+        "symbol": ["SENSEX2351963000CE", "SENSEX"],
+        "strike": [63000.0, 80000.0],
+        "option_type": ["CE", "PE"],
+        "close": [54.4, 100.0],
+        "volume": [84, 100],
+        "open_interest": [250, 300],
+        "lot_size": [10, 10],
+    }).to_csv(path, index=False)
+
+    loaded = load_options(path)
+
+    assert len(loaded) == 2
+    assert loaded["trade_date"].tolist() == [pd.Timestamp("2023-05-15"), pd.Timestamp("2024-07-08")]
+    assert loaded["expiry_date"].tolist() == [pd.Timestamp("2023-05-19"), pd.Timestamp("2024-07-12")]
