@@ -130,6 +130,17 @@ def run_regime_research(
              "rsi_14", "adx_14", "atr_pct"]
     f = f[fcols].dropna(subset=["entry_date"])
     t = option_ledger.copy()
+    if "strategy" in t.columns:
+        # Use one observed baseline book per side; exclude other simultaneous
+        # strategy ledgers so the same market session is not counted repeatedly.
+        calls = t[t["strategy"] == "DAILY_ATM_CALL"].copy()
+        puts = t[t["strategy"] == "DAILY_ATM_PUT"].copy()
+        if not calls.empty or not puts.empty:
+            calls["option_type"] = "CE"
+            puts["option_type"] = "PE"
+            t = pd.concat([calls, puts], ignore_index=True)
+        else:
+            t = t.drop_duplicates(subset=["entry_date", "exit_date", "option_type", "net_pnl"])
     t["entry_date"] = pd.to_datetime(t["entry_date"], errors="coerce").dt.normalize()
     t["exit_date"] = pd.to_datetime(t["exit_date"], errors="coerce").dt.normalize()
     t["option_type"] = t["option_type"].astype(str).str.upper().str.strip()
