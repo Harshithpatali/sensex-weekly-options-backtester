@@ -1,16 +1,14 @@
 {
   "samples": [
     {
-      "date": "2023-05-15",
-      "download_status": "downloaded",
-      "path": "/home/runner/work/sensex-weekly-options-backtester/sensex-weekly-options-backtester/data/raw/options/BSE_FO_20230515.zip",
-      "archive_members": [
+      "date": "20230515",
+      "exists": true,
+      "members": [
         "bhavcopy15-05-23.csv"
       ],
       "csv_members": [
         "bhavcopy15-05-23.csv"
       ],
-      "raw_rows": 24,
       "columns": [
         "Contract Type",
         "Symbol",
@@ -35,6 +33,7 @@
         "Margin Value",
         "Is Traded"
       ],
+      "raw_rows": 24,
       "sample_rows": [
         {
           "Contract Type": "IF",
@@ -186,16 +185,14 @@
       ]
     },
     {
-      "date": "2023-05-16",
-      "download_status": "downloaded",
-      "path": "/home/runner/work/sensex-weekly-options-backtester/sensex-weekly-options-backtester/data/raw/options/BSE_FO_20230516.zip",
-      "archive_members": [
+      "date": "20230516",
+      "exists": true,
+      "members": [
         "bhavcopy16-05-23.csv"
       ],
       "csv_members": [
         "bhavcopy16-05-23.csv"
       ],
-      "raw_rows": 31,
       "columns": [
         "Contract Type",
         "Symbol",
@@ -220,6 +217,7 @@
         "Margin Value",
         "Is Traded"
       ],
+      "raw_rows": 31,
       "sample_rows": [
         {
           "Contract Type": "IF",
@@ -371,16 +369,14 @@
       ]
     },
     {
-      "date": "2024-07-05",
-      "download_status": "downloaded",
-      "path": "/home/runner/work/sensex-weekly-options-backtester/sensex-weekly-options-backtester/data/raw/options/BSE_FO_20240705.zip",
-      "archive_members": [
+      "date": "20240705",
+      "exists": true,
+      "members": [
         "bhavcopy05-07-24.csv"
       ],
       "csv_members": [
         "bhavcopy05-07-24.csv"
       ],
-      "raw_rows": 411,
       "columns": [
         "Contract Type",
         "Symbol",
@@ -405,6 +401,7 @@
         "Margin Value",
         "Is Traded"
       ],
+      "raw_rows": 411,
       "sample_rows": [
         {
           "Contract Type": "IO",

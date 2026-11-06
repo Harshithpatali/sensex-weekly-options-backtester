@@ -1,8 +1,8 @@
 strategy,train_trades_taken,train_net_pnl,train_ending_capital,validation_trades_taken,validation_net_pnl,validation_ending_capital,validation_profit_factor,both_periods_positive
 DAILY_5D_MOMENTUM,0,0.0,10000.0,0,0.0,10000.0,,False
+DAILY_ATM_CALL,0,0.0,10000.0,0,0.0,10000.0,,False
 DAILY_ATM_PUT,0,0.0,10000.0,0,0.0,10000.0,,False
+DAILY_EMA_TREND,0,0.0,10000.0,0,0.0,10000.0,,False
+DAILY_MEAN_REVERSION,0,0.0,10000.0,0,0.0,10000.0,,False
 DAILY_MOMENTUM,0,0.0,10000.0,0,0.0,10000.0,,False
 DAILY_RSI_REVERSAL,0,0.0,10000.0,0,0.0,10000.0,,False
-DAILY_ATM_CALL,1,-205.75,9794.25,0,0.0,10000.0,,False
-DAILY_EMA_TREND,1,-205.75,9794.25,0,0.0,10000.0,,False
-DAILY_MEAN_REVERSION,1,-205.75,9794.25,0,0.0,10000.0,,False
