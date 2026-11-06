@@ -181,7 +181,7 @@ def run() -> dict:
     entry_signal_status = {"status": "not_run"}
     if not daily_trades.empty:
         signal_trades, signal_board, signal_selector_monthly, signal_report = run_entry_signal_research(
-            daily_trades, index
+            daily_trades, index, options=options, holding_periods=(1, 2, 3, 5)
         )
         signal_trades.to_csv(output_dir / "entry_signal_trade_ledger.csv", index=False)
         signal_board.to_csv(output_dir / "entry_signal_leaderboard.csv", index=False)
@@ -209,6 +209,7 @@ def run() -> dict:
             "status": signal_report.get("status"),
             "paired_trades": signal_report.get("paired_trades", 0),
             "candidate_rules_tested": signal_report.get("candidate_rules_tested", 0),
+            "holding_periods_tested": signal_report.get("holding_periods_tested", []),
             "candidate_pass_count": signal_report.get("candidate_pass_count", 0),
             "training_end": signal_report.get("training_end"),
             "holdout_start": signal_report.get("holdout_start"),
