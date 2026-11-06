@@ -153,21 +153,22 @@ def _option_horizon_outcomes(
     index: pd.DataFrame,
     options: pd.DataFrame,
     holding_periods: tuple[int, ...] = (1, 2, 3, 5),
+    moneyness_variants: tuple[str, ...] = ("ATM", "ITM1", "OTM1"),
     capital: float = 10000.0,
     cost: CostConfig | None = None,
 ) -> pd.DataFrame:
-    """Create same-session ATM CE/PE outcomes for multiple holding periods.
+    """Build observed option outcomes for ATM, one-step ITM and one-step OTM.
 
-    Entry uses the previous completed SENSEX close for ATM selection. Exit uses
-    the observed close of the exact same option contract after N index sessions.
-    Each candidate position is one historical lot with estimated transaction
-    costs and an affordability check; no compounding is used.
+    CE ITM/OTM use one strike below/above ATM; PE ITM/OTM use one strike
+    above/below ATM. Entry uses the previous completed SENSEX close; the exact
+    selected contract is marked at the requested future session close.
     """
     if index is None or index.empty or options is None or options.empty:
         return pd.DataFrame()
-    needed = {"date", "close"}
-    opt_needed = {"trade_date", "expiry_date", "strike", "option_type", "close", "lot_size"}
-    if not needed.issubset(index.columns) or not opt_needed.issubset(options.columns):
+    if not {"date", "close"}.issubset(index.columns):
+        return pd.DataFrame()
+    required = {"trade_date", "expiry_date", "strike", "option_type", "close", "lot_size"}
+    if not required.issubset(options.columns):
         return pd.DataFrame()
 
     cfg = cost or _default_signal_cost()
@@ -192,7 +193,7 @@ def _option_horizon_outcomes(
     by_day = {day: frame for day, frame in opt.groupby("trade_date", sort=False)}
     sessions = idx.reset_index(drop=True)
     rows = []
-
+    valid_moneyness = tuple(v for v in moneyness_variants if v in {"ATM", "ITM1", "OTM1"})
     entry_adjustment = cfg.entry_slippage + cfg.spread_points / 2 + cfg.market_impact_points
 
     for hold in sorted(set(int(h) for h in holding_periods if int(h) > 0)):
@@ -209,9 +210,7 @@ def _option_horizon_outcomes(
                 continue
 
             eligible_expiries = sorted(
-                entry_options.loc[
-                    entry_options["expiry_date"] >= exit_day, "expiry_date"
-                ].dropna().unique()
+                entry_options.loc[entry_options["expiry_date"] >= exit_day, "expiry_date"].dropna().unique()
             )
             if not eligible_expiries:
                 continue
@@ -220,87 +219,107 @@ def _option_horizon_outcomes(
             strikes = sorted(pd.to_numeric(chain["strike"], errors="coerce").dropna().unique())
             if not strikes:
                 continue
-            atm = float(min(strikes, key=lambda strike: abs(float(strike) - reference_spot)))
+            atm_index = min(range(len(strikes)), key=lambda i: abs(float(strikes[i]) - reference_spot))
+            atm = float(strikes[atm_index])
 
-            for option_type in ("CE", "PE"):
-                entry_candidates = chain[
-                    (chain["strike"] == atm) & (chain["option_type"] == option_type)
-                ]
-                if entry_candidates.empty:
-                    continue
-                selected = entry_candidates.iloc[0]
-                entry_premium = float(selected["close"])
-                lot_value = selected.get("lot_size")
-                symbol = str(selected.get("symbol", "SENSEX")).strip().upper()
-                if not _finite(entry_premium) or entry_premium <= 0 or not _finite(lot_value) or float(lot_value) <= 0:
-                    continue
-                lot_size = int(lot_value)
-                adjusted_entry = entry_premium + entry_adjustment
-                entry_turnover = adjusted_entry * lot_size
-                entry_fees = (
-                    cfg.brokerage_per_lot
-                    + cfg.other_charges
-                    + (cfg.brokerage_pct + cfg.exchange_charges_pct) * entry_turnover
-                    + cfg.gst_pct * (
+            for moneyness in valid_moneyness:
+                if moneyness == "ATM":
+                    side_strikes = {"CE": atm, "PE": atm}
+                elif moneyness == "ITM1":
+                    side_strikes = {
+                        "CE": float(strikes[atm_index - 1]) if atm_index > 0 else None,
+                        "PE": float(strikes[atm_index + 1]) if atm_index + 1 < len(strikes) else None,
+                    }
+                else:
+                    side_strikes = {
+                        "CE": float(strikes[atm_index + 1]) if atm_index + 1 < len(strikes) else None,
+                        "PE": float(strikes[atm_index - 1]) if atm_index > 0 else None,
+                    }
+
+                for option_type in ("CE", "PE"):
+                    selected_strike = side_strikes.get(option_type)
+                    if selected_strike is None:
+                        continue
+                    entry_candidates = chain[
+                        (chain["strike"] == selected_strike) & (chain["option_type"] == option_type)
+                    ]
+                    if entry_candidates.empty:
+                        continue
+                    selected = entry_candidates.iloc[0]
+                    entry_premium = float(selected["close"])
+                    lot_value = selected.get("lot_size")
+                    symbol = str(selected.get("symbol", "SENSEX")).strip().upper()
+                    if not _finite(entry_premium) or entry_premium <= 0 or not _finite(lot_value) or float(lot_value) <= 0:
+                        continue
+                    lot_size = int(lot_value)
+                    adjusted_entry = entry_premium + entry_adjustment
+                    entry_turnover = adjusted_entry * lot_size
+                    entry_fees = (
                         cfg.brokerage_per_lot + cfg.other_charges
                         + (cfg.brokerage_pct + cfg.exchange_charges_pct) * entry_turnover
+                        + cfg.gst_pct * (
+                            cfg.brokerage_per_lot + cfg.other_charges
+                            + (cfg.brokerage_pct + cfg.exchange_charges_pct) * entry_turnover
+                        )
+                        + cfg.stamp_duty_pct * entry_turnover
                     )
-                    + cfg.stamp_duty_pct * entry_turnover
-                )
-                if entry_turnover + entry_fees > capital:
-                    continue
+                    if entry_turnover + entry_fees > capital:
+                        continue
 
-                exit_candidates = exit_options[
-                    (exit_options["expiry_date"] == expiry)
-                    & (exit_options["strike"] == atm)
-                    & (exit_options["option_type"] == option_type)
-                    & (exit_options["symbol"] == symbol)
-                ]
-                if exit_candidates.empty:
-                    continue
-                exit_premium = float(exit_candidates.iloc[-1]["close"])
-                if not _finite(exit_premium) or exit_premium < 0:
-                    continue
-                quantity = lot_size
-                gross = (exit_premium - entry_premium) * quantity
-                charges = compute_transaction_costs(
-                    entry_premium, exit_premium, lot_size, 1, cfg
-                )
-                net = gross - float(charges["total_cost"])
-                rows.append({
-                    "entry_date": entry_day,
-                    "exit_date": exit_day,
-                    "signal_date": pd.Timestamp(signal_row["date"]),
-                    "holding_sessions": hold,
-                    "expiry_date": expiry,
-                    "strike": atm,
-                    "symbol": symbol,
-                    "option_type": option_type,
-                    "entry_premium": entry_premium,
-                    "exit_premium": exit_premium,
-                    "lot_size": lot_size,
-                    "quantity": quantity,
-                    "net_pnl": round(net, 2),
-                })
+                    exit_candidates = exit_options[
+                        (exit_options["expiry_date"] == expiry)
+                        & (exit_options["strike"] == selected_strike)
+                        & (exit_options["option_type"] == option_type)
+                        & (exit_options["symbol"] == symbol)
+                    ]
+                    if exit_candidates.empty:
+                        continue
+                    exit_premium = float(exit_candidates.iloc[-1]["close"])
+                    if not _finite(exit_premium) or exit_premium < 0:
+                        continue
+                    quantity = lot_size
+                    gross = (exit_premium - entry_premium) * quantity
+                    charges = compute_transaction_costs(entry_premium, exit_premium, lot_size, 1, cfg)
+                    net = gross - float(charges["total_cost"])
+                    rows.append({
+                        "entry_date": entry_day,
+                        "exit_date": exit_day,
+                        "signal_date": pd.Timestamp(signal_row["date"]),
+                        "holding_sessions": hold,
+                        "expiry_date": expiry,
+                        "atm_reference_strike": atm,
+                        "selected_strike": selected_strike,
+                        "moneyness": moneyness,
+                        "option_family": f"LONG_OPTIONS_{moneyness}",
+                        "symbol": symbol,
+                        "option_type": option_type,
+                        "entry_premium": entry_premium,
+                        "exit_premium": exit_premium,
+                        "lot_size": lot_size,
+                        "quantity": quantity,
+                        "net_pnl": round(net, 2),
+                    })
 
     outcomes = pd.DataFrame(rows)
     if outcomes.empty:
         return outcomes
-    keys = ["entry_date", "exit_date", "holding_sessions", "expiry_date", "strike"]
-    calls = outcomes[outcomes["option_type"] == "CE"][keys + ["net_pnl"]].rename(
-        columns={"net_pnl": "call_pnl"}
+    keys = [
+        "entry_date", "exit_date", "holding_sessions", "expiry_date",
+        "atm_reference_strike", "moneyness", "option_family",
+    ]
+    calls = outcomes[outcomes["option_type"] == "CE"][keys + ["selected_strike", "net_pnl"]].rename(
+        columns={"selected_strike": "call_strike", "net_pnl": "call_pnl"}
     )
-    puts = outcomes[outcomes["option_type"] == "PE"][keys + ["net_pnl"]].rename(
-        columns={"net_pnl": "put_pnl"}
+    puts = outcomes[outcomes["option_type"] == "PE"][keys + ["selected_strike", "net_pnl"]].rename(
+        columns={"selected_strike": "put_strike", "net_pnl": "put_pnl"}
     )
     combined = calls.merge(puts, on=keys, how="outer", validate="one_to_one")
     combined["month"] = pd.to_datetime(combined["exit_date"]).dt.strftime("%Y-%m")
-    combined["option_family"] = "LONG_OPTIONS"
     combined["signal_date"] = pd.to_datetime(combined["entry_date"]).map(
         dict(zip(sessions["date"], sessions["date"].shift(1)))
     )
     return combined.dropna(subset=["signal_date"]).sort_values(
-        ["entry_date", "holding_sessions"]
+        ["entry_date", "holding_sessions", "moneyness"]
     ).reset_index(drop=True)
 
 
@@ -1029,6 +1048,29 @@ def _candidate_signals(features: pd.DataFrame) -> dict[str, pd.Series]:
         signals[f"GAP{int(threshold * 1000)}_CONTINUATION"] = continuation
         signals[f"GAP{int(threshold * 1000)}_FADE"] = fade
 
+    # Conditional gap fades require independent prior-session context.
+    gap3 = f["gap_pct"]
+    gap_fade = pd.Series("", index=f.index, dtype="object")
+    gap_fade.loc[gap3 >= 0.003] = "PE"
+    gap_fade.loc[gap3 <= -0.003] = "CE"
+    for label, mask in (
+        ("GAP3_FADE_LOW_VOL", f["atr_pct"] <= f["atr_pct_median_60"]),
+        ("GAP3_FADE_BELOW_Q75_VOL", f["atr_pct"] <= f["atr_pct_q75_60"]),
+        ("GAP3_FADE_HIGH_VOL", f["atr_pct"] > f["atr_pct_median_60"]),
+        ("GAP3_FADE_LOW_ADX", f["adx_14"] < 20),
+        ("GAP3_FADE_TREND_ADX", f["adx_14"] >= 20),
+        ("GAP3_FADE_RSI_EXTREME", (f["rsi_14"] >= 60) | (f["rsi_14"] <= 40)),
+        ("GAP3_FADE_MACD_OPPOSES_GAP", ((gap3 > 0) & (f["macd_hist_pct"] < 0)) | ((gap3 < 0) & (f["macd_hist_pct"] > 0))),
+        ("GAP3_FADE_REJECTION_CLOSE", ((gap3 > 0) & (f["close_location"] <= 0.35)) | ((gap3 < 0) & (f["close_location"] >= 0.65))),
+        ("GAP3_FADE_BELOW_EMA20", ((gap3 > 0) & (f["close"] < f["ema_20"])) | ((gap3 < 0) & (f["close"] > f["ema_20"]))),
+        ("GAP3_FADE_LOW_VOL_LOW_ADX", (f["atr_pct"] <= f["atr_pct_median_60"]) & (f["adx_14"] < 20)),
+        ("GAP3_FADE_REJECTION_LOW_ADX", (((gap3 > 0) & (f["close_location"] <= 0.35)) | ((gap3 < 0) & (f["close_location"] >= 0.65))) & (f["adx_14"] < 20)),
+    ):
+        filtered = pd.Series("", index=f.index, dtype="object")
+        valid = mask.fillna(False)
+        filtered.loc[valid] = gap_fade.loc[valid]
+        signals[label] = filtered
+
     # Option-chain positioning hypotheses. PCR is ambiguous (put demand versus
     # put writing), so both directional interpretations are tested explicitly.
     if "pcr_oi_near_atm" in f.columns:
@@ -1356,8 +1398,8 @@ def run_entry_signal_research(
             chosen = chosen[chosen["signal"].isin(["CE", "PE"])].copy()
             if chosen.empty:
                 continue
-            if family == "LONG_OPTIONS":
-                prefix = "LONG"
+            if str(family).startswith("LONG_OPTIONS"):
+                prefix = str(family).replace("LONG_OPTIONS", "LONG")
             elif str(family).startswith("DEBIT_SPREADS"):
                 prefix = str(family).replace("DEBIT_SPREADS", "DEBIT")
             else:
@@ -1379,6 +1421,14 @@ def run_entry_signal_research(
             chosen["month"] = chosen["exit_date"].dt.strftime("%Y-%m")
             chosen["option_type"] = chosen["signal"]
             chosen["holding_sessions"] = int(holding)
+            if {"call_strike", "put_strike"}.issubset(chosen.columns):
+                chosen["strike"] = np.where(
+                    chosen["signal"] == "CE",
+                    chosen["call_strike"],
+                    chosen["put_strike"],
+                )
+            elif "strike" not in chosen:
+                chosen["strike"] = chosen.get("atm_reference_strike")
             records.append(chosen[[
                 "strategy", "option_family", "holding_sessions", "entry_date", "exit_date",
                 "signal_date", "month", "signal", "option_type", "strike",
@@ -1533,6 +1583,9 @@ def run_entry_signal_research(
         "distinct_entry_sessions": int(paired["entry_date"].nunique()),
         "holding_periods_tested": sorted(paired["holding_sessions"].dropna().astype(int).unique().tolist()),
         "instrument_families_tested": sorted(paired["option_family"].dropna().astype(str).unique().tolist()),
+        "moneyness_variants_tested": sorted(
+            str(value) for value in paired.get("moneyness", pd.Series(dtype=object)).dropna().unique()
+        ),
         "spread_width_steps_tested": sorted({
             int(str(family).split("_W")[-1])
             for family in paired["option_family"].dropna().astype(str).unique()
