@@ -12,3 +12,4 @@ Run the targeted legacy-only backfill from 2023-05-15 through 2024-07-05. The wo
 
 Retry historical bootstrap after safe-push working-tree fix.
 Legacy BSE schema parser fix: rerun May 2023-July 2024 archive ingestion.
+Rebuild once more with legacy lot-size metadata fallback enabled.
