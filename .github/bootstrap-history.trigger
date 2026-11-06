@@ -17,3 +17,5 @@ Rebuild once more with legacy lot-size metadata fallback enabled.
 Legacy archive schema diagnostic rerun: inspect raw CSV columns, SENSEX symbols, and parser row counts.
 
 Rerun historical backfill with the actual spaced-header parser fix and strict risk/liquidity filters.
+
+Rerun after archive-session date precedence fix: L T Date is last-traded date, not bhavcopy session date.
