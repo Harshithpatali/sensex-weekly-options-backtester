@@ -23,6 +23,7 @@ from sensex_options.daily_strategies import run_daily_strategy_suite, daily_hold
 from sensex_options.intraday_research import download_sensex_intraday, evaluate_intraday_put_filters
 from sensex_options.risk_managed_research import run_risk_managed_research
 from sensex_options.entry_signal_research import run_entry_signal_research
+from sensex_options.regime_research import run_regime_research
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("daily_pipeline")
@@ -168,6 +169,19 @@ def run() -> dict:
                 output_dir / f"daily_options_{period}_pnl.csv", index=False
             )
 
+
+    # Additional predeclared regime-gated analysis against observed option outcomes.
+    regime_research_status = {"status": "not_run"}
+    if not daily_trades.empty:
+        regime_joined, regime_board, regime_report = run_regime_research(
+            index, daily_trades, output_dir=output_dir, minimum_trades=30
+        )
+        regime_research_status = {
+            "status": regime_report.get("status"),
+            "candidates": int(regime_report.get("candidate_count", 0)),
+            "prospective_paper_candidates": int(regime_report.get("prospective_paper_candidates", 0)),
+        }
+
     # Risk controls are researched from the next-session option's own daily OHLC.
     # The dashboard only reads these persisted reports; it never runs this grid.
     risk_research_status = {"status": "not_run"}
@@ -307,6 +321,7 @@ def run() -> dict:
         "daily_strategy_trades": int(len(daily_trades)),
         "daily_holdout_status": daily_holdout.get("status"),
         "risk_managed_research": risk_research_status,
+        "regime_research": regime_research_status,
         "entry_signal_research": entry_signal_status,
         "intraday_research": intraday_status,
         "pnl_semantics": "realized P&L grouped by trade exit date; not daily mark-to-market",

@@ -362,3 +362,33 @@ The intraday experiment matches these SENSEX session features to the existing **
 It compares an unfiltered baseline with bearish-session, below-intraday-average and lower-range filters. The volatility cutoff is calculated from the training segment only, and results are reported on a later chronological validation segment. Signal features exclude bars timestamped at or after 15:15 IST so the filter is observable before the 15:30 EOD entry mark. The dashboard also displays the latest saved SENSEX daily close as the **previous completed-session close**, with the change from the preceding session. This is a historical close, not a live quote.
 
 **Stop-loss limitation:** Yahoo intraday bars are for the SENSEX index, not SENSEX option contracts. BSE bhavcopy contains daily option marks, not intraday option premiums. Therefore this dataset cannot establish whether an option-premium stop-loss would have triggered, nor the fill price. The research page explicitly marks option stop-loss testing as unavailable instead of using index points as a false proxy. Obtain timestamped CE/PE intraday trade/quote data before evaluating option stop-losses, intraday exits, or realistic execution.
+
+
+## Regime-gated research (experimental)
+
+The `research-regimes` command evaluates five predeclared direction families
+(5-session momentum, 10-session momentum, EMA/ADX trend, trend pullback, and
+RSI mean reversion) against six predeclared regime gates. It uses the previous
+completed SENSEX session for each option entry and reads P&L only from the
+observed option ledger. Training/validation boundaries purge trades whose
+holding period crosses into validation.
+
+Run after generating the daily observed option ledger:
+
+```bash
+PYTHONPATH=src python -m sensex_options.cli research-regimes \
+  --ledger outputs/daily_strategy_trade_ledger.csv \
+  --minimum-trades 30
+```
+
+Artifacts are written to `outputs/regime_research_leaderboard.csv`,
+`outputs/regime_research_joined.csv`, and
+`outputs/regime_research_report.json`.
+
+**Important:** this is a research screen, not a live strategy recommendation.
+The SENSEX index candles are not option-premium candles. This module cannot
+validate option intraday stop fills, bid/ask queue execution, or live slippage.
+A candidate must pass the historical screen and then complete a prospective
+paper-trading period using timestamped option quotes before any live use.
+The 1.20 profit-factor threshold is a screening hurdle, not a promised monthly
+return.
