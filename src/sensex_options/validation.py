@@ -120,7 +120,9 @@ def validate_all(index: pd.DataFrame, options: pd.DataFrame) -> dict[str, Any]:
         if not index.empty and {"date", "close"}.issubset(index.columns) and not valid_dates.empty:
             idx_dates = pd.to_datetime(index["date"], errors="coerce").dt.normalize().dropna()
             option_dates = pd.to_datetime(opt["trade_date"], errors="coerce").dt.normalize().dropna()
-            coverage_start, coverage_end = option_dates.min(), option_dates.max()
+            # Compare against the complete observed index history so missing
+            # option sessions at the beginning or end of the archive are visible.
+            coverage_start, coverage_end = idx_dates.min(), idx_dates.max()
             expected_sessions = sorted(set(idx_dates[(idx_dates >= coverage_start) & (idx_dates <= coverage_end)]))
             observed_sessions = set(option_dates.unique())
             missing_sessions = [d.strftime("%Y-%m-%d") for d in expected_sessions if d not in observed_sessions]
