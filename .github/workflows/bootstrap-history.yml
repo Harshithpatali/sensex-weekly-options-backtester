@@ -71,8 +71,17 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f data/processed/sensex_index.csv data/processed/sensex_options.csv.gz outputs/strategy_trade_ledger.csv outputs/strategy_leaderboard.csv outputs/strategy_performance_metrics.csv outputs/walk_forward_report.json outputs/daily_strategy_pnl.csv outputs/weekly_strategy_pnl.csv outputs/monthly_strategy_pnl.csv outputs/daily_run.json data/reports/data_validation.json data/reports/options_collection_manifest.csv
+          # The pipeline can update additional tracked reports alongside the primary files.
+          # Stage all generated research data/reports and any other tracked pipeline changes
+          # so rebase always starts from a clean working tree.
+          git add -f -A data/processed outputs data/reports
+          git add -u
           git diff --cached --quiet || git commit -m "data: bootstrap historical SENSEX options research dataset"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Working tree is not clean after committing generated research outputs:"
+            git status --short
+            exit 1
+          fi
           # Retry if main advances between fetch/rebase and push. Never force-push:
           # each attempt first integrates the latest remote commit.
           for attempt in 1 2 3 4 5; do
