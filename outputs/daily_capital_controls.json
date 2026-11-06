@@ -4,9 +4,9 @@
   "risk_per_trade_pct": 2.0,
   "daily_loss_limit_pct": 2.0,
   "strategies_tested": 7,
-  "candidate_trades": 1290,
+  "candidate_trades": 1289,
   "feasible_trades": 0,
-  "rejected_trades": 1290,
+  "rejected_trades": 1289,
   "capital_model": "Separate independent \u20b910,000 cash account for each strategy candidate; full premium debit is at risk; one lot; no leverage or fractional lots.",
   "warning": "If a one-lot option premium exceeds the per-trade risk budget, the trade is skipped. A zero-trade result means the requested capital and risk limits are incompatible with available contract lot sizes/premiums.",
   "chronological_holdout": {
@@ -18,7 +18,7 @@
     "initial_capital_each_period": 10000.0,
     "train_feasible_trades": 0,
     "validation_feasible_trades": 0,
-    "train_rejected_trades": 915,
+    "train_rejected_trades": 914,
     "validation_rejected_trades": 375,
     "warning": "A period with zero feasible trades is not a strategy pass. The validation segment is independent of the training segment but historical data may still be subject to source and execution limitations."
   }

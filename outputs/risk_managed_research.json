@@ -22,7 +22,7 @@
   "risk_rules_per_base_strategy": 41,
   "total_variants_including_baselines": 294,
   "monthly_rows": 4326,
-  "base_trade_count": 1290,
+  "base_trade_count": 1289,
   "option_ohlc_coverage_pct": 100.0,
   "approved_candidate_count": 0,
   "top_training_ranked_strategy": {

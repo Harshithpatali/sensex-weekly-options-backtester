@@ -1,4 +1,132 @@
 {
-  "status": "insufficient_months",
-  "note": "At least two distinct realized exit months are required for a month-aligned holdout."
+  "status": "no_candidate_met_research_screen",
+  "target_definition": "Every active month (at least 3 trades) must have gross profit / gross loss >= 1.20 in both training and holdout; aggregate PF must also be >= 1.20 in both windows.",
+  "monthly_target_profit_factor": 1.2,
+  "minimum_trades_per_month_for_target_test": 3,
+  "training_screen": {
+    "minimum_trades": 50,
+    "minimum_active_months": 6,
+    "minimum_target_month_hit_pct": 100,
+    "minimum_aggregate_profit_factor": 1.2,
+    "net_pnl_must_be_positive": true
+  },
+  "holdout_screen": {
+    "minimum_trades": 20,
+    "minimum_active_months": 4,
+    "minimum_target_month_hit_pct": 100,
+    "minimum_aggregate_profit_factor": 1.2,
+    "net_pnl_must_be_positive": true
+  },
+  "method": "Chronological training/holdout split is aligned to realized exit months so a multi-session position cannot spill across the validation boundary. Predeclared lagged index indicator and regime signals choose between same-date, same-expiry, Call/Put outcomes at ATM, one-strike ITM and one-strike OTM moneyness, plus bounded-risk ATM debit and credit vertical spread outcomes at one-, two- and three-available-strike widths for one-, two-, three- and five-session holds. Long-option candidates include ATM, one-step ITM, and one-, two-, three- and five-step OTM contracts. Both spread types require liquid observed legs at entry and exit, reject impossible marks beyond their strike width, and cap estimated maximum loss plus entry fees at the configured 2% risk budget. Option-chain PCR, OI build-up and ATM straddle/realised-volatility proxies are aligned to the prior completed signal session. Option outcomes are rebuilt from observed BSE daily candles, with the exact same contract held through the selected exit session. A missing side is not fabricated; that direction is skipped when its observed quote is unavailable. Signals use only the last completed index session before entry. Candidate rules are ranked using training only; holdout is separate. Rolling selectors use only prior complete calendar months. Gap-fade variants are gated by lagged volatility, ADX, RSI, MACD, EMA and completed-candle rejection conditions.",
+  "option_outcome_sessions": 3,
+  "sample_start": "2023-05-17",
+  "sample_end": "2023-11-15",
+  "distinct_entry_sessions": 2,
+  "holding_periods_tested": [
+    1
+  ],
+  "instrument_families_tested": [
+    "LONG_OPTIONS_OTM3",
+    "LONG_OPTIONS_OTM5"
+  ],
+  "moneyness_variants_tested": [
+    "OTM3",
+    "OTM5"
+  ],
+  "spread_width_steps_tested": [],
+  "option_market_features": [
+    "near-ATM put/call volume and open-interest ratios",
+    "call/put open-interest changes matched to premium changes",
+    "ATM straddle premium versus trailing realised-volatility proxy"
+  ],
+  "initial_capital": 10000.0,
+  "risk_per_trade_pct": 2.0,
+  "maximum_risk_per_trade": 200.0,
+  "credit_spread_risk_budget": "Defined-risk credit spreads require maximum theoretical loss plus entry fees <= \u20b9200.00 (2.00% of capital); this is a conservative theoretical loss estimate, not a broker margin quote.",
+  "candidate_rules_tested": 4,
+  "position_sizing": "One lot per candidate, one open position at a time; maximum theoretical loss including entry fees is capped at 2.00% of \u20b910000 for long options and defined-risk spreads.",
+  "overlapping_candidate_entries_skipped": 0,
+  "training_start": "2023-05-17",
+  "training_end": "2023-05-18",
+  "holdout_start": "2023-11-16",
+  "holdout_end": "2023-11-16",
+  "candidate_pass_count": 0,
+  "top_training_rule": {
+    "training_rank": 1,
+    "strategy": "LONG_OTM3_H1D_RET1_REVERSAL",
+    "full_trades": 2,
+    "full_net_pnl": -330.05,
+    "full_aggregate_pf": 0.0,
+    "full_monthly_target_hit_pct": null,
+    "train_trades": 1,
+    "train_net_pnl": -170.77,
+    "train_gross_profit": 0.0,
+    "train_gross_loss": 170.77,
+    "train_aggregate_pf": 0.0,
+    "train_win_rate_pct": 0.0,
+    "train_expectancy": -170.77,
+    "train_median_trade_pnl": -170.77,
+    "train_max_drawdown": -170.77,
+    "train_active_months": 0,
+    "train_target_months": 0,
+    "train_monthly_target_hit_pct": null,
+    "train_positive_months": 0,
+    "train_months": 1,
+    "holdout_trades": 1,
+    "holdout_net_pnl": -159.28,
+    "holdout_gross_profit": 0.0,
+    "holdout_gross_loss": 159.28,
+    "holdout_aggregate_pf": 0.0,
+    "holdout_win_rate_pct": 0.0,
+    "holdout_expectancy": -159.28,
+    "holdout_median_trade_pnl": -159.28,
+    "holdout_max_drawdown": -159.28,
+    "holdout_active_months": 0,
+    "holdout_target_months": 0,
+    "holdout_monthly_target_hit_pct": null,
+    "holdout_positive_months": 0,
+    "holdout_months": 1,
+    "training_screen_pass": false,
+    "holdout_validation_pass": false,
+    "candidate_pass": false
+  },
+  "rolling_selector_rules": [
+    "ROLLING_3M_SELECTOR",
+    "ROLLING_6M_SELECTOR"
+  ],
+  "rolling_selector_summary": [
+    {
+      "strategy": "ROLLING_3M_SELECTOR",
+      "train_trades": 0,
+      "train_net_pnl": 0.0,
+      "train_aggregate_pf": null,
+      "train_active_months": 0,
+      "train_monthly_target_hit_pct": null,
+      "train_positive_months": 0,
+      "holdout_trades": 0,
+      "holdout_net_pnl": 0.0,
+      "holdout_aggregate_pf": null,
+      "holdout_active_months": 0,
+      "holdout_monthly_target_hit_pct": null,
+      "holdout_positive_months": 0
+    },
+    {
+      "strategy": "ROLLING_6M_SELECTOR",
+      "train_trades": 0,
+      "train_net_pnl": 0.0,
+      "train_aggregate_pf": null,
+      "train_active_months": 0,
+      "train_monthly_target_hit_pct": null,
+      "train_positive_months": 0,
+      "holdout_trades": 0,
+      "holdout_net_pnl": 0.0,
+      "holdout_aggregate_pf": null,
+      "holdout_active_months": 0,
+      "holdout_monthly_target_hit_pct": null,
+      "holdout_positive_months": 0
+    }
+  ],
+  "training_month_end": "2023-05",
+  "selector_note": "Rolling selector is a diagnostic paper-research rule, not a shared-capital portfolio: strategy switches across month boundaries may overlap positions. It goes to cash when no signal has at least 20 prior trades and prior-window PF >= 1.20.",
+  "caveat": "This is a historical screening experiment, not a live profit guarantee. Option outcomes use one-lot EOD marks and estimated costs; intraday execution, queue position and slippage may differ. Repeated research iterations create selection bias, so any promising rule needs a new prospective paper-trading period before live deployment."
 }
