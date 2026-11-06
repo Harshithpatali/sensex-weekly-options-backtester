@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas as pd
 
 from sensex_options.sources.contracts import resolve_lot_size
-from sensex_options.sources.bse import parse_bse_fo_file, download_bse_options_range
+from sensex_options.sources.bse import parse_bse_fo_file, download_bse_options_range, load_options
 
 
 def test_resolve_lot_size_from_row():
