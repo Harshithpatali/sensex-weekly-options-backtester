@@ -135,29 +135,57 @@ def test_option_horizon_outcomes_use_same_contract_for_multiple_holds():
     expiry = dates[-1] + pd.Timedelta(days=7)
     option_rows = []
     for i, day in enumerate(dates):
-        for option_type, premium in (("CE", 10.0 + i), ("PE", 12.0 - i * 0.2)):
-            option_rows.append({
-                "trade_date": day,
-                "expiry_date": expiry,
-                "strike": 100.0,
-                "symbol": "SENSEX",
-                "option_type": option_type,
-                "close": premium,
-                "lot_size": 10,
-            })
+        for option_type in ("CE", "PE"):
+            for strike in (99.0, 100.0, 101.0):
+                base = 15.0 + (strike - 100.0) * (-2 if option_type == "CE" else 2)
+                premium = base + i * (1.0 if option_type == "CE" else 0.7)
+                option_rows.append({
+                    "trade_date": day,
+                    "expiry_date": expiry,
+                    "strike": strike,
+                    "symbol": "SENSEX",
+                    "option_type": option_type,
+                    "close": premium,
+                    "lot_size": 10,
+                })
     outcomes = _option_horizon_outcomes(
         index, pd.DataFrame(option_rows), holding_periods=(1, 2)
     )
     assert set(outcomes["holding_sessions"].unique()) == {1, 2}
-    h1 = outcomes[outcomes["holding_sessions"] == 1].sort_values("entry_date").iloc[0]
-    h2 = outcomes[outcomes["holding_sessions"] == 2].sort_values("entry_date").iloc[0]
+    assert set(outcomes["moneyness"].unique()) == {"ATM", "ITM1", "OTM1"}
+    assert set(outcomes["option_family"].unique()) == {
+        "LONG_OPTIONS_ATM", "LONG_OPTIONS_ITM1", "LONG_OPTIONS_OTM1"
+    }
+
+    h1 = outcomes[
+        (outcomes["holding_sessions"] == 1)
+        & (outcomes["moneyness"] == "ATM")
+    ].sort_values("entry_date").iloc[0]
+    h2 = outcomes[
+        (outcomes["holding_sessions"] == 2)
+        & (outcomes["moneyness"] == "ATM")
+    ].sort_values("entry_date").iloc[0]
     assert h1["entry_date"] == dates[1]
     assert h1["signal_date"] == dates[0]
     assert h1["exit_date"] == dates[2]
     assert h2["exit_date"] == dates[3]
+    assert h1["call_strike"] == 100.0
+    assert h1["put_strike"] == 100.0
     assert pd.notna(h1["call_pnl"])
     assert pd.notna(h1["put_pnl"])
 
+    itm = outcomes[
+        (outcomes["entry_date"] == dates[1])
+        & (outcomes["holding_sessions"] == 1)
+        & (outcomes["moneyness"] == "ITM1")
+    ].iloc[0]
+    otm = outcomes[
+        (outcomes["entry_date"] == dates[1])
+        & (outcomes["holding_sessions"] == 1)
+        & (outcomes["moneyness"] == "OTM1")
+    ].iloc[0]
+    assert itm["call_strike"] == 99.0 and itm["put_strike"] == 101.0
+    assert otm["call_strike"] == 101.0 and otm["put_strike"] == 99.0
 
 def test_option_horizon_outcomes_do_not_invent_missing_option_side():
     dates = pd.bdate_range("2024-01-01", periods=8)
