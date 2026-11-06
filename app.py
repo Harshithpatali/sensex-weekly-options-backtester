@@ -906,23 +906,10 @@ def page_daily_options_research():
     board_path = out / "daily_strategy_leaderboard.csv"
     holdout_path = out / "daily_strategy_holdout.json"
 
-    if st.button("Re-run daily strategies using available history", type="primary"):
-        index_data, option_data = load_index(), load_options()
-        with st.spinner("Testing daily Call, Put, momentum and mean-reversion strategies…"):
-            ledger, board, meta = run_daily_strategy_suite(index_data, option_data)
-            if ledger.empty:
-                st.error(meta.get("error", "No valid next-session contract round trips were found."))
-            else:
-                out.mkdir(parents=True, exist_ok=True)
-                ledger.to_csv(ledger_path, index=False)
-                board.to_csv(board_path, index=False)
-                holdout = daily_holdout_evaluation(ledger)
-                with open(holdout_path, "w", encoding="utf-8") as handle:
-                    json.dump(holdout, handle, indent=2, default=str)
-                st.success(
-                    f"Completed {len(ledger):,} daily trades across {ledger['entry_date'].nunique():,} entry sessions."
-                )
-                st.json(meta)
+    st.caption(
+        "The scheduled GitHub Actions workflow collects data and regenerates every research report. "
+        "This dashboard reads the saved outputs only."
+    )
 
     if not ledger_path.exists() or not board_path.exists():
         st.warning(
