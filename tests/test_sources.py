@@ -195,22 +195,22 @@ def test_parser_supports_legacy_bse_zip_archive(tmp_path: Path):
 
 def test_parser_supports_actual_spaced_bse_legacy_archive_schema(tmp_path: Path):
     raw = pd.DataFrame({
-        "Contract Type": ["IF", "IO", "IO", "IO"],
+        "Contract Type": ["IF", "IO", "IO", "IO", "IO"],
         "Symbol": [
             "SENSEX23519FUT", "SENSEX2351963000CE",
-            "SENSEX2351961500PE", "SENSEX2470580000CE",
+            "SENSEX2351961500PE", "SENSEX2470580000CE", "SENSEX2501763000CE",
         ],
-        "Expiry": ["19 May 2023", "19 May 2023", "19 May 2023", "05 Jul 2024"],
-        "Strike": [0.0, 63000.0, 61500.0, 80000.0],
-        "Option Type": [None, "CALL", "PUT", "CALL"],
-        "Open": [62175.0, 60.15, 48.35, 186.95],
-        "High": [63080.0, 92.0, 77.15, 186.95],
-        "Low": [62073.8, 45.1, 37.4, 0.2],
-        "Close": [62358.55, 54.4, 65.35, 79996.6],
-        "L T Date": ["15 May 2023", "15 May 2023", "15 May 2023", "05 Jul 2024"],
-        "Contracts Traded": [454, 84, 107, 43963272],
-        "Open Interest": [420, 250, 260, 0],
-        "Is Traded": ["Y", "Y", "Y", "Y"],
+        "Expiry": ["19 May 2023", "19 May 2023", "19 May 2023", "05 Jul 2024", "17 Jan 2025"],
+        "Strike": [0.0, 63000.0, 61500.0, 80000.0, 63000.0],
+        "Option Type": [None, "CALL", "PUT", "CALL", "CALL"],
+        "Open": [62175.0, 60.15, 48.35, 186.95, 10.0],
+        "High": [63080.0, 92.0, 77.15, 186.95, 15.0],
+        "Low": [62073.8, 45.1, 37.4, 0.2, 5.0],
+        "Close": [62358.55, 54.4, 65.35, 79996.6, 12.0],
+        "L T Date": ["15 May 2023", "15 May 2023", "15 May 2023", "05 Jul 2024", "10 Jan 2025"],
+        "Contracts Traded": [454, 84, 107, 43963272, 200],
+        "Open Interest": [420, 250, 260, 0, 300],
+        "Is Traded": ["Y", "Y", "Y", "Y", "Y"],
     })
     path = tmp_path / "bhavcopy15-05-23.csv"
     raw.to_csv(path, index=False)
@@ -219,10 +219,13 @@ def test_parser_supports_actual_spaced_bse_legacy_archive_schema(tmp_path: Path)
 
     # Futures are excluded; Calls and Puts are decoded and receive the
     # documented 10-unit legacy SENSEX lot size.
-    assert len(parsed) == 3
+    assert len(parsed) == 4
     options = parsed[parsed["option_type"].isin(["CE", "PE"])]
     assert set(options["option_type"]) == {"CE", "PE"}
-    assert options["lot_size"].eq(10).all()
+    legacy_rows = options[options["trade_date"] <= pd.Timestamp("2024-07-05")]
+    future_rows = options[options["trade_date"] > pd.Timestamp("2024-07-05")]
+    assert legacy_rows["lot_size"].eq(10).all()
+    assert future_rows["lot_size"].isna().all()
     assert options.set_index("option_type")["volume"].to_dict() == {"CE": 84, "PE": 107}
     assert options.set_index("option_type")["open_interest"].to_dict() == {"CE": 250, "PE": 260}
     assert options["trade_date"].eq(pd.Timestamp("2023-05-15")).sum() == 2
