@@ -463,9 +463,22 @@ def run_entry_signal_research(
         }
 
     dates = sorted(paired["entry_date"].drop_duplicates())
-    split_at = max(1, min(len(dates) - 1, int(len(dates) * 0.70))) if len(dates) >= 10 else max(1, len(dates) - 1)
-    train_end = pd.Timestamp(dates[split_at - 1])
-    holdout_start = pd.Timestamp(dates[split_at]) if split_at < len(dates) else None
+    entry_months = sorted(paired["entry_date"].dt.strftime("%Y-%m").unique())
+    if len(entry_months) < 2:
+        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), {
+            "status": "insufficient_months",
+            "note": "At least two distinct calendar months are required for a month-aligned holdout.",
+        }
+    split_month_at = max(1, min(len(entry_months) - 1, int(len(entry_months) * 0.70)))
+    train_month_end = entry_months[split_month_at - 1]
+    train_dates = paired.loc[
+        paired["entry_date"].dt.strftime("%Y-%m") <= train_month_end, "entry_date"
+    ]
+    train_end = pd.Timestamp(train_dates.max())
+    holdout_dates = paired.loc[
+        paired["entry_date"].dt.strftime("%Y-%m") > train_month_end, "entry_date"
+    ]
+    holdout_start = pd.Timestamp(holdout_dates.min()) if not holdout_dates.empty else None
     trades["split"] = np.where(trades["entry_date"] <= train_end, "train", "holdout")
 
     monthly = _monthly_stats(trades)
@@ -521,20 +534,32 @@ def run_entry_signal_research(
         if not selector.empty:
             selector_rows.append(selector)
     selector_monthly = pd.concat(selector_rows, ignore_index=True) if selector_rows else pd.DataFrame()
+    selector_summary = []
     if not selector_monthly.empty:
         for selector_name, group in selector_monthly.groupby("strategy"):
             monthly_parts = group.copy()
-            monthly_parts["split"] = np.where(monthly_parts["month"] <= train_end.strftime("%Y-%m"), "train", "holdout")
-            train_months = monthly_parts[monthly_parts["split"] == "train"]
-            holdout_months = monthly_parts[monthly_parts["split"] == "holdout"]
-            for split_name, chunk in (("train", train_months), ("holdout", holdout_months)):
+            monthly_parts["split"] = np.where(monthly_parts["month"] <= train_month_end, "train", "holdout")
+            summary = {"strategy": selector_name}
+            for split_name in ("train", "holdout"):
+                chunk = monthly_parts[monthly_parts["split"] == split_name]
                 active = chunk[chunk["target_testable"]]
-                pass_pct = float(active["target_met"].fillna(False).mean() * 100) if not active.empty else None
-                pnl = pd.to_numeric(chunk["net_pnl"], errors="coerce").fillna(0)
-                selector_monthly.loc[
-                    (selector_monthly["strategy"] == selector_name) & selector_monthly["month"].isin(chunk["month"]),
-                    f"{split_name}_target_hit_pct",
-                ] = pass_pct
+                gp = float(pd.to_numeric(chunk["gross_profit"], errors="coerce").fillna(0).sum())
+                gl = float(pd.to_numeric(chunk["gross_loss"], errors="coerce").fillna(0).sum())
+                net = float(pd.to_numeric(chunk["net_pnl"], errors="coerce").fillna(0).sum())
+                trades_n = int(pd.to_numeric(chunk["trades"], errors="coerce").fillna(0).sum())
+                hit_pct = (
+                    float(active["target_met"].fillna(False).mean() * 100)
+                    if not active.empty else None
+                )
+                summary.update({
+                    f"{split_name}_trades": trades_n,
+                    f"{split_name}_net_pnl": round(net, 2),
+                    f"{split_name}_aggregate_pf": gp / gl if gl > 0 else (float("inf") if gp > 0 else None),
+                    f"{split_name}_active_months": int(len(active)),
+                    f"{split_name}_monthly_target_hit_pct": round(hit_pct, 2) if hit_pct is not None else None,
+                    f"{split_name}_positive_months": int((pd.to_numeric(chunk["net_pnl"], errors="coerce") > 0).sum()),
+                })
+            selector_summary.append(summary)
 
     report = {
         "status": "candidates_found" if bool(leaderboard["candidate_pass"].any()) else "no_candidate_met_research_screen",
@@ -572,6 +597,8 @@ def run_entry_signal_research(
         "candidate_pass_count": int(leaderboard["candidate_pass"].sum()),
         "top_training_rule": leaderboard.iloc[0].to_dict() if not leaderboard.empty else None,
         "rolling_selector_rules": ["ROLLING_3M_SELECTOR", "ROLLING_6M_SELECTOR"],
+        "rolling_selector_summary": selector_summary,
+        "training_month_end": train_month_end,
         "selector_note": (
             "Rolling selector is a paper-research allocation rule only. It goes to cash when no signal "
             "has at least 20 prior trades and prior-window PF >= 1.20."
