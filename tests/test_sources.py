@@ -87,3 +87,42 @@ def test_downloader_does_not_cache_html_as_bhavcopy(tmp_path):
     assert path is None
     assert "html_instead_of_csv" in status
     assert not list(tmp_path.glob("*.csv"))
+
+
+
+def test_parser_excludes_contracts_expired_before_trade_date(tmp_path: Path):
+    raw = pd.DataFrame({
+        "TradDt": ["2026-11-05", "2026-11-05"],
+        "XpryDt": ["2026-11-12", "2026-10-29"],
+        "TckrSymb": ["SENSEX", "SENSEX"],
+        "StrkPric": [80000, 80000],
+        "OptnTp": ["CE", "PE"],
+        "ClsPric": [105, 115],
+    })
+    path = tmp_path / "bse.csv"
+    raw.to_csv(path, index=False)
+
+    parsed = parse_bse_fo_file(path)
+
+    assert len(parsed) == 1
+    assert parsed.iloc[0]["trade_date"] == pd.Timestamp("2026-11-05")
+    assert parsed.iloc[0]["expiry_date"] == pd.Timestamp("2026-11-12")
+
+
+def test_load_options_filters_reversed_expiry_history(tmp_path: Path):
+    from sensex_options.sources.bse import load_options
+
+    path = tmp_path / "options.csv"
+    pd.DataFrame({
+        "trade_date": ["2026-11-05", "2026-11-05"],
+        "expiry_date": ["2026-11-12", "2026-10-29"],
+        "symbol": ["SENSEX", "SENSEX"],
+        "strike": [80000, 80000],
+        "option_type": ["CE", "PE"],
+        "close": [105, 115],
+    }).to_csv(path, index=False)
+
+    loaded = load_options(path)
+
+    assert len(loaded) == 1
+    assert loaded.iloc[0]["expiry_date"] >= loaded.iloc[0]["trade_date"]
