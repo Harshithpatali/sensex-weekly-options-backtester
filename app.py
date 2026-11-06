@@ -321,6 +321,12 @@ def page_strategy_leaderboard():
         return
 
     board = pd.read_csv(path)
+    metrics_path = DEFAULT_PATHS.outputs / "strategy_performance_metrics.csv"
+    if metrics_path.exists():
+        performance = pd.read_csv(metrics_path)
+        extra = [column for column in ("strategy", "expectancy", "sharpe_trade_annualized") if column in performance.columns]
+        if len(extra) > 1:
+            board = board.merge(performance[extra], on="strategy", how="left", suffixes=("", "_risk"))
     if board.empty:
         st.warning("The leaderboard file exists but contains no completed strategy results.")
         return
@@ -430,6 +436,10 @@ def page_research_lab():
     d.metric("CE + PE expiry coverage", f"{validation.get('expiry_completeness_pct', 0) or 0:.1f}%")
     if validation.get("completed_expiry_count", 0) < 30:
         st.warning("Fewer than 30 matured expiry cycles are available. Performance and risk statistics are exploratory only; complete the historical bootstrap before drawing conclusions.")
+    st.caption(f"Matured expiries: {validation.get('completed_expiry_count', 0)} · Complete for backtest: {validation.get('complete_expiries', 0)} · Pending future expiries: {validation.get('pending_expiries', 0)}")
+    if validation.get("completed_expiry_count", 0) < 30:
+        st.warning("Fewer than 30 matured expiry cycles are available. Backfill the full history before relying on the statistics.")
+    st.markdown("[Open the historical bootstrap workflow](https://github.com/Harshithpatali/sensex-weekly-options-backtester/actions/workflows/bootstrap-history.yml)")
     if validation.get("missing_option_sessions"):
         with st.expander("Missing option sessions"):
             st.write(", ".join(validation["missing_option_sessions"]))
