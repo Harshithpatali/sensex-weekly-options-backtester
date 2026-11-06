@@ -1,6 +1,6 @@
 # SENSEX Weekly Options Backtester
 
-Research backtesting platform for a **long SENSEX weekly Call options** strategy.
+Research platform for historical SENSEX index and BSE options data, a transparent single-strategy backtester, and a five-strategy comparative research suite.
 
 - **Initial capital (default):** ₹10,000  
 - Uses **actual** historical SENSEX index data (Yahoo Finance) and **actual** BSE equity-derivatives bhavcopy option premiums.  
@@ -11,9 +11,9 @@ Research backtesting platform for a **long SENSEX weekly Call options** strategy
 
 ---
 
-## Strategy rules
+## Core backtest strategy rules
 
-For each **actual** historical SENSEX options expiry present in BSE data:
+The original single-strategy backtest uses the following rules for each **actual** historical SENSEX options expiry present in BSE data:
 
 1. Identify the previous SENSEX trading session before expiry.  
 2. Take the SENSEX **closing price** on that session as the reference.  
@@ -59,6 +59,9 @@ sensex-weekly-options-backtester/
 │   ├── config.py
 │   ├── calendar.py
 │   ├── features.py
+│   ├── daily_pipeline.py
+│   ├── strategies.py
+│   ├── analytics.py
 │   ├── validation.py
 │   ├── backtest.py
 │   ├── costs.py
@@ -84,7 +87,7 @@ sensex-weekly-options-backtester/
 ### Windows (PowerShell)
 
 ```powershell
-py -3.11 -m venv .venv
+py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 pip install -e .
@@ -107,7 +110,7 @@ Or activate via cmd:
 ### Linux / macOS
 
 ```bash
-python3.11 -m venv .venv
+python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 pip install -e .
@@ -292,6 +295,19 @@ GitHub Actions is scheduled for **06:30 Asia/Kolkata (01:00 UTC), Monday–Frida
 
 Strategies: ATM call, ATM put, one-step OTM call, one-step OTM put, and ATM long straddle. The leaderboard ranks the complete available historical replay by net P&L (not a prediction of tomorrow's best strategy). P&L is simulated from daily closing marks, not live fills. Estimated costs in this first version include configurable brokerage and slippage only; statutory charges, spread, impact, funding, margin and taxes are not fully modelled.
 
-**Important setup:** this workflow needs an initial historical dataset to be useful. The first scheduled run only adds the latest available day; it does not backfill all history. Run a historical BSE data bootstrap separately before relying on rankings. The workflow commits processed CSV history and reports to this repository so the Streamlit app can read them; this increases repository size over time. For long-term production, move market history to object storage or a database and keep only compact reports in Git.
+**Important setup:** this workflow needs an initial historical dataset to be useful. The first scheduled run only adds the latest available day; it does not backfill all history. Run a historical BSE data bootstrap separately before relying on rankings. The workflow commits processed index/options history and reports to this repository so the Streamlit app can read them; this increases repository size over time. GitHub rejects individual files at 100 MB. For long-term production, move market history to object storage or a database and keep only compact reports in Git.
 
 The daily workflow is research/replay, not machine-learning model training and not live order execution. It never places trades. If BSE has not published a file yet or the date is a holiday, inspect the Actions log and rerun after publication.
+
+
+## Research model assumptions and report semantics
+
+- The original single-call backtest and the five-strategy comparison are separate simulations.
+- The five baselines are ATM call, ATM put, one-strike-step OTM call, one-strike-step OTM put, and ATM long straddle.
+- Each baseline has an isolated capital curve, compounded sequentially from the configured starting capital. The five strategies are **not** a single portfolio sharing the same capital.
+- Strategy exits require a quote for each required contract on the same selected exit session. Missing legs are skipped; stale prices from different dates are not mixed.
+- Daily, weekly, and monthly strategy P&L files are **realized P&L grouped by trade exit date**. They are not mark-to-market valuations of positions still open.
+- The strategy replay uses EOD close marks and approximate brokerage/slippage. It does not model bid/ask spread, queue position, market impact, margin, full statutory charges, taxes, or live order execution.
+- Historical lot size is taken from source data. Missing lot sizes are not guessed; affected trades are skipped.
+- A historical leaderboard ranks the observed sample. It is not a forecast and does not select a live strategy automatically.
+- GitHub Actions CI validates code with unit tests. Those tests use synthetic fixtures and do not establish that a strategy is profitable on real-market data.
