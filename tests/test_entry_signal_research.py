@@ -34,6 +34,14 @@ def test_features_are_lagged_completed_session_values():
         check_names=True,
     )
     assert first.loc[69, "date"] == dates[69]
+    assert pd.notna(first.loc[69, "realized_vol_20"])
+    assert pd.notna(first.loc[69, "ret_z_5"])
+    assert pd.notna(first.loc[69, "ema_5_20_z"])
+    assert pd.notna(first.loc[69, "plus_di_14"])
+    signal_names = set(_candidate_signals(first))
+    assert any("_Z" in name and name.startswith("RET") for name in signal_names)
+    assert any("NORMALISED_GAP" in name for name in signal_names)
+    assert any(name.startswith("DMI14") for name in signal_names)
 
 
 def test_paired_outcomes_require_same_date_expiry_and_strike():
