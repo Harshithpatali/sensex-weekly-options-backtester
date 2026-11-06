@@ -405,6 +405,7 @@ def download_bse_options_range(
     sess = _session()
     manifest_rows = []
     frames: List[pd.DataFrame] = []
+    parsed_dates: List[pd.Timestamp] = []
 
     for d in tqdm(dates, desc="BSE FO download"):
         path, status = download_one_day(d, raw_dir, session=sess)
@@ -417,6 +418,7 @@ def download_bse_options_range(
             parsed = parse_bse_fo_file(path, trade_date=d)
             if not parsed.empty:
                 frames.append(parsed)
+                parsed_dates.append(pd.Timestamp(d).normalize())
         time.sleep(sleep)
 
     manifest = pd.DataFrame(manifest_rows)
@@ -439,12 +441,13 @@ def download_bse_options_range(
 
     out_path = DEFAULT_PATHS.processed / "sensex_options.csv"
     compressed_path = Path(str(out_path) + ".gz")
-    existing = pd.DataFrame()
-    if out_path.exists():
-        existing = pd.read_csv(out_path)
-    elif compressed_path.exists():
-        existing = pd.read_csv(compressed_path, compression="gzip")
+    existing = load_options(out_path) if out_path.exists() or compressed_path.exists() else pd.DataFrame()
     if not existing.empty:
+        # A successfully parsed archive is authoritative for that session.
+        # Replace old rows for those dates instead of retaining stale marks
+        # produced by an earlier parser version.
+        if parsed_dates:
+            existing = existing[~existing["trade_date"].isin(parsed_dates)].copy()
         options = pd.concat([existing, options], ignore_index=True)
     if not options.empty:
         keys = ["trade_date", "expiry_date", "symbol", "strike", "option_type"]
