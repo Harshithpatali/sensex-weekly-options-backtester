@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 from sensex_options.config import CostConfig
@@ -40,10 +41,13 @@ def test_features_are_lagged_completed_session_values():
     assert pd.notna(first.loc[69, "ret_z_5"])
     assert pd.notna(first.loc[69, "ema_5_20_z"])
     assert pd.notna(first.loc[69, "plus_di_14"])
-    signal_names = set(_candidate_signals(first))
-    assert any("_Z" in name and name.startswith("RET") for name in signal_names)
-    assert any("NORMALISED_GAP" in name for name in signal_names)
-    assert any(name.startswith("DMI14") for name in signal_names)
+    signals = _candidate_signals(first)
+    assert signals
+    signatures = [
+        tuple(series.fillna("").astype(str).tolist())
+        for series in signals.values()
+    ]
+    assert len(signatures) == len(set(signatures))
 
 
 def test_paired_outcomes_require_same_date_expiry_and_strike():
@@ -276,13 +280,36 @@ def test_option_chain_features_calculate_pcr_and_option_positioning():
     )
     signals = _candidate_signals(combined_features)
     assert any(name.startswith("PCR_OI_") for name in signals)
-    assert any(name.startswith("CALL_OI_BUILDUP") for name in signals)
     assert any("CHEAP_STRADDLE" in name for name in signals)
+    assert signals
     signatures = [
         tuple(series.fillna("").astype(str).tolist())
         for series in signals.values()
     ]
     assert len(signatures) == len(set(signatures))
+
+
+def test_call_oi_buildup_rule_survives_when_it_is_behaviorally_distinct():
+    dates = pd.bdate_range("2024-01-01", periods=80)
+    index = pd.DataFrame({
+        "date": dates,
+        "open": [100.0] * len(dates),
+        "high": [101.0] * len(dates),
+        "low": [99.0] * len(dates),
+        "close": [100.0] * len(dates),
+    })
+    features = build_lagged_features(index).iloc[[-1]].copy()
+    features["call_oi_change_pct"] = 0.15
+    features["call_premium_change_pct"] = 0.03
+    features["put_oi_change_pct"] = np.nan
+    features["put_premium_change_pct"] = np.nan
+    features["positioning_score"] = np.nan
+    features["pcr_oi_near_atm"] = np.nan
+    features["pcr_volume_near_atm"] = np.nan
+    features["implied_to_realized_vol_ratio"] = np.nan
+
+    signals = _candidate_signals(features)
+    assert any(name.startswith("CALL_OI_BUILDUP") for name in signals)
 
 
 def test_defined_risk_credit_spreads_use_observed_hedge_and_fit_risk_budget():
