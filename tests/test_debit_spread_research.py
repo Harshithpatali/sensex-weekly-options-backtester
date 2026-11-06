@@ -19,13 +19,13 @@ def test_debit_vertical_spreads_use_observed_same_expiry_legs():
     for i, day in enumerate(dates):
         quotes.extend([
             {"trade_date": day, "expiry_date": expiry, "strike": 100.0,
-             "symbol": "SENSEX", "option_type": "CE", "close": 20.0 + i * 5, "lot_size": 10},
+             "symbol": "SENSEX", "option_type": "CE", "close": 20.0 + i, "lot_size": 10},
             {"trade_date": day, "expiry_date": expiry, "strike": 110.0,
-             "symbol": "SENSEX", "option_type": "CE", "close": 10.0 + i, "lot_size": 10},
+             "symbol": "SENSEX", "option_type": "CE", "close": 12.0 + i * 0.5, "lot_size": 10},
             {"trade_date": day, "expiry_date": expiry, "strike": 100.0,
-             "symbol": "SENSEX", "option_type": "PE", "close": 20.0 + i * 4, "lot_size": 10},
+             "symbol": "SENSEX", "option_type": "PE", "close": 20.0 + i, "lot_size": 10},
             {"trade_date": day, "expiry_date": expiry, "strike": 90.0,
-             "symbol": "SENSEX", "option_type": "PE", "close": 10.0 + i, "lot_size": 10},
+             "symbol": "SENSEX", "option_type": "PE", "close": 12.0 + i * 0.5, "lot_size": 10},
         ])
     result = _option_debit_vertical_outcomes(
         index, pd.DataFrame(quotes), holding_periods=(1,), cost=CostConfig()
@@ -50,7 +50,7 @@ def test_debit_vertical_spreads_skip_missing_exit_leg():
             {"trade_date": day, "expiry_date": expiry, "strike": 100.0,
              "symbol": "SENSEX", "option_type": "CE", "close": 20.0, "lot_size": 10},
             {"trade_date": day, "expiry_date": expiry, "strike": 110.0,
-             "symbol": "SENSEX", "option_type": "CE", "close": 10.0, "lot_size": 10},
+             "symbol": "SENSEX", "option_type": "CE", "close": 12.0, "lot_size": 10},
             {"trade_date": day, "expiry_date": expiry, "strike": 100.0,
              "symbol": "SENSEX", "option_type": "PE", "close": 20.0, "lot_size": 10},
         ])
