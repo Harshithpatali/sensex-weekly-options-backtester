@@ -257,8 +257,11 @@ def strategy_performance_metrics(trades: pd.DataFrame, initial_capital: float = 
         pnl = group["net_pnl"].dropna()
         returns = group["trade_return"].replace([np.inf, -np.inf], np.nan).dropna()
         gains, losses = float(pnl[pnl > 0].sum()), float(-pnl[pnl < 0].sum())
-        equity = float(initial_capital) + pnl.cumsum().reset_index(drop=True)
-        peak = pd.concat([pd.Series([float(initial_capital)]), equity], ignore_index=True).cummax().iloc[1:].reset_index(drop=True)
+        # For a holdout/fold, begin drawdown measurement at that slice's
+        # actual starting capital, not at the full-history initial balance.
+        baseline = float(group["starting_capital"].iloc[0]) if "starting_capital" in group and pd.notna(group["starting_capital"].iloc[0]) else float(initial_capital)
+        equity = baseline + pnl.cumsum().reset_index(drop=True)
+        peak = pd.concat([pd.Series([baseline]), equity], ignore_index=True).cummax().iloc[1:].reset_index(drop=True)
         dd = equity - peak
         std = float(returns.std(ddof=1)) if len(returns) > 1 else np.nan
         sharpe = float(returns.mean() / std * np.sqrt(52)) if pd.notna(std) and std > 0 else None
