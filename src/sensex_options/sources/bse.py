@@ -269,7 +269,11 @@ def parse_bse_fo_file(path: Path, trade_date: Optional[datetime] = None) -> pd.D
     if inst_c:
         instrument_values = raw[inst_c].astype(str).str.strip().str.upper()
         # Legacy BSE FO archive codes: IO = index option, IF = index future.
-        out["instrument_type"] = instrument_values.replace({"IO": "OPTIDX", "IF": "FUTIDX"})
+        out["instrument_type"] = instrument_values.replace({
+            "IO": "OPTIDX", "IF": "FUTIDX",
+            "IDO": "OPTIDX", "IDF": "FUTIDX",
+            "STO": "OPTSTK", "STF": "FUTSTK",
+        })
     else:
         # Infer from option_type presence
         out["instrument_type"] = out["option_type"].apply(
