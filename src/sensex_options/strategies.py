@@ -27,12 +27,15 @@ def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: floa
     if index.empty or options.empty:
         return pd.DataFrame(), pd.DataFrame(), {"error":"Index or options dataset is empty"}
     idx=index.copy(); opt=options.copy()
-    idx["date"]=pd.to_datetime(idx.date).dt.normalize()
-    opt["trade_date"]=pd.to_datetime(opt.trade_date).dt.normalize()
+    idx["date"]=pd.to_datetime(idx.date, errors="coerce").dt.normalize()
+    idx["close"]=pd.to_numeric(idx["close"], errors="coerce")
+    idx=idx.dropna(subset=["date","close"])
+    opt["trade_date"]=pd.to_datetime(opt.trade_date, errors="coerce").dt.normalize()
     opt["expiry_date"]=pd.to_datetime(opt.expiry_date).dt.normalize()
     for c in ("strike","close","lot_size"): opt[c]=pd.to_numeric(opt[c],errors="coerce")
     if "symbol" in opt.columns:
         opt["symbol"] = opt["symbol"].astype(str).str.strip().str.upper()
+    opt["option_type"] = opt["option_type"].astype(str).str.strip().str.upper()
     opt=opt.dropna(subset=["trade_date","expiry_date","strike","close"])
     opt=opt[(opt.close>0)&(opt.strike>0)&(opt.option_type.isin(["CE","PE"]))]
     trades=[]
@@ -74,7 +77,10 @@ def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: floa
             available_capital = strategy_capital[key]
             entry_rows=[]; exit_rows=[]
             for typ,strike in legs:
-                er=entry[(entry.option_type==typ)&(entry.strike==strike)].sort_values("symbol").head(1)
+                er=entry[(entry.option_type==typ)&(entry.strike==strike)]
+                if "symbol" in er.columns:
+                    er=er.sort_values("symbol")
+                er=er.head(1)
                 if er.empty: break
                 symbol=er.iloc[0].get("symbol")
                 xr=_last_contract_row(opt,expiry,exit_day,strike,typ,symbol)
