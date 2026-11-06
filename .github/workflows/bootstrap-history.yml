@@ -42,15 +42,27 @@ jobs:
       - name: Download historical SENSEX index and BSE options
         env:
           START_DATE: ${{ github.event.inputs.start_date || '2023-05-15' }}
-          END_DATE: ${{ github.event.inputs.end_date || '2026-11-06' }}
+          END_DATE: ${{ github.event.inputs.end_date || '2024-07-05' }}
         run: |
           python - <<'PY'
           import os
           from sensex_options.config import DEFAULT_PATHS
-          from sensex_options.sources.index import download_sensex_index
+          import pandas as pd
+          from sensex_options.sources.index import download_sensex_index, load_index
           from sensex_options.sources.bse import download_bse_options_range
           DEFAULT_PATHS.ensure()
-          download_sensex_index(os.environ["START_DATE"], os.environ["END_DATE"])
+          backfill_index = download_sensex_index(
+              os.environ["START_DATE"], os.environ["END_DATE"],
+              processed_path=DEFAULT_PATHS.processed / "index_backfill.csv",
+          )
+          # Preserve the already accumulated post-backfill index history.
+          current_index = load_index()
+          combined_index = pd.concat([current_index, backfill_index], ignore_index=True)
+          combined_index["date"] = pd.to_datetime(combined_index["date"], errors="coerce").dt.normalize()
+          combined_index = combined_index.dropna(subset=["date"]).drop_duplicates("date", keep="last")
+          combined_index.sort_values("date").to_csv(
+              DEFAULT_PATHS.processed / "sensex_index.csv", index=False
+          )
           download_bse_options_range(os.environ["START_DATE"], os.environ["END_DATE"], sleep=0.5)
           PY
       - name: Validate and generate strategy leaderboard
