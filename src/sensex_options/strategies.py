@@ -63,15 +63,17 @@ def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: floa
     # Each strategy has its own isolated, sequential capital curve. It is not
     # a shared portfolio and it does not imply concurrent positions.
     strategy_capital = {name: float(capital) for name in STRATEGIES}
-    for expiry in sorted(opt.expiry_date.unique()):
-        expiry=pd.Timestamp(expiry)
+    # Partition once by expiry so the replay does not repeatedly scan the full
+    # multi-year options archive for every contract leg.
+    for expiry_value, exp_opt in opt.groupby("expiry_date", sort=True):
+        expiry = pd.Timestamp(expiry_value)
         sessions=idx.loc[idx.date<expiry,"date"]
         if sessions.empty: continue
         entry_date=sessions.max()
         spot_rows=idx[idx.date==entry_date]
         if spot_rows.empty: continue
         spot=float(spot_rows.iloc[-1].close)
-        entry=opt[(opt.trade_date==entry_date)&(opt.expiry_date==expiry)]
+        entry=exp_opt[exp_opt.trade_date==entry_date]
         if entry.empty: continue
         strikes=sorted(entry.strike.dropna().unique())
         if not strikes: continue
@@ -102,7 +104,7 @@ def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: floa
                 er=er.head(1)
                 if er.empty: break
                 symbol=er.iloc[0].get("symbol")
-                xr=_last_contract_row(opt,expiry,exit_day,strike,typ,symbol)
+                xr=_last_contract_row(exp_opt,expiry,exit_day,strike,typ,symbol)
                 if xr.empty: break
                 entry_rows.append(er.iloc[0]); exit_rows.append(xr.iloc[0])
             if len(entry_rows)!=len(legs): continue
