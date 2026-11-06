@@ -392,3 +392,36 @@ A candidate must pass the historical screen and then complete a prospective
 paper-trading period using timestamped option quotes before any live use.
 The 1.20 profit-factor threshold is a screening hurdle, not a promised monthly
 return.
+
+
+## ₹10,000 cash-account and liquidity controls
+
+The daily signal leaderboard is a **unit-lot research comparison**, not a
+₹10,000 compounded account result. The daily pipeline now also writes a
+separate capital-constrained replay:
+
+- `outputs/daily_capital_controlled_ledger.csv`
+- `outputs/daily_capital_controlled_leaderboard.csv`
+- `outputs/daily_capital_controls.json`
+
+Each candidate strategy is replayed as its own ₹10,000 cash account. The
+guardrail permits at most one lot, no leverage and no overlapping positions,
+and rejects a trade when the full long-option premium debit plus estimated
+entry costs exceeds 2% of current equity. It enforces a 2% daily realized-loss
+stop. These are deliberately strict research limits, not a recommendation to
+risk 2% in live trading. A candidate can legitimately have zero eligible
+trades if the minimum lot/premium is too large for the account's risk budget.
+
+Daily candidate selection now requires recorded bhavcopy volume >= 25 and
+open interest >= 50, with strike within 0.75% of prior-session ATM. Missing
+liquidity fields are rejected rather than assumed liquid.
+
+**Market-data limitation:** BSE daily bhavcopy provides daily OHLC, volume and
+open interest, not historical bid/ask quotes or order-book depth. The
+configured spread/slippage values remain stress assumptions, not observed
+historical spreads. The daily OHLC stop simulator also cannot reconstruct the
+intraday sequence of trades; it assumes stop-first when both stop and target
+are touched. Before live consideration, obtain timestamped option bid/ask or
+trade prints, validate order fills, and complete a forward paper-trading
+period. ₹10,000 may be insufficient to trade a SENSEX option lot within these
+risk limits; do not relax the limits just to force trades.
