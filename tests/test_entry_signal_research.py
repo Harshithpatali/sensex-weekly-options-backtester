@@ -278,6 +278,11 @@ def test_option_chain_features_calculate_pcr_and_option_positioning():
     assert any(name.startswith("PCR_OI_") for name in signals)
     assert any(name.startswith("CALL_OI_BUILDUP") for name in signals)
     assert any("CHEAP_STRADDLE" in name for name in signals)
+    signatures = [
+        tuple(series.fillna("").astype(str).tolist())
+        for series in signals.values()
+    ]
+    assert len(signatures) == len(set(signatures))
 
 
 def test_defined_risk_credit_spreads_use_observed_hedge_and_fit_risk_budget():
