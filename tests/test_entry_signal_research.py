@@ -5,6 +5,7 @@ from sensex_options.entry_signal_research import (
     _build_monthly_selector,
     _paired_option_outcomes,
     _option_horizon_outcomes,
+    _option_debit_vertical_outcomes,
     _option_credit_vertical_outcomes,
     _option_chain_market_features,
     _one_position_at_a_time,
