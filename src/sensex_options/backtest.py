@@ -235,7 +235,7 @@ def run_backtest(
             "quantity": qty,
             "entry_investment": round(entry_investment, 2),
             "gross_pnl": round(gross_pnl, 2),
-            "transaction_costs": round(cost_wo_slip, 2),
+            "transaction_costs": round(cost_wo_execution, 2),
             "net_pnl": round(net_pnl, 2),
             "return_pct": round(100.0 * net_pnl / entry_investment, 4) if entry_investment else 0.0,
             "starting_capital": round(capital, 2),
