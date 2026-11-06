@@ -204,7 +204,7 @@ def validate_all(index: pd.DataFrame, options: pd.DataFrame) -> dict[str, Any]:
                 "last_observation": pd.Timestamp(trade_days[-1]).strftime("%Y-%m-%d") if trade_days else None,
             })
         matured_rows = [row for row in expiry_rows if row["matured_expiry"]]
-        report["expiry_coverage"] = expiry_rows[:250]
+        report["expiry_coverage"] = expiry_rows[-250:]
         report["completed_expiry_count"] = len(matured_rows)
         report["complete_expiries"] = int(sum(row["complete_for_backtest"] for row in matured_rows))
         report["pending_expiries"] = int(len(expiry_rows) - len(matured_rows))
