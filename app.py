@@ -467,7 +467,8 @@ def page_daily_options_research():
     c1.metric("Daily strategies", f"{len(board)}")
     c2.metric("Completed daily trades", f"{len(ledger):,}")
     c3.metric("Entry sessions", f"{ledger['entry_date'].nunique():,}")
-    c4.metric("Net P&L across isolated tests", f"₹{ledger.groupby('strategy')['net_pnl'].sum().sum():,.2f}")
+    best_daily = board.sort_values("net_pnl", ascending=False).iloc[0]
+    c4.metric("Top unit-lot strategy P&L", f"₹{float(best_daily.net_pnl):,.2f}")
 
     st.subheader("Strategy definitions")
     definitions = pd.DataFrame([
