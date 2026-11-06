@@ -53,6 +53,8 @@ PAGES = [
     "Performance Dashboard",
     "Trade Ledger",
     "Reports",
+    "Strategy Leaderboard",
+    "Daily / Weekly / Monthly P&L",
 ]
 
 
@@ -277,6 +279,43 @@ def page_reports():
         st.download_button("Download validation report", val.read_bytes(), "data_validation.json", key="val")
 
 
+
+def page_strategy_leaderboard():
+    st.title("Strategy Leaderboard")
+    path = DEFAULT_PATHS.outputs / "strategy_leaderboard.csv"
+    if not path.exists():
+        st.info("No automated strategy replay yet. Run the daily GitHub Actions workflow after historical data has been bootstrapped.")
+        return
+    board = pd.read_csv(path)
+    st.caption("Historical simulated ranking by net P&L. This is not a forecast or a live recommendation.")
+    st.dataframe(board.head(5), use_container_width=True)
+    ledger_path = DEFAULT_PATHS.outputs / "strategy_trade_ledger.csv"
+    if ledger_path.exists():
+        ledger = pd.read_csv(ledger_path)
+        if not ledger.empty:
+            st.subheader("Strategy equity / P&L history")
+            ledger["exit_date"] = pd.to_datetime(ledger["exit_date"])
+            chosen = st.selectbox("Strategy", sorted(ledger["strategy"].unique()))
+            view = ledger[ledger.strategy == chosen].sort_values("exit_date").copy()
+            view["cumulative_pnl"] = view["net_pnl"].cumsum()
+            st.line_chart(view.set_index("exit_date")["cumulative_pnl"])
+            st.dataframe(view.tail(30), use_container_width=True)
+
+def page_period_pnl():
+    st.title("Daily / Weekly / Monthly Strategy P&L")
+    for label, filename, key in [
+        ("Daily", "daily_strategy_pnl.csv", "day"),
+        ("Weekly", "weekly_strategy_pnl.csv", "week"),
+        ("Monthly", "monthly_strategy_pnl.csv", "month"),
+    ]:
+        st.subheader(label)
+        path = DEFAULT_PATHS.outputs / filename
+        if path.exists():
+            frame = pd.read_csv(path)
+            st.dataframe(frame.sort_values(key, ascending=False).head(100), use_container_width=True)
+        else:
+            st.info(f"{filename} will appear after the first successful daily replay.")
+
 def main():
     page = sidebar()
     if page == "Overview":
@@ -293,6 +332,10 @@ def main():
         page_ledger()
     elif page == "Reports":
         page_reports()
+    elif page == "Strategy Leaderboard":
+        page_strategy_leaderboard()
+    elif page == "Daily / Weekly / Monthly P&L":
+        page_period_pnl()
 
 
 if __name__ == "__main__":
