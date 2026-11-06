@@ -96,6 +96,9 @@ def intraday_session_features(bars: pd.DataFrame) -> pd.DataFrame:
     frame["volume"] = pd.to_numeric(frame["volume"], errors="coerce").fillna(0).clip(lower=0)
     frame = frame.dropna(subset=["date", "open", "high", "low", "close"])
     rows = []
+    # Exclude bars starting at/after 15:15 IST. The remaining features are
+    # observable before the 15:30 close used by the daily EOD entry model.
+    frame = frame[frame["timestamp"].dt.time < pd.Timestamp("15:15").time()]
     for day, group in frame.sort_values("timestamp").groupby("date"):
         group = group.sort_values("timestamp")
         first, last = group.iloc[0], group.iloc[-1]
@@ -177,7 +180,7 @@ def evaluate_intraday_put_filters(
     }
     results = pd.DataFrame([_metrics(test.loc[mask], label) for label, mask in rules.items()])
     report = {
-        "status": "ok", "strategy": strategy, "interval_note": "Features aggregated from downloaded 5m or 15m index bars.",
+        "status": "ok", "strategy": strategy, "interval_note": "Features use bars timestamped before 15:15 IST, observable before the 15:30 EOD entry mark.",
         "matched_sessions": len(dates), "training_sessions": len(train_dates), "validation_sessions": len(test_dates),
         "training_start": dates[0].date().isoformat(), "training_end": dates[split - 1].date().isoformat(),
         "validation_start": dates[split].date().isoformat(), "validation_end": dates[-1].date().isoformat(),
