@@ -290,12 +290,16 @@ def test_defined_risk_credit_spreads_use_observed_hedge_and_fit_risk_budget():
     for i, day in enumerate(dates):
         for strike in (71900.0, 72000.0, 72100.0):
             for option_type in ("CE", "PE"):
-                # ATM option is 15 points; the protective OTM hedge costs 5.
-                premium = 15.0 if strike == 72000 else 5.0
+                # A rising index regime: puts cheapen (bull-put credit wins),
+                # while calls reprice higher (bear-call credit loses).
+                if option_type == "PE":
+                    premium = (15.0 if strike == 72000 else 5.0) - 0.5 * i
+                else:
+                    premium = (15.0 if strike == 72000 else 5.0) + 0.5 * i
                 option_rows.append({
                     "trade_date": day, "expiry_date": expiry, "strike": strike,
                     "symbol": "SENSEX", "option_type": option_type,
-                    "close": premium + (i % 2) * 0.1, "lot_size": 10,
+                    "close": premium, "lot_size": 10,
                 })
     outcomes = _option_credit_vertical_outcomes(
         index, pd.DataFrame(option_rows), holding_periods=(1,), spread_width_steps=(1,),
@@ -305,3 +309,7 @@ def test_defined_risk_credit_spreads_use_observed_hedge_and_fit_risk_budget():
     assert set(outcomes["option_family"]) == {"CREDIT_SPREADS_W1"}
     assert outcomes["call_pnl"].notna().any()
     assert outcomes["put_pnl"].notna().any()
+    # Bullish CE signals route to bull-put credit spreads; bearish PE signals
+    # route to bear-call credit spreads in the shared candidate engine.
+    assert float(outcomes.iloc[0]["call_pnl"]) > 0
+    assert float(outcomes.iloc[0]["put_pnl"]) < 0
