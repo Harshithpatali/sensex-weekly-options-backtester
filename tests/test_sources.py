@@ -23,7 +23,8 @@ def test_parse_empty_file(tmp_path: Path):
 def test_parser_keeps_only_sensex_calls_and_puts(tmp_path: Path):
     raw = pd.DataFrame({
         "TradDt": [20261105] * 3, "XpryDt": [20261112] * 3,
-        "TckrSymb": ["SENSEX", "SENSEX", "NIFTY"], "StrkPric": [80000, 80000, 25000],
+        "TckrSymb": ["SENSEX", "SENSEX", "NIFTY"], "FinInstrmTp": ["IDO", "IDO", "IDO"],
+        "StrkPric": [80000, 80000, 25000],
         "OptnTp": ["CE", "PE", "CE"], "OpnPric": [100, 110, 90],
         "HghPric": [120, 130, 100], "LwPric": [80, 90, 70],
         "ClsPric": [105, 115, 95], "TtlTradgVol": [100, 120, 200],
@@ -34,6 +35,7 @@ def test_parser_keeps_only_sensex_calls_and_puts(tmp_path: Path):
     parsed = parse_bse_fo_file(path)
     assert set(parsed["symbol"]) == {"SENSEX"}
     assert set(parsed["option_type"]) == {"CE", "PE"}
+    assert set(parsed["instrument_type"]) == {"OPTIDX"}
     assert len(parsed) == 2
 
 
