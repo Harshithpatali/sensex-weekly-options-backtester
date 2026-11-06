@@ -236,7 +236,10 @@ def parse_bse_fo_file(path: Path, trade_date: Optional[datetime] = None) -> pd.D
         stem = path.stem
         try:
             ds = stem.split("_")[-1]
-            out["trade_date"] = pd.Timestamp(datetime.strptime(ds[:8], "%Y%m%d")).normalize()
+            out["trade_date"] = pd.Series(
+                pd.Timestamp(datetime.strptime(ds[:8], "%Y%m%d")).normalize(),
+                index=raw.index,
+            )
         except Exception:
             out["trade_date"] = pd.NaT
 
