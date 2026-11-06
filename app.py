@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from datetime import date
 
 import pandas as pd
 import plotly.express as px
@@ -107,7 +108,7 @@ def page_data_collection():
     )
     col1, col2 = st.columns(2)
     start = col1.date_input("Start date", value=pd.Timestamp(SENSEX_OPTIONS_LAUNCH).date())
-    end = col2.date_input("End date", value=pd.Timestamp("2026-11-05").date())
+    end = col2.date_input("End date", value=date.today())
     start_s, end_s = str(start), str(end)
 
     if st.button("Download SENSEX index (yfinance)", type="primary"):
@@ -128,7 +129,7 @@ def page_data_collection():
         with st.spinner("Downloading BSE FO files (this can take minutes)..."):
             try:
                 df = download_bse_options_range(start_s, end_s, sleep=0.6)
-                st.success(f"Parsed {len(df)} SENSEX Call option rows.")
+                st.success(f"Parsed {len(df):,} SENSEX Call and Put option rows.")
                 if not df.empty:
                     st.dataframe(df.head(20))
                 manifest = DEFAULT_PATHS.reports / "options_collection_manifest.csv"
@@ -282,39 +283,103 @@ def page_reports():
 
 def page_strategy_leaderboard():
     st.title("Strategy Leaderboard")
+    st.caption("Historical simulated ranking by net P&L. Ranking is descriptive, not a forecast or a live recommendation.")
     path = DEFAULT_PATHS.outputs / "strategy_leaderboard.csv"
-    if not path.exists():
-        st.info("No automated strategy replay yet. Run the daily GitHub Actions workflow after historical data has been bootstrapped.")
-        return
-    board = pd.read_csv(path)
-    st.caption("Historical simulated ranking by net P&L. This is not a forecast or a live recommendation.")
-    st.dataframe(board.head(5), use_container_width=True)
     ledger_path = DEFAULT_PATHS.outputs / "strategy_trade_ledger.csv"
+    if not path.exists():
+        st.info("No strategy replay is available yet. Run the historical bootstrap workflow first.")
+        return
+
+    board = pd.read_csv(path)
+    if board.empty:
+        st.warning("The leaderboard file exists but contains no completed strategy results.")
+        return
+
+    top = board.sort_values("net_pnl", ascending=False).head(5)
+    c1, c2, c3, c4 = st.columns(4)
+    best = top.iloc[0]
+    c1.metric("Top historical strategy", str(best["strategy"]))
+    c2.metric("Historical net P&L", f"₹{float(best['net_pnl']):,.2f}")
+    c3.metric("Win rate", f"{float(best.get('win_rate_pct', 0)):.1f}%")
+    c4.metric("Maximum drawdown", f"₹{abs(float(best.get('max_drawdown', 0))):,.2f}")
+
+    st.subheader("Top 5 by historical net P&L")
+    st.dataframe(top, use_container_width=True)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        fig = px.bar(top.sort_values("net_pnl"), x="net_pnl", y="strategy", orientation="h",
+                     title="Net P&L by strategy", text_auto=".2s")
+        fig.update_layout(template="plotly_dark", xaxis_title="Net P&L (₹)", yaxis_title="")
+        st.plotly_chart(fig, use_container_width=True)
+    with col2:
+        if "max_drawdown" in top.columns:
+            risk = top.copy()
+            risk["absolute_drawdown"] = risk["max_drawdown"].abs()
+            fig = px.bar(risk.sort_values("absolute_drawdown"), x="absolute_drawdown", y="strategy",
+                         orientation="h", title="Historical maximum drawdown", text_auto=".2s")
+            fig.update_layout(template="plotly_dark", xaxis_title="Drawdown (₹)", yaxis_title="")
+            st.plotly_chart(fig, use_container_width=True)
+
     if ledger_path.exists():
         ledger = pd.read_csv(ledger_path)
         if not ledger.empty:
-            st.subheader("Strategy equity / P&L history")
-            ledger["exit_date"] = pd.to_datetime(ledger["exit_date"])
-            chosen = st.selectbox("Strategy", sorted(ledger["strategy"].unique()))
-            view = ledger[ledger.strategy == chosen].sort_values("exit_date").copy()
+            ledger["exit_date"] = pd.to_datetime(ledger["exit_date"], errors="coerce")
+            ledger["net_pnl"] = pd.to_numeric(ledger["net_pnl"], errors="coerce").fillna(0)
+            st.subheader("Strategy performance over time")
+            selected = st.selectbox("Choose strategy", sorted(ledger["strategy"].dropna().unique()))
+            view = ledger[ledger["strategy"] == selected].sort_values("exit_date").copy()
             view["cumulative_pnl"] = view["net_pnl"].cumsum()
-            st.line_chart(view.set_index("exit_date")["cumulative_pnl"])
-            st.dataframe(view.tail(30), use_container_width=True)
+            fig = px.line(view, x="exit_date", y="cumulative_pnl", markers=True,
+                          title=f"{selected}: cumulative realized P&L")
+            fig.update_layout(template="plotly_dark", xaxis_title="Exit date", yaxis_title="Cumulative P&L (₹)")
+            st.plotly_chart(fig, use_container_width=True)
+            if {"starting_capital", "ending_capital"}.issubset(view.columns):
+                fig = px.line(view, x="exit_date", y="ending_capital", markers=True,
+                              title=f"{selected}: isolated strategy capital curve")
+                fig.update_layout(template="plotly_dark", xaxis_title="Exit date", yaxis_title="Capital (₹)")
+                st.plotly_chart(fig, use_container_width=True)
+            st.subheader("Trade ledger")
+            st.dataframe(view.sort_values("exit_date", ascending=False), use_container_width=True)
+            st.download_button("Download selected strategy trades", view.to_csv(index=False),
+                               f"{selected.lower()}_trades.csv", "text/csv")
+    st.info("Each strategy is simulated with its own sequential capital curve. These are not five simultaneous strategies sharing one ₹10,000 portfolio.")
+
 
 def page_period_pnl():
     st.title("Daily / Weekly / Monthly Strategy P&L")
-    for label, filename, key in [
+    st.caption("Realized P&L grouped by trade exit date. This is not mark-to-market P&L for open positions.")
+    periods = [
         ("Daily", "daily_strategy_pnl.csv", "day"),
         ("Weekly", "weekly_strategy_pnl.csv", "week"),
         ("Monthly", "monthly_strategy_pnl.csv", "month"),
-    ]:
-        st.subheader(label)
-        path = DEFAULT_PATHS.outputs / filename
-        if path.exists():
+    ]
+    tabs = st.tabs([item[0] for item in periods])
+    for tab, (label, filename, key) in zip(tabs, periods):
+        with tab:
+            path = DEFAULT_PATHS.outputs / filename
+            if not path.exists():
+                st.info(f"{filename} will appear after a successful strategy replay.")
+                continue
             frame = pd.read_csv(path)
-            st.dataframe(frame.sort_values(key, ascending=False).head(100), use_container_width=True)
-        else:
-            st.info(f"{filename} will appear after the first successful daily replay.")
+            if frame.empty:
+                st.info("No realized trades in this period.")
+                continue
+            frame["net_pnl"] = pd.to_numeric(frame["net_pnl"], errors="coerce").fillna(0)
+            strategies = ["All strategies"] + sorted(frame["strategy"].dropna().unique().tolist())
+            selected = st.selectbox(f"{label} strategy filter", strategies, key=f"{key}_strategy_filter")
+            view = frame if selected == "All strategies" else frame[frame["strategy"] == selected]
+            if selected == "All strategies":
+                chart = view.groupby(key, as_index=False)["net_pnl"].sum()
+            else:
+                chart = view.groupby(key, as_index=False)["net_pnl"].sum()
+            chart = chart.sort_values(key)
+            fig = px.bar(chart, x=key, y="net_pnl", title=f"{label} realized P&L — {selected}")
+            fig.update_layout(template="plotly_dark", xaxis_title=label, yaxis_title="Net P&L (₹)")
+            st.plotly_chart(fig, use_container_width=True)
+            st.dataframe(view.sort_values(key, ascending=False), use_container_width=True)
+            st.download_button(f"Download {label.lower()} P&L CSV", view.to_csv(index=False),
+                               filename, "text/csv", key=f"{key}_download")
 
 def main():
     page = sidebar()
