@@ -6,7 +6,6 @@ GitHub Actions invokes this at 06:30 Asia/Kolkata on weekdays. The pipeline
 preserves existing history, collects both option sides, and exports research
 reports. It never places orders or trains an ML model.
 """
-import gzip
 import json
 import logging
 from datetime import datetime, timedelta, timezone
