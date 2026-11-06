@@ -22,6 +22,7 @@ from sensex_options.analytics import strategy_performance_metrics, walk_forward_
 from sensex_options.daily_strategies import run_daily_strategy_suite, daily_holdout_evaluation
 from sensex_options.intraday_research import download_sensex_intraday, evaluate_intraday_put_filters
 from sensex_options.risk_managed_research import run_risk_managed_research
+from sensex_options.entry_signal_research import run_entry_signal_research
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("daily_pipeline")
@@ -175,6 +176,54 @@ def run() -> dict:
             "top_training_ranked_strategy": risk_report.get("top_training_ranked_strategy"),
         }
 
+    # Explore alternative lagged entry signals and regime filters.
+    # All signals use the last completed index session before the option entry.
+    entry_signal_status = {"status": "not_run"}
+    if not daily_trades.empty:
+        signal_trades, signal_board, signal_selector_monthly, signal_report = run_entry_signal_research(
+            daily_trades, index
+        )
+        signal_trades.to_csv(output_dir / "entry_signal_trade_ledger.csv", index=False)
+        signal_board.to_csv(output_dir / "entry_signal_leaderboard.csv", index=False)
+        signal_selector_monthly.to_csv(output_dir / "entry_signal_selector_monthly.csv", index=False)
+        signal_monthly_parts = []
+        if not signal_report.get("status", "").startswith("insufficient") and not signal_trades.empty:
+            from sensex_options.entry_signal_research import _monthly_stats
+            candidate_monthly = _monthly_stats(signal_trades)
+            if not candidate_monthly.empty:
+                signal_monthly_parts.append(candidate_monthly)
+        if not signal_selector_monthly.empty:
+            signal_monthly_parts.append(signal_selector_monthly)
+        if signal_monthly_parts:
+            pd.concat(signal_monthly_parts, ignore_index=True, sort=False).to_csv(
+                output_dir / "entry_signal_monthly.csv", index=False
+            )
+        else:
+            pd.DataFrame(columns=[
+                "strategy", "month", "trades", "gross_profit", "gross_loss",
+                "net_pnl", "profit_factor", "target_pf", "target_testable", "target_met",
+            ]).to_csv(output_dir / "entry_signal_monthly.csv", index=False)
+        with open(output_dir / "entry_signal_research.json", "w", encoding="utf-8") as handle:
+            json.dump(signal_report, handle, indent=2, default=str)
+        entry_signal_status = {
+            "status": signal_report.get("status"),
+            "paired_trades": signal_report.get("paired_trades", 0),
+            "candidate_rules_tested": signal_report.get("candidate_rules_tested", 0),
+            "candidate_pass_count": signal_report.get("candidate_pass_count", 0),
+            "training_end": signal_report.get("training_end"),
+            "holdout_start": signal_report.get("holdout_start"),
+            "top_training_rule": (
+                {
+                    "strategy": signal_report.get("top_training_rule", {}).get("strategy"),
+                    "train_net_pnl": signal_report.get("top_training_rule", {}).get("train_net_pnl"),
+                    "train_aggregate_pf": signal_report.get("top_training_rule", {}).get("train_aggregate_pf"),
+                    "holdout_net_pnl": signal_report.get("top_training_rule", {}).get("holdout_net_pnl"),
+                    "holdout_aggregate_pf": signal_report.get("top_training_rule", {}).get("holdout_aggregate_pf"),
+                } if signal_report.get("top_training_rule") else None
+            ),
+            "rolling_selector_summary": signal_report.get("rolling_selector_summary", []),
+        }
+
     # Intraday SENSEX context is collected by the scheduled workflow, never by Streamlit.
     # Yahoo's recent-window limit means this is a rolling 60-calendar-day dataset.
     intraday_status = {"status": "not_run"}
@@ -240,6 +289,7 @@ def run() -> dict:
         "daily_strategy_trades": int(len(daily_trades)),
         "daily_holdout_status": daily_holdout.get("status"),
         "risk_managed_research": risk_research_status,
+        "entry_signal_research": entry_signal_status,
         "intraday_research": intraday_status,
         "pnl_semantics": "realized P&L grouped by trade exit date; not daily mark-to-market",
         "validation_report": str(validation_path),
