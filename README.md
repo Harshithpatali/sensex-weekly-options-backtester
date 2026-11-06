@@ -339,6 +339,9 @@ The **Daily Options Research** page runs a separate close-to-close experiment th
 - **Daily ATM Put:** buy the nearest ATM PE each eligible session.
 - **Daily Momentum:** use the prior session's SENSEX move; buy CE after an up move and PE after a down move.
 - **Daily Mean Reversion:** take the opposite option side to the prior session's move.
+- **5-Day Momentum:** choose CE or PE from the prior five-session index return.
+- **EMA Trend:** buy CE when the prior-session EMA-5 is above EMA-20; otherwise buy PE.
+- **RSI Reversal:** buy CE when prior RSI-14 is below 30, or PE when above 70.
 
 Each position is entered using the current session's option close and exited using the same contract's close on the next SENSEX session. The signal uses only the two index closes available before entry; ATM strike selection uses the previous session's SENSEX close. The nearest expiry that remains valid through the next session is selected. Missing next-session quotes, invalid premiums, or missing lot sizes cause a trade to be skipped.
 
