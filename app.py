@@ -166,10 +166,10 @@ def page_backtest_config():
     start = c1.date_input("Start (expiry filter)", value=None)
     end = c2.date_input("End (expiry filter)", value=None)
     st.subheader("Transaction costs (research defaults = zero)")
-    brokerage = st.number_input("Brokerage per lot (₹, round-trip flat)", value=0.0)
-    stt = st.number_input("STT % on exit premium turnover", value=0.0, format="%.4f")
-    entry_slip = st.number_input("Entry slippage (points)", value=0.0)
-    exit_slip = st.number_input("Exit slippage (points)", value=0.0)
+    brokerage = st.number_input("Brokerage per lot (₹, round-trip flat)", min_value=0.0, value=0.0)
+    stt = st.number_input("STT % on exit premium turnover", min_value=0.0, value=0.0, format="%.4f")
+    entry_slip = st.number_input("Entry slippage (points)", min_value=0.0, value=0.0)
+    exit_slip = st.number_input("Exit slippage (points)", min_value=0.0, value=0.0)
     max_lots = st.number_input("Max lots (0 = unlimited by capital)", min_value=0, value=0)
 
     if st.button("Run Backtest", type="primary"):
@@ -226,23 +226,39 @@ def page_performance():
     c7.metric("Completed trades", summary.get("completed_trades", 0))
     c8.metric("Skipped trades", summary.get("skipped_trades", 0))
 
-    equity = result.get("equity_curve", pd.DataFrame())
+    equity = result.get("equity_curve", pd.DataFrame()).copy()
     if not equity.empty and "capital" in equity.columns:
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            y=equity["capital"],
-            mode="lines+markers",
-            name="Equity",
-            line=dict(color="#00d4aa"),
-        ))
-        fig.update_layout(
-            title="Equity Curve",
-            template="plotly_dark",
-            height=400,
-            paper_bgcolor="#0e1117",
-            plot_bgcolor="#1a1f2e",
-        )
+        if "date" in equity.columns:
+            equity["date"] = pd.to_datetime(equity["date"], errors="coerce")
+            equity = equity.dropna(subset=["date"]).sort_values("date")
+        if not equity.empty and "date" in equity.columns:
+            fig = px.line(equity, x="date", y="capital", markers=True, title="Backtest equity curve")
+        else:
+            fig = px.line(equity, y="capital", markers=True, title="Backtest equity curve")
+        fig.update_layout(template="plotly_dark", yaxis_title="Capital (₹)")
         st.plotly_chart(fig, use_container_width=True)
+
+        if not equity.empty:
+            equity["peak"] = equity["capital"].cummax()
+            equity["drawdown"] = equity["capital"] - equity["peak"]
+            fig = px.area(equity, x="date" if "date" in equity.columns else equity.index,
+                          y="drawdown", title="Equity drawdown")
+            fig.update_layout(template="plotly_dark", yaxis_title="Drawdown (₹)")
+            st.plotly_chart(fig, use_container_width=True)
+
+    trades_for_charts = result.get("trades", pd.DataFrame()).copy()
+    if not trades_for_charts.empty and "status" in trades_for_charts.columns:
+        completed = trades_for_charts[trades_for_charts["status"] == "completed"].copy()
+        if not completed.empty:
+            completed["net_pnl"] = pd.to_numeric(completed["net_pnl"], errors="coerce")
+            completed["exit_date"] = pd.to_datetime(completed["exit_date"], errors="coerce")
+            daily = completed.dropna(subset=["exit_date"]).groupby("exit_date", as_index=False)["net_pnl"].sum()
+            fig = px.bar(daily, x="exit_date", y="net_pnl", title="Realized daily P&L")
+            fig.update_layout(template="plotly_dark", yaxis_title="Net P&L (₹)")
+            st.plotly_chart(fig, use_container_width=True)
+            fig = px.histogram(completed, x="net_pnl", nbins=30, title="Trade P&L distribution")
+            fig.update_layout(template="plotly_dark", xaxis_title="Net P&L per trade (₹)")
+            st.plotly_chart(fig, use_container_width=True)
 
     annual_path = DEFAULT_PATHS.outputs / "annual_summary.csv"
     if annual_path.exists():
