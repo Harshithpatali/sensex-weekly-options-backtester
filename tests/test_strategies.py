@@ -47,3 +47,29 @@ def test_straddle_requires_both_legs_marked_on_same_exit_date():
     options = options[~((options["trade_date"] == "2024-01-05") & (options["option_type"] == "PE"))]
     trades, _, _ = run_strategy_suite(index, options, capital=10000, brokerage_per_order=0, slippage_points=0)
     assert "ATM_STRADDLE" not in set(trades["strategy"])
+
+
+
+def test_strategy_capital_compounds_between_expiries():
+    dates = ["2024-01-04", "2024-01-05", "2024-01-11", "2024-01-12"]
+    index = pd.DataFrame({"date": dates, "close": [100.0] * 4})
+    rows = []
+    for expiry, entry_day, exit_day in [
+        ("2024-01-05", "2024-01-04", "2024-01-05"),
+        ("2024-01-12", "2024-01-11", "2024-01-12"),
+    ]:
+        for option_type in ("CE", "PE"):
+            for strike in (99.0, 100.0, 101.0):
+                rows.extend([
+                    {"trade_date": entry_day, "expiry_date": expiry, "symbol": "SENSEX",
+                     "strike": strike, "option_type": option_type, "close": 5.0, "lot_size": 10},
+                    {"trade_date": exit_day, "expiry_date": expiry, "symbol": "SENSEX",
+                     "strike": strike, "option_type": option_type, "close": 6.0, "lot_size": 10},
+                ])
+    trades, _, _ = run_strategy_suite(
+        index, pd.DataFrame(rows), capital=10000, brokerage_per_order=0, slippage_points=0
+    )
+    atm_calls = trades[trades.strategy == "ATM_CALL"].sort_values("exit_date")
+    assert len(atm_calls) == 2
+    assert atm_calls.iloc[0]["ending_capital"] == 10010.0
+    assert atm_calls.iloc[1]["starting_capital"] == 10010.0
