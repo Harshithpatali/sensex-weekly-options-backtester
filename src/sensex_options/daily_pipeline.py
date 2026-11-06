@@ -30,6 +30,17 @@ log = logging.getLogger("daily_pipeline")
 OPTION_KEYS = ["trade_date", "expiry_date", "symbol", "strike", "option_type"]
 
 
+def save_entry_signal_trade_ledger(trades: pd.DataFrame, output_dir: Path) -> Path:
+    """Persist the expanded signal ledger losslessly below GitHub's 100 MB limit."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    legacy_path = output_dir / "entry_signal_trade_ledger.csv"
+    gzip_path = output_dir / "entry_signal_trade_ledger.csv.gz"
+    trades.to_csv(gzip_path, index=False, compression="gzip")
+    if legacy_path.exists():
+        legacy_path.unlink()
+    return gzip_path
+
+
 def merge_csv(new: pd.DataFrame, path: Path, keys: list[str]) -> pd.DataFrame:
     """Merge new observations with CSV or gzip history without discarding old rows."""
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -183,15 +194,8 @@ def run() -> dict:
         signal_trades, signal_board, signal_selector_monthly, signal_report = run_entry_signal_research(
             daily_trades, index, options=options, holding_periods=(1, 2, 3, 5)
         )
-        # The full candidate ledger can exceed GitHub's 100 MB per-file limit.
-        # Persist it losslessly as gzip and remove any older uncompressed copy.
-        signal_ledger_path = output_dir / "entry_signal_trade_ledger.csv"
-        signal_ledger_gzip_path = output_dir / "entry_signal_trade_ledger.csv.gz"
-        signal_trades.to_csv(
-            signal_ledger_gzip_path, index=False, compression="gzip"
-        )
-        if signal_ledger_path.exists():
-            signal_ledger_path.unlink()
+        # Keep the complete ledger but compress it below GitHub's 100 MB file limit.
+        save_entry_signal_trade_ledger(signal_trades, output_dir)
         signal_board.to_csv(output_dir / "entry_signal_leaderboard.csv", index=False)
         signal_selector_monthly.to_csv(output_dir / "entry_signal_selector_monthly.csv", index=False)
         signal_monthly_parts = []
