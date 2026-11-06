@@ -916,7 +916,7 @@ def _candidate_signals(features: pd.DataFrame) -> dict[str, pd.Series]:
     for fast, slow, label in ((5, 20, "EMA5_20"), (10, 30, "EMA10_30"), (20, 50, "EMA20_50")):
         v = f[f"ema_{fast}"].notna() & f[f"ema_{slow}"].notna() & (f[f"ema_{fast}"] != f[f"ema_{slow}"])
         signals[f"{label}_TREND"] = direction(f[f"ema_{fast}"] > f[f"ema_{slow}"], v)
-        gap_z = f[f"{label.lower()}_z"]
+        gap_z = f[f"ema_{fast}_{slow}_z"]
         for threshold in (0.05, 0.15, 0.30):
             sig = pd.Series("", index=f.index, dtype="object")
             sig.loc[gap_z >= threshold] = "CE"
