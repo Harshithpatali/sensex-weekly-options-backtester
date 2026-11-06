@@ -425,3 +425,19 @@ are touched. Before live consideration, obtain timestamped option bid/ask or
 trade prints, validate order fills, and complete a forward paper-trading
 period. ₹10,000 may be insufficient to trade a SENSEX option lot within these
 risk limits; do not relax the limits just to force trades.
+
+
+## Timestamped bid/ask quote data
+
+The official BSE daily derivatives bhavcopy used by this project contains daily
+OHLC, volume and open interest; it does not contain historical order-book
+bid/ask snapshots. Do not treat daily close, last-traded price or midpoint as
+an executable fill.
+
+A strict adapter is available in `sensex_options.quote_data` for a licensed
+vendor/broker export containing timestamped `bid`, `ask`, `bid_size`,
+`ask_size`, contract identity and expiry. It rejects missing, crossed,
+zero-size and excessively wide markets. The executable replay buys at the
+entry ask and sells at the exit bid using exact timestamps. It never fills at
+midpoint. Historical bid/ask results will remain unavailable until a real
+quote archive is supplied; no synthetic quotes are generated.
