@@ -223,8 +223,8 @@ def test_parser_supports_actual_spaced_bse_legacy_archive_schema(tmp_path: Path)
     options = parsed[parsed["option_type"].isin(["CE", "PE"])]
     assert set(options["option_type"]) == {"CE", "PE"}
     assert options["lot_size"].eq(10).all()
-    assert options["volume"].tolist()[:2] == [84, 107]
-    assert options["open_interest"].tolist()[:2] == [250, 260]
+    assert options.set_index("option_type")["volume"].to_dict() == {"CE": 84, "PE": 107}
+    assert options.set_index("option_type")["open_interest"].to_dict() == {"CE": 250, "PE": 260}
     assert options["trade_date"].eq(pd.Timestamp("2023-05-15")).sum() == 2
     assert options["instrument_type"].eq("OPTIDX").all()
     # The expiry-day row has an index-level close, not an option premium.
