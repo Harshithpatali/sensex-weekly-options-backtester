@@ -183,7 +183,15 @@ def run() -> dict:
         signal_trades, signal_board, signal_selector_monthly, signal_report = run_entry_signal_research(
             daily_trades, index, options=options, holding_periods=(1, 2, 3, 5)
         )
-        signal_trades.to_csv(output_dir / "entry_signal_trade_ledger.csv", index=False)
+        # The full candidate ledger can exceed GitHub's 100 MB per-file limit.
+        # Persist it losslessly as gzip and remove any older uncompressed copy.
+        signal_ledger_path = output_dir / "entry_signal_trade_ledger.csv"
+        signal_ledger_gzip_path = output_dir / "entry_signal_trade_ledger.csv.gz"
+        signal_trades.to_csv(
+            signal_ledger_gzip_path, index=False, compression="gzip"
+        )
+        if signal_ledger_path.exists():
+            signal_ledger_path.unlink()
         signal_board.to_csv(output_dir / "entry_signal_leaderboard.csv", index=False)
         signal_selector_monthly.to_csv(output_dir / "entry_signal_selector_monthly.csv", index=False)
         signal_monthly_parts = []
