@@ -1,6 +1,9 @@
 name: Daily SENSEX data and strategy research
 
 on:
+  push:
+    paths:
+      - ".github/daily-research.trigger"
   schedule:
     # 06:30 Asia/Kolkata = 01:00 UTC, weekdays
     - cron: "0 1 * * 1-5"
