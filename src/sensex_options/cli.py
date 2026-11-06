@@ -143,5 +143,29 @@ def analyze_cmd() -> None:
     click.echo(json.dumps(result, indent=2, default=str))
 
 
+@main.command("research-regimes")
+@click.option("--ledger", default="outputs/daily_strategy_trade_ledger.csv", show_default=True,
+              help="Observed option trade ledger CSV")
+@click.option("--minimum-trades", default=30, show_default=True, type=int)
+def research_regimes_cmd(ledger: str, minimum_trades: int) -> None:
+    """Evaluate predeclared regime-gated signals against observed option trades."""
+    import pandas as pd
+    from sensex_options.sources.index import load_index
+    from sensex_options.regime_research import run_regime_research
+
+    ledger_path = Path(ledger)
+    if not ledger_path.exists():
+        raise click.ClickException(f"Trade ledger not found: {ledger_path}")
+    options = pd.read_csv(ledger_path)
+    index = load_index()
+    joined, board, report = run_regime_research(
+        index, options, output_dir=DEFAULT_PATHS.outputs,
+        minimum_trades=minimum_trades,
+    )
+    click.echo(json.dumps(report, indent=2, default=str))
+    if not board.empty:
+        click.echo(board.to_string(index=False))
+
+
 if __name__ == "__main__":
     main()
