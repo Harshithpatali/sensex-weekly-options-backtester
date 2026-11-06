@@ -210,6 +210,7 @@ def run() -> dict:
             "option_outcome_sessions": signal_report.get("option_outcome_sessions", 0),
             "candidate_rules_tested": signal_report.get("candidate_rules_tested", 0),
             "holding_periods_tested": signal_report.get("holding_periods_tested", []),
+            "instrument_families_tested": signal_report.get("instrument_families_tested", []),
             "candidate_pass_count": signal_report.get("candidate_pass_count", 0),
             "training_end": signal_report.get("training_end"),
             "holding_periods_tested": signal_report.get("holding_periods_tested", []),
