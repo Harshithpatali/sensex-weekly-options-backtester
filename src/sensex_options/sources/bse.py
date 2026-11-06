@@ -463,8 +463,14 @@ def load_options(path: Optional[Path] = None) -> pd.DataFrame:
     if not path.exists():
         logger.warning("Options file not found: %s", path)
         return pd.DataFrame()
-    df = pd.read_csv(path, parse_dates=["trade_date", "expiry_date"], compression="gzip" if str(path).endswith(".gz") else "infer")
-    df["trade_date"] = pd.to_datetime(df["trade_date"]).dt.normalize()
-    df["expiry_date"] = pd.to_datetime(df["expiry_date"], errors="coerce").dt.normalize()
+    # Historical backfills can mix date-only strings with timestamp strings.
+    # Let pandas read them as text, then use mixed-format parsing explicitly.
+    df = pd.read_csv(path, compression="gzip" if str(path).endswith(".gz") else "infer")
+    df["trade_date"] = pd.to_datetime(
+        df["trade_date"], format="mixed", errors="coerce"
+    ).dt.normalize()
+    df["expiry_date"] = pd.to_datetime(
+        df["expiry_date"], format="mixed", errors="coerce"
+    ).dt.normalize()
     df = _remove_reversed_expiry_rows(df, str(path))
     return df
