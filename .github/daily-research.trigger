@@ -7,3 +7,4 @@ Re-run multi-horizon entry signals with train/holdout separated by realized exit
 Compare lagged signals on long ATM options and defined-risk ATM debit vertical spreads for 1, 2, 3 and 5 session holding periods with exit-month holdout validation.
 Run strict multi-horizon entry research on long options and ATM debit spreads with one position at a time; require every active month to have profit factor >= 1.20 in both training and holdout.
 Compare one, two and three available strike-width ATM debit vertical spreads under strict monthly PF 1.20 validation and sequential one-position allocation across all holding periods.
+Expand strategy research with option-chain positioning, put/call OI and volume ratios, moneyness variants, volatility-normalized signals, DMI filters, and defined-risk credit spreads. Re-run chronological monthly PF validation.
