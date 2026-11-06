@@ -1,5 +1,6 @@
 strategy,description,trades,net_pnl,win_rate_pct,profit_factor,max_drawdown,max_drawdown_pct,avg_trade_pnl,max_loss
-ATM_CALL,Buy nearest-ATM call,1,33775.0,100.0,,0.0,0.0,33775.0,33775.0
-OTM_CALL_1,Buy one strike-step OTM call,1,32696.0,100.0,,0.0,0.0,32696.0,32696.0
-OTM_PUT_1,Buy one strike-step OTM put,1,-5094.0,0.0,0.0,-5094.0,-50.94,-5094.0,-5094.0
-ATM_PUT,Buy nearest-ATM put,1,-6118.0,0.0,0.0,-6118.0,-61.18,-6118.0,-6118.0
+ATM_STRADDLE,Buy ATM call + ATM put,7,-7514.94,85.71,0.938,-120649.44,-97.98,-1073.56,-120649.44
+ATM_PUT,Buy nearest-ATM put,1,-8241.86,0.0,0.0,-8241.86,-82.42,-8241.86,-8241.86
+ATM_CALL,Buy nearest-ATM call,2,-8696.7,50.0,0.532,-18593.18,-93.45,-4348.35,-18593.18
+OTM_CALL_1,Buy one strike-step OTM call,2,-9429.8,50.0,0.546,-20749.35,-97.33,-4714.9,-20749.35
+OTM_PUT_1,Buy one strike-step OTM put,1,-10000.0,0.0,0.0,-10000.0,-100.0,-10000.0,-10000.0
