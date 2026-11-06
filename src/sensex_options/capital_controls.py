@@ -142,3 +142,64 @@ def apply_capital_controls(
         "warning": "If a one-lot option premium exceeds the per-trade risk budget, the trade is skipped. A zero-trade result means the requested capital and risk limits are incompatible with available contract lot sizes/premiums.",
     }
     return controlled, ranking, report
+
+
+def evaluate_capital_control_holdout(
+    ledger: pd.DataFrame,
+    initial_capital: float = 10_000.0,
+    risk_per_trade_pct: float = 0.02,
+    daily_loss_limit_pct: float = 0.02,
+    train_fraction: float = 0.70,
+    cost: CostConfig | None = None,
+) -> tuple[pd.DataFrame, dict]:
+    """Evaluate fixed capital rules on a chronological, independently reset split."""
+    if ledger is None or ledger.empty or "entry_date" not in ledger:
+        return pd.DataFrame(), {"status": "insufficient_data"}
+    dates = sorted(pd.to_datetime(ledger["entry_date"], errors="coerce").dropna().dt.normalize().unique())
+    if len(dates) < 2:
+        return pd.DataFrame(), {"status": "insufficient_sessions"}
+    split = max(1, min(len(dates) - 1, int(len(dates) * train_fraction)))
+    validation_start = pd.Timestamp(dates[split])
+    train = ledger[pd.to_datetime(ledger["entry_date"]).dt.normalize() < validation_start]
+    validation = ledger[pd.to_datetime(ledger["entry_date"]).dt.normalize() >= validation_start]
+    train_trades, train_board, train_report = apply_capital_controls(
+        train, initial_capital, risk_per_trade_pct, daily_loss_limit_pct, cost
+    )
+    validation_trades, validation_board, validation_report = apply_capital_controls(
+        validation, initial_capital, risk_per_trade_pct, daily_loss_limit_pct, cost
+    )
+    rows = []
+    for strategy in sorted(set(train_board.get("strategy", [])) | set(validation_board.get("strategy", []))):
+        tr = train_board[train_board["strategy"] == strategy]
+        va = validation_board[validation_board["strategy"] == strategy]
+        a = tr.iloc[0].to_dict() if not tr.empty else {}
+        b = va.iloc[0].to_dict() if not va.empty else {}
+        rows.append({
+            "strategy": strategy,
+            "train_trades_taken": int(a.get("trades_taken", 0)),
+            "train_net_pnl": float(a.get("net_pnl", 0.0)),
+            "train_ending_capital": float(a.get("ending_capital", initial_capital)),
+            "validation_trades_taken": int(b.get("trades_taken", 0)),
+            "validation_net_pnl": float(b.get("net_pnl", 0.0)),
+            "validation_ending_capital": float(b.get("ending_capital", initial_capital)),
+            "validation_profit_factor": b.get("profit_factor"),
+            "both_periods_positive": bool(a.get("net_pnl", 0.0) > 0 and b.get("net_pnl", 0.0) > 0),
+        })
+    board = pd.DataFrame(rows).sort_values(
+        ["both_periods_positive", "validation_net_pnl", "train_net_pnl"],
+        ascending=[False, False, False],
+    ).reset_index(drop=True) if rows else pd.DataFrame()
+    report = {
+        "status": "complete",
+        "method": "Fixed rules; chronological 70/30 split by entry session; separate ₹10,000 account reset in each period; no parameters fitted on validation.",
+        "train_end": pd.Timestamp(dates[split - 1]).date().isoformat(),
+        "validation_start": validation_start.date().isoformat(),
+        "validation_end": pd.Timestamp(dates[-1]).date().isoformat(),
+        "initial_capital_each_period": initial_capital,
+        "train_feasible_trades": train_report.get("feasible_trades", 0),
+        "validation_feasible_trades": validation_report.get("feasible_trades", 0),
+        "train_rejected_trades": train_report.get("rejected_trades", 0),
+        "validation_rejected_trades": validation_report.get("rejected_trades", 0),
+        "warning": "A period with zero feasible trades is not a strategy pass. The validation segment is independent of the training segment but historical data may still be subject to source and execution limitations.",
+    }
+    return board, report
