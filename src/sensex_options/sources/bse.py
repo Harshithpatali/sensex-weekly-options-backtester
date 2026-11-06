@@ -118,6 +118,14 @@ def download_one_day(
             content = resp.content
             if len(content) < 50:
                 return None, "empty_or_tiny"
+            if is_zip and not zipfile.is_zipfile(io.BytesIO(content)):
+                last_err = "invalid_zip_payload"
+                time.sleep(1.5 * attempt)
+                continue
+            if not is_zip and content.lstrip()[:20].lower().startswith((b"<html", b"<!doctype")):
+                last_err = "html_instead_of_csv"
+                time.sleep(1.5 * attempt)
+                continue
             target.write_bytes(content)
             return target, "downloaded"
         except requests.RequestException as e:
