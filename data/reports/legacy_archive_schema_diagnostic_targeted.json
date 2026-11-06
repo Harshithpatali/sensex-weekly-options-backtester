@@ -109,7 +109,7 @@
           "Is Traded": "Y"
         }
       ],
-      "parser_rows": 0,
+      "parser_rows": 14,
       "parser_columns": [
         "trade_date",
         "expiry_date",
@@ -127,6 +127,62 @@
         "volume",
         "open_interest",
         "lot_size"
+      ],
+      "parsed_sample": [
+        {
+          "trade_date": "2023-05-15",
+          "expiry_date": "2023-05-19",
+          "symbol": "SENSEX2351963000CE",
+          "strike": "63000.0",
+          "option_type": "CE",
+          "instrument_type": "OPTIDX",
+          "open": "60.15",
+          "high": "92.0",
+          "low": "45.1",
+          "close": "54.4",
+          "settle": NaN,
+          "last": NaN,
+          "underlying": NaN,
+          "volume": "84",
+          "open_interest": "250",
+          "lot_size": "10"
+        },
+        {
+          "trade_date": "2023-05-15",
+          "expiry_date": "2023-05-19",
+          "symbol": "SENSEX2351962500CE",
+          "strike": "62500.0",
+          "option_type": "CE",
+          "instrument_type": "OPTIDX",
+          "open": "209.9",
+          "high": "271.95",
+          "low": "183.0",
+          "close": "204.0",
+          "settle": NaN,
+          "last": NaN,
+          "underlying": NaN,
+          "volume": "53",
+          "open_interest": "350",
+          "lot_size": "10"
+        },
+        {
+          "trade_date": "2023-05-15",
+          "expiry_date": "2023-05-19",
+          "symbol": "SENSEX2351961500PE",
+          "strike": "61500.0",
+          "option_type": "PE",
+          "instrument_type": "OPTIDX",
+          "open": "74.25",
+          "high": "74.25",
+          "low": "45.0",
+          "close": "62.1",
+          "settle": NaN,
+          "last": NaN,
+          "underlying": NaN,
+          "volume": "30",
+          "open_interest": "150",
+          "lot_size": "10"
+        }
       ]
     },
     {
@@ -238,7 +294,7 @@
           "Is Traded": "Y"
         }
       ],
-      "parser_rows": 0,
+      "parser_rows": 21,
       "parser_columns": [
         "trade_date",
         "expiry_date",
@@ -256,6 +312,62 @@
         "volume",
         "open_interest",
         "lot_size"
+      ],
+      "parsed_sample": [
+        {
+          "trade_date": "2023-05-16",
+          "expiry_date": "2023-05-19",
+          "symbol": "SENSEX2351963000CE",
+          "strike": "63000.0",
+          "option_type": "CE",
+          "instrument_type": "OPTIDX",
+          "open": "33.75",
+          "high": "49.8",
+          "low": "16.75",
+          "close": "18.65",
+          "settle": NaN,
+          "last": NaN,
+          "underlying": NaN,
+          "volume": "119",
+          "open_interest": "350",
+          "lot_size": "10"
+        },
+        {
+          "trade_date": "2023-05-16",
+          "expiry_date": "2023-05-19",
+          "symbol": "SENSEX2351961500PE",
+          "strike": "61500.0",
+          "option_type": "PE",
+          "instrument_type": "OPTIDX",
+          "open": "48.35",
+          "high": "77.15",
+          "low": "37.4",
+          "close": "65.35",
+          "settle": NaN,
+          "last": NaN,
+          "underlying": NaN,
+          "volume": "107",
+          "open_interest": "260",
+          "lot_size": "10"
+        },
+        {
+          "trade_date": "2023-05-16",
+          "expiry_date": "2023-05-19",
+          "symbol": "SENSEX2351962500CE",
+          "strike": "62500.0",
+          "option_type": "CE",
+          "instrument_type": "OPTIDX",
+          "open": "177.25",
+          "high": "200.0",
+          "low": "55.0",
+          "close": "59.0",
+          "settle": NaN,
+          "last": NaN,
+          "underlying": NaN,
+          "volume": "50",
+          "open_interest": "370",
+          "lot_size": "10"
+        }
       ]
     },
     {
@@ -367,7 +479,7 @@
           "Is Traded": "Y"
         }
       ],
-      "parser_rows": 0,
+      "parser_rows": 256,
       "parser_columns": [
         "trade_date",
         "expiry_date",
@@ -385,6 +497,62 @@
         "volume",
         "open_interest",
         "lot_size"
+      ],
+      "parsed_sample": [
+        {
+          "trade_date": "2024-07-05",
+          "expiry_date": "2024-07-05",
+          "symbol": "SENSEX2470580000CE",
+          "strike": "80000.0",
+          "option_type": "CE",
+          "instrument_type": "OPTIDX",
+          "open": "186.95",
+          "high": "186.95",
+          "low": "0.2",
+          "close": NaN,
+          "settle": NaN,
+          "last": NaN,
+          "underlying": NaN,
+          "volume": "43963272",
+          "open_interest": "0",
+          "lot_size": "10"
+        },
+        {
+          "trade_date": "2024-07-05",
+          "expiry_date": "2024-07-05",
+          "symbol": "SENSEX2470579800CE",
+          "strike": "79800.0",
+          "option_type": "CE",
+          "instrument_type": "OPTIDX",
+          "open": "299.75",
+          "high": "299.75",
+          "low": "1.55",
+          "close": NaN,
+          "settle": NaN,
+          "last": NaN,
+          "underlying": NaN,
+          "volume": "33281156",
+          "open_interest": "0",
+          "lot_size": "10"
+        },
+        {
+          "trade_date": "2024-07-05",
+          "expiry_date": "2024-07-05",
+          "symbol": "SENSEX2470579600PE",
+          "strike": "79600.0",
+          "option_type": "PE",
+          "instrument_type": "OPTIDX",
+          "open": "120.15",
+          "high": "276.5",
+          "low": "0.05",
+          "close": NaN,
+          "settle": NaN,
+          "last": NaN,
+          "underlying": NaN,
+          "volume": "33317436",
+          "open_interest": "0",
+          "lot_size": "10"
+        }
       ]
     }
   ]
