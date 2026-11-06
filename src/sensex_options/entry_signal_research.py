@@ -22,6 +22,13 @@ MIN_TRAIN_TRADES = 50
 MIN_HOLDOUT_TRADES = 20
 
 
+def _finite(value) -> bool:
+    try:
+        return bool(np.isfinite(float(value)))
+    except (TypeError, ValueError):
+        return False
+
+
 def _profit_factor(pnl: pd.Series) -> float | None:
     values = pd.to_numeric(pnl, errors="coerce").dropna()
     gains = float(values[values > 0].sum())
