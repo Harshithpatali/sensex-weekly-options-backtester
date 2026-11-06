@@ -872,8 +872,10 @@ def _option_credit_vertical_outcomes(
                         "month": exit_day.strftime("%Y-%m"),
                         "option_family": f"CREDIT_SPREADS_W{width}",
                         "spread_width_steps": width,
-                        "call_pnl": pnl_by_direction.get("BEAR_CALL_CREDIT", np.nan),
-                        "put_pnl": pnl_by_direction.get("BULL_PUT_CREDIT", np.nan),
+                        # CE signal means bullish exposure: use bull-put credit.
+                        # PE signal means bearish exposure: use bear-call credit.
+                        "call_pnl": pnl_by_direction.get("BULL_PUT_CREDIT", np.nan),
+                        "put_pnl": pnl_by_direction.get("BEAR_CALL_CREDIT", np.nan),
                     })
     if not rows:
         return pd.DataFrame()
