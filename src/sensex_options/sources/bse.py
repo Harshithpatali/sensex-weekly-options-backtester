@@ -322,6 +322,7 @@ def download_bse_options_range(
     raw_dir.mkdir(parents=True, exist_ok=True)
     reports = DEFAULT_PATHS.reports
     reports.mkdir(parents=True, exist_ok=True)
+    DEFAULT_PATHS.processed.mkdir(parents=True, exist_ok=True)
 
     start_d = datetime.strptime(start, "%Y-%m-%d")
     end_d = datetime.strptime(end, "%Y-%m-%d")
