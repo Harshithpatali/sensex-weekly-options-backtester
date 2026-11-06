@@ -57,8 +57,10 @@ jobs:
                               if csv_names:
                                   with archive.open(csv_names[0]) as handle:
                                       raw = pd.read_csv(handle)
-                          else:
-                              raw = pd.read_csv(path)
+                              else:
+                                  raw = pd.DataFrame()
+                      else:
+                          raw = pd.read_csv(path)
                       item["raw_rows"] = int(len(raw))
                       item["columns"] = [str(c) for c in raw.columns]
                       for col in ("SYMBOL", "symbol", "TckrSymb", "FinInstrmTp", "INSTRUMENT", "OPTION_TYP", "OptnTp", "NewBrdLotQty", "TtlTradgVol", "OpnIntrst"):
