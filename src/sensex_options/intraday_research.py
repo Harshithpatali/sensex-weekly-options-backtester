@@ -99,15 +99,13 @@ def intraday_session_features(bars: pd.DataFrame) -> pd.DataFrame:
     for day, group in frame.sort_values("timestamp").groupby("date"):
         group = group.sort_values("timestamp")
         first, last = group.iloc[0], group.iloc[-1]
-        total_volume = float(group["volume"].sum())
-        vwap = (
-            float(((group["high"] + group["low"] + group["close"]) / 3 * group["volume"]).sum() / total_volume)
-            if total_volume > 0 else float("nan")
-        )
+        # An index has no meaningful traded volume; use an equal-weighted
+        # average of bar typical prices, never label this as VWAP.
+        intraday_mean = float(((group["high"] + group["low"] + group["close"]) / 3).mean())
         rows.append({
             "date": day, "bars": int(len(group)),
             "session_return_pct": (float(last["close"]) / float(first["open"]) - 1) * 100,
-            "close_vs_vwap_pct": (float(last["close"]) / vwap - 1) * 100 if pd.notna(vwap) and vwap else float("nan"),
+            "close_vs_intraday_mean_pct": (float(last["close"]) / intraday_mean - 1) * 100 if intraday_mean else float("nan"),
             "range_pct": (float(group["high"].max()) - float(group["low"].min())) / float(first["open"]) * 100,
         })
     return pd.DataFrame(rows).sort_values("date").reset_index(drop=True)
@@ -169,8 +167,8 @@ def evaluate_intraday_put_filters(
     rules = {
         "Baseline — every ATM Put": pd.Series(True, index=test.index),
         "Bearish session": test["session_return_pct"] < 0,
-        "Close below VWAP": test["close_vs_vwap_pct"] < 0,
-        "Bearish + below VWAP": (test["session_return_pct"] < 0) & (test["close_vs_vwap_pct"] < 0),
+        "Close below intraday mean": test["close_vs_intraday_mean_pct"] < 0,
+        "Bearish + below intraday mean": (test["session_return_pct"] < 0) & (test["close_vs_intraday_mean_pct"] < 0),
         "Bearish + lower volatility": (test["session_return_pct"] < 0) & (test["range_pct"] <= range_cutoff),
         "Bearish + below VWAP + lower volatility": (
             (test["session_return_pct"] < 0) & (test["close_vs_vwap_pct"] < 0)
