@@ -311,3 +311,18 @@ The daily workflow is research/replay, not machine-learning model training and n
 - Historical lot size is taken from source data. Missing lot sizes are not guessed; affected trades are skipped.
 - A historical leaderboard ranks the observed sample. It is not a forecast and does not select a live strategy automatically.
 - GitHub Actions CI validates code with unit tests. Those tests use synthetic fixtures and do not establish that a strategy is profitable on real-market data.
+
+
+## Cost-aware research and walk-forward evaluation
+
+The Streamlit **Research & Walk-Forward** page runs the five fixed-rule baselines across all available expiry cycles. It exposes editable assumptions for brokerage per lot/order, brokerage as a turnover percentage, STT, exchange charges, GST, stamp duty, other charges and adverse entry/exit slippage. The ledger reports the cost components and subtracts estimated charges from raw gross P&L. Rates are editable research assumptions, not broker quotes or tax advice; verify the current BSE and broker tariff.
+
+The page reports per-strategy trade count, net P&L, win rate, profit factor, expectancy, maximum drawdown and drawdown percentage. It also reports an approximate trade-return Sharpe annualised at 52 expiry cycles/year. This is **not** a daily mark-to-market Sharpe ratio. The chronological 70/30 expiry holdout and rolling expiry-window evaluation are suitable for fixed-rule comparison; the strategies are not fitted models and no parameters are learned from the context window.
+
+Data validation now reports option-session coverage against SENSEX index sessions and CE/PE observations for each expiry.
+
+### Historical bootstrap is required
+
+The scheduled daily workflow only adds recent sessions; it does not create a multi-year dataset. Run **Actions → Bootstrap SENSEX historical dataset → Run workflow** with the default range (2023-05-15 through the latest available date) to backfill the archive. This can take time because it requests one BSE FO bhavcopy per weekday. Inspect the collection manifest for holidays, unavailable dates and download failures. Do not interpret strategy metrics as reliable until several years and many expiry cycles are present.
+
+The Streamlit app is deployed from this repository's `main` branch. The UI and research-engine changes are committed together; the hosted app updates after its GitHub deployment completes.
