@@ -65,6 +65,49 @@ jobs:
           )
           download_bse_options_range(os.environ["START_DATE"], os.environ["END_DATE"], sleep=0.5)
           PY
+      - name: Diagnose legacy BSE archive schema
+        run: |
+          python - <<'PY'
+          import json
+          import zipfile
+          from datetime import datetime
+          from pathlib import Path
+          import pandas as pd
+          from sensex_options.sources.bse import parse_bse_fo_file
+
+          root = Path("data/raw/options")
+          report = {"samples": []}
+          for day in ("20230515", "20230516", "20240705"):
+              path = root / f"BSE_FO_{day}.zip"
+              item = {"date": day, "exists": path.exists()}
+              if path.exists():
+                  try:
+                      with zipfile.ZipFile(path) as archive:
+                          csv_names = [n for n in archive.namelist() if n.lower().endswith(".csv")]
+                          item["members"] = archive.namelist()[:20]
+                          item["csv_members"] = csv_names
+                          if csv_names:
+                              with archive.open(csv_names[0]) as handle:
+                                  raw = pd.read_csv(handle)
+                              item["columns"] = [str(c) for c in raw.columns]
+                              item["raw_rows"] = int(len(raw))
+                              for col in ("SYMBOL", "symbol", "TckrSymb", "FinInstrmTp", "INSTRUMENT", "OPTION_TYP", "OptnTp"):
+                                  if col in raw.columns:
+                                      item[f"{col}_top_values"] = raw[col].astype(str).value_counts().head(12).to_dict()
+                              item["sample_rows"] = raw.head(3).astype(str).to_dict("records")
+                      parsed = parse_bse_fo_file(path, datetime.strptime(day, "%Y%m%d"))
+                      item["parser_rows"] = int(len(parsed))
+                      item["parser_columns"] = [str(c) for c in parsed.columns]
+                      if not parsed.empty:
+                          item["parsed_sample"] = parsed.head(3).astype(str).to_dict("records")
+                  except Exception as exc:
+                      item["diagnostic_error"] = repr(exc)
+              report["samples"].append(item)
+          target = Path("data/reports/legacy_archive_schema_diagnostic.json")
+          target.parent.mkdir(parents=True, exist_ok=True)
+          target.write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
+          print(json.dumps(report, indent=2, default=str))
+          PY
       - name: Validate and generate strategy leaderboard
         run: python -m sensex_options.daily_pipeline
       - name: Persist dataset and research outputs
