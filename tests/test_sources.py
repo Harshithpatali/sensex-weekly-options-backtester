@@ -277,3 +277,41 @@ def test_load_options_accepts_mixed_date_and_timestamp_formats(tmp_path: Path):
     assert len(loaded) == 2
     assert loaded["trade_date"].tolist() == [pd.Timestamp("2023-05-15"), pd.Timestamp("2024-07-08")]
     assert loaded["expiry_date"].tolist() == [pd.Timestamp("2023-05-19"), pd.Timestamp("2024-07-12")]
+
+
+def test_download_replaces_existing_rows_for_successfully_parsed_session(tmp_path, monkeypatch):
+    from sensex_options import sources as sources_pkg
+    from sensex_options.config import Paths
+    from sensex_options.sources import bse
+
+    paths = Paths(
+        data_root=tmp_path,
+        raw_index=tmp_path / "raw" / "index",
+        raw_options=tmp_path / "raw" / "options",
+        processed=tmp_path / "processed",
+        reports=tmp_path / "reports",
+        outputs=tmp_path / "outputs",
+    )
+    paths.ensure()
+    monkeypatch.setattr(bse, "DEFAULT_PATHS", paths)
+    old = pd.DataFrame([{
+        "trade_date": "2024-07-08", "expiry_date": "2024-07-12",
+        "symbol": "SENSEX", "strike": 80000.0, "option_type": "CE",
+        "open": 9.0, "high": 11.0, "low": 8.0, "close": 10.0,
+        "volume": 100, "open_interest": 200, "lot_size": 10,
+        "instrument_type": "OPTIDX",
+    }])
+    old.to_csv(paths.processed / "sensex_options.csv", index=False)
+
+    dummy = tmp_path / "raw" / "options" / "dummy.csv"
+    dummy.parent.mkdir(parents=True, exist_ok=True)
+    dummy.write_text("dummy", encoding="utf-8")
+    monkeypatch.setattr(bse, "download_one_day", lambda *args, **kwargs: (dummy, "downloaded"))
+    fresh = old.copy()
+    fresh["close"] = 20.0
+    monkeypatch.setattr(bse, "parse_bse_fo_file", lambda *args, **kwargs: fresh.copy())
+
+    result = bse.download_bse_options_range("2024-07-08", "2024-07-08", raw_dir=dummy.parent, sleep=0)
+
+    assert len(result) == 1
+    assert float(result.iloc[0]["close"]) == 20.0
