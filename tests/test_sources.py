@@ -126,3 +126,66 @@ def test_load_options_filters_reversed_expiry_history(tmp_path: Path):
 
     assert len(loaded) == 1
     assert loaded.iloc[0]["expiry_date"] >= loaded.iloc[0]["trade_date"]
+
+def test_parser_supports_legacy_bse_derivatives_columns(tmp_path: Path):
+    raw = pd.DataFrame({
+        "INSTRUMENT": ["OPTIDX", "OPTIDX", "OPTIDX"],
+        "SYMBOL": ["SENSEX", "SENSEX", "NIFTY"],
+        "EXPIRY_DT": ["25-Jul-2024"] * 3,
+        "STRIKE_PR": [80000, 80000, 25000],
+        "OPTION_TYP": ["CE", "PE", "CE"],
+        "OPEN": [100, 110, 90],
+        "HIGH": [120, 130, 100],
+        "LOW": [80, 90, 70],
+        "CLOSE": [105, 115, 95],
+        "SETTLE_PR": [106, 116, 96],
+        "CONTRACTS": [100, 120, 200],
+        "OPEN_INT": [1000, 1100, 2000],
+        "CHG_IN_OI": [10, 20, 30],
+        "TIMESTAMP": ["25-Jul-2024"] * 3,
+    })
+    path = tmp_path / "legacy_bse.csv"
+    raw.to_csv(path, index=False)
+
+    parsed = parse_bse_fo_file(path)
+
+    assert len(parsed) == 2
+    assert set(parsed["symbol"]) == {"SENSEX"}
+    assert set(parsed["option_type"]) == {"CE", "PE"}
+    assert parsed["trade_date"].eq(pd.Timestamp("2024-07-25")).all()
+    assert parsed["expiry_date"].eq(pd.Timestamp("2024-07-25")).all()
+    assert parsed["open_interest"].tolist() == [1000, 1100]
+    assert parsed["volume"].tolist() == [100, 120]
+
+
+def test_parser_supports_legacy_bse_zip_archive(tmp_path: Path):
+    import zipfile
+
+    raw = pd.DataFrame({
+        "INSTRUMENT": ["OPTIDX"],
+        "SYMBOL": ["SENSEX"],
+        "EXPIRY_DT": ["01-Aug-2024"],
+        "STRIKE_PR": [81000],
+        "OPTION_TYP": ["CE"],
+        "OPEN": [125],
+        "HIGH": [140],
+        "LOW": [115],
+        "CLOSE": [132],
+        "SETTLE_PR": [133],
+        "CONTRACTS": [75],
+        "OPEN_INT": [900],
+        "TIMESTAMP": ["25-Jul-2024"],
+    })
+    csv_bytes = raw.to_csv(index=False).encode("utf-8")
+    path = tmp_path / "BSE_FO_20240725.zip"
+    with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("bhavcopy.csv", csv_bytes)
+
+    parsed = parse_bse_fo_file(path)
+
+    assert len(parsed) == 1
+    assert parsed.iloc[0]["symbol"] == "SENSEX"
+    assert parsed.iloc[0]["option_type"] == "CE"
+    assert parsed.iloc[0]["strike"] == 81000
+    assert parsed.iloc[0]["close"] == 132
+
