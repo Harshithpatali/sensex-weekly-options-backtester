@@ -195,7 +195,7 @@ def run_risk_managed_research(
 
     required_ohlc = {
         "trade_date", "expiry_date", "strike", "symbol", "option_type",
-        "open", "high", "low",
+        "open", "high", "low", "close", "volume", "open_interest",
     }
     if options is None or options.empty or not required_ohlc.issubset(options.columns):
         return pd.DataFrame(), pd.DataFrame(), {
@@ -231,8 +231,14 @@ def run_risk_managed_research(
     opt = options.copy()
     opt["trade_date"] = pd.to_datetime(opt["trade_date"], errors="coerce").dt.normalize()
     opt["expiry_date"] = pd.to_datetime(opt["expiry_date"], errors="coerce").dt.normalize()
-    for col in ("strike", "open", "high", "low"):
+    for col in ("strike", "open", "high", "low", "close", "volume", "open_interest"):
         opt[col] = pd.to_numeric(opt[col], errors="coerce")
+    # Stop/target research requires an active exit-day candle, not a stale mark.
+    opt = opt[
+        (opt["volume"] >= 25.0)
+        & (opt["open_interest"] >= 50.0)
+        & (opt["close"] > 0)
+    ].copy()
     opt["symbol"] = opt["symbol"].astype(str).str.strip().str.upper()
     opt["option_type"] = opt["option_type"].astype(str).str.strip().str.upper()
     opt = opt.dropna(subset=["trade_date", "expiry_date", "strike"])
