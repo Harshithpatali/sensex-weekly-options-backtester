@@ -207,11 +207,12 @@ def run() -> dict:
             json.dump(signal_report, handle, indent=2, default=str)
         entry_signal_status = {
             "status": signal_report.get("status"),
-            "paired_trades": signal_report.get("paired_trades", 0),
+            "option_outcome_sessions": signal_report.get("option_outcome_sessions", 0),
             "candidate_rules_tested": signal_report.get("candidate_rules_tested", 0),
             "holding_periods_tested": signal_report.get("holding_periods_tested", []),
             "candidate_pass_count": signal_report.get("candidate_pass_count", 0),
             "training_end": signal_report.get("training_end"),
+            "holding_periods_tested": signal_report.get("holding_periods_tested", []),
             "holdout_start": signal_report.get("holdout_start"),
             "top_training_rule": (
                 {
