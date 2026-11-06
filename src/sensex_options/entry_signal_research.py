@@ -1565,7 +1565,8 @@ def run_entry_signal_research(
             "Chronological training/holdout split is aligned to realized exit months so a multi-session "
             "position cannot spill across the validation boundary. Predeclared lagged index indicator and "
             "regime signals choose between same-date, same-expiry, "
-            "same-strike ATM Call/Put outcomes and bounded-risk ATM debit vertical spread outcomes "
+            "Call/Put outcomes at ATM, one-strike ITM and one-strike OTM moneyness, plus "
+            "bounded-risk ATM debit vertical spread outcomes "
             "at one-, two- and three-available-strike widths for one-, two-, three- and five-session holds. "
             "Debit spreads require both observed legs at entry "
             "and exit, reject inverted spread marks, and cap estimated maximum loss plus entry fees at the "
@@ -1575,7 +1576,8 @@ def run_entry_signal_research(
             "held through the selected exit session. A missing side is not fabricated; that direction is "
             "skipped when its observed quote is unavailable. Signals use only the last completed index "
             "session before entry. Candidate rules are ranked using training only; holdout is separate. "
-            "Rolling selectors use only prior complete calendar months."
+            "Rolling selectors use only prior complete calendar months. Gap-fade variants are gated by "
+            "lagged volatility, ADX, RSI, MACD, EMA and completed-candle rejection conditions."
         ),
         "option_outcome_sessions": int(len(paired)),
         "sample_start": str(paired["entry_date"].min().date()),
