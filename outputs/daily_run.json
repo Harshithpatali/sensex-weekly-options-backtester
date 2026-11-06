@@ -1,5 +1,5 @@
 {
-  "run_time_utc": "2026-11-06T17:33:44.623935+00:00",
+  "run_time_utc": "2026-11-06T17:50:54.054923+00:00",
   "target_data_date": "2026-11-05",
   "downloaded_option_dates": [
     "2026-11-02",
@@ -3017,6 +3017,14 @@
   "daily_strategy_count": 7,
   "daily_strategy_trades": 2383,
   "daily_holdout_status": "ok",
+  "intraday_research": {
+    "status": "ok",
+    "bars": 3071,
+    "matched_sessions": 28,
+    "validation_start": "2026-10-26",
+    "validation_end": "2026-11-05",
+    "note": null
+  },
   "pnl_semantics": "realized P&L grouped by trade exit date; not daily mark-to-market",
   "validation_report": "/home/runner/work/sensex-weekly-options-backtester/sensex-weekly-options-backtester/data/reports/data_validation.json"
 }
