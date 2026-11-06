@@ -10,3 +10,4 @@ Compare one, two and three available strike-width ATM debit vertical spreads und
 Expand strategy research with option-chain positioning, put/call OI and volume ratios, moneyness variants, volatility-normalized signals, DMI filters, and defined-risk credit spreads. Re-run chronological monthly PF validation.
 Test ATM, one-strike ITM and one-strike OTM long options with lagged volatility/trend/RSI/MACD/candle-rejection gap-fade filters; preserve multi-width debit spread tests and strict monthly PF>=1.20 validation.
 Run the latest validated option-flow, moneyness, debit/credit spread and regime-signal research with the corrected bullish-put/bearish-call credit-spread mapping and vertical payoff bounds.
+Replay with exact-duplicate signal sequences removed; keep chronological monthly PF validation and save all result tables.
