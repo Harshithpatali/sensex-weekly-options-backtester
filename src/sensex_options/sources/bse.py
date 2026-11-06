@@ -378,10 +378,13 @@ def download_bse_options_range(
 def load_options(path: Optional[Path] = None) -> pd.DataFrame:
     """Load processed SENSEX options data."""
     path = path or DEFAULT_PATHS.processed / "sensex_options.csv"
+    compressed = Path(str(path) + ".gz")
+    if not path.exists() and compressed.exists():
+        path = compressed
     if not path.exists():
         logger.warning("Options file not found: %s", path)
         return pd.DataFrame()
-    df = pd.read_csv(path, parse_dates=["trade_date", "expiry_date"])
+    df = pd.read_csv(path, parse_dates=["trade_date", "expiry_date"], compression="gzip" if str(path).endswith(".gz") else "infer")
     df["trade_date"] = pd.to_datetime(df["trade_date"]).dt.normalize()
     df["expiry_date"] = pd.to_datetime(df["expiry_date"]).dt.normalize()
     return df
