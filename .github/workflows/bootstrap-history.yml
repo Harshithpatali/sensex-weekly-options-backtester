@@ -108,6 +108,35 @@ jobs:
           target.write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
           print(json.dumps(report, indent=2, default=str))
           PY
+      - name: Require parsed legacy SENSEX option coverage
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          from sensex_options.sources.bse import load_options
+
+          options = load_options()
+          if options.empty:
+              raise SystemExit("No processed SENSEX options exist after archive download.")
+          legacy = options[options["trade_date"] <= pd.Timestamp("2024-07-05")].copy()
+          if legacy.empty:
+              raise SystemExit("Legacy archives downloaded, but zero pre-2024-07-06 SENSEX option rows were parsed.")
+          if legacy["lot_size"].isna().any() or not legacy["lot_size"].eq(10).all():
+              raise SystemExit("Legacy SENSEX lot-size metadata is missing or inconsistent with the verified 10-unit period.")
+          liquid = legacy[
+              (pd.to_numeric(legacy["volume"], errors="coerce") >= 25)
+              & (pd.to_numeric(legacy["open_interest"], errors="coerce") >= 50)
+              & (pd.to_numeric(legacy["close"], errors="coerce") > 0)
+          ]
+          if liquid.empty:
+              raise SystemExit("Legacy rows parsed, but none have usable premium, volume, and open interest.")
+          print({
+              "legacy_rows": int(len(legacy)),
+              "legacy_start": str(legacy["trade_date"].min().date()),
+              "legacy_end": str(legacy["trade_date"].max().date()),
+              "legacy_lot_sizes": sorted(legacy["lot_size"].dropna().astype(int).unique().tolist()),
+              "liquid_legacy_rows": int(len(liquid)),
+          })
+          PY
       - name: Validate and generate strategy leaderboard
         run: python -m sensex_options.daily_pipeline
       - name: Persist dataset and research outputs
