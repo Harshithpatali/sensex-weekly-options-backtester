@@ -356,9 +356,9 @@ The **Daily Options Research** page can download recent `^BSESN` intraday candle
 
 The intraday experiment matches these SENSEX session features to the existing **Daily ATM Put** EOD option ledger:
 - Session return (first observed open to last observed close).
-- Closing level relative to volume-weighted average price (VWAP).
+- Closing level relative to the equal-weighted average of intraday bar typical prices (not VWAP; index volume is not meaningful).
 - Session high-low range as a simple volatility proxy.
 
-It compares an unfiltered baseline with bearish-session, below-VWAP and lower-range filters. The volatility cutoff is calculated from the training segment only, and results are reported on a later chronological validation segment. The dashboard also displays the latest saved SENSEX daily close as the **previous completed-session close**, with the change from the preceding session. This is a historical close, not a live quote.
+It compares an unfiltered baseline with bearish-session, below-intraday-average and lower-range filters. The volatility cutoff is calculated from the training segment only, and results are reported on a later chronological validation segment. The dashboard also displays the latest saved SENSEX daily close as the **previous completed-session close**, with the change from the preceding session. This is a historical close, not a live quote.
 
 **Stop-loss limitation:** Yahoo intraday bars are for the SENSEX index, not SENSEX option contracts. BSE bhavcopy contains daily option marks, not intraday option premiums. Therefore this dataset cannot establish whether an option-premium stop-loss would have triggered, nor the fill price. The research page explicitly marks option stop-loss testing as unavailable instead of using index points as a false proxy. Obtain timestamped CE/PE intraday trade/quote data before evaluating option stop-losses, intraday exits, or realistic execution.
