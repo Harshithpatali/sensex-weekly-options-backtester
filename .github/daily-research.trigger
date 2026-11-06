@@ -11,3 +11,4 @@ Expand strategy research with option-chain positioning, put/call OI and volume r
 Test ATM, one-strike ITM and one-strike OTM long options with lagged volatility/trend/RSI/MACD/candle-rejection gap-fade filters; preserve multi-width debit spread tests and strict monthly PF>=1.20 validation.
 Run the latest validated option-flow, moneyness, debit/credit spread and regime-signal research with the corrected bullish-put/bearish-call credit-spread mapping and vertical payoff bounds.
 Replay with exact-duplicate signal sequences removed; keep chronological monthly PF validation and save all result tables.
+Run full option-flow, moneyness, volatility-regime and debit/credit spread signal grid with compressed trade-ledger persistence and read-only dashboard outputs.
