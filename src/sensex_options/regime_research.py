@@ -141,9 +141,17 @@ def run_regime_research(
         return joined, pd.DataFrame(), {"status": "no_matched_trades"}
 
     dates = sorted(joined["entry_date"].unique())
+    if len(dates) < 2:
+        return joined, pd.DataFrame(), {"status": "insufficient_sessions", "matched_sessions": len(dates)}
     split = max(1, min(len(dates) - 1, int(len(dates) * train_fraction)))
-    train_end = pd.Timestamp(dates[split - 1])
-    joined["split"] = np.where(joined["entry_date"] <= train_end, "train", "validation")
+    validation_start = pd.Timestamp(dates[split])
+    # Purge training trades whose realized exit reaches into validation.
+    train_cutoff = validation_start - pd.Timedelta(days=1)
+    joined["split"] = np.where(
+        (joined["entry_date"] <= train_cutoff) & (joined["exit_date"] < validation_start),
+        "train",
+        np.where(joined["entry_date"] >= validation_start, "validation", "purged"),
+    )
 
     # Predeclared signal rules; no parameter search is performed in validation.
     def direction_rule(row, family):
@@ -213,9 +221,10 @@ def run_regime_research(
                                                   ascending=[False, False, False], na_position="last")
         report = {
             "status": "screen_complete",
-            "method": "Predeclared 5 signal families x 6 regime gates; features lagged one completed session; split by entry date; observed option ledger only.",
-            "train_end": train_end.date().isoformat(),
-            "validation_start": pd.Timestamp(dates[split]).date().isoformat(),
+            "method": "Predeclared 5 signal families x 6 regime gates; features lagged one completed session; split by entry date with exit-date purging at the boundary; observed option ledger only.",
+            "train_end": train_cutoff.date().isoformat(),
+            "validation_start": validation_start.date().isoformat(),
+            "purged_overlap_trades": int((joined["split"] == "purged").sum()),
             "last_entry_date": pd.Timestamp(max(dates)).date().isoformat(),
             "minimum_train_trades": minimum_trades,
             "candidate_count": len(summary),
