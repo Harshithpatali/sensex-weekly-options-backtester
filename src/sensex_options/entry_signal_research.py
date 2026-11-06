@@ -773,9 +773,9 @@ def run_entry_signal_research(
             "session before entry. Candidate rules are ranked using training only; holdout is separate. "
             "Rolling selectors use only prior complete calendar months."
         ),
-        "paired_trades": int(len(paired)),
-        "paired_start": str(paired["entry_date"].min().date()),
-        "paired_end": str(paired["entry_date"].max().date()),
+        "option_outcome_sessions": int(len(paired)),
+        "sample_start": str(paired["entry_date"].min().date()),
+        "sample_end": str(paired["entry_date"].max().date()),
         "distinct_entry_sessions": int(paired["entry_date"].nunique()),
         "holding_periods_tested": sorted(paired["holding_sessions"].dropna().astype(int).unique().tolist()),
         "candidate_rules_tested": int(len(candidate_names)),
