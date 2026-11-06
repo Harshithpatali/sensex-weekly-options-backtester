@@ -1,6 +1,6 @@
 from __future__ import annotations
 """Incremental daily collection + strategy replay. Run in GitHub Actions at 06:30 Asia/Kolkata."""
-import json, logging
+import json, logging, gzip
 from datetime import datetime, timedelta
 from pathlib import Path
 import pandas as pd
@@ -16,7 +16,8 @@ log=logging.getLogger("daily_pipeline")
 
 def merge_csv(new: pd.DataFrame, path: Path, keys: list[str]):
     path.parent.mkdir(parents=True,exist_ok=True)
-    old=pd.read_csv(path) if path.exists() else pd.DataFrame()
+    compressed=Path(str(path)+".gz")
+    old=pd.read_csv(path) if path.exists() else (pd.read_csv(compressed,compression="gzip") if compressed.exists() else pd.DataFrame())
     combined=pd.concat([old,new],ignore_index=True) if not old.empty else new.copy()
     if not combined.empty:
         combined=combined.drop_duplicates(subset=keys,keep="last").sort_values(keys)
@@ -60,6 +61,10 @@ def run():
     for period,frame in periods.items(): frame.to_csv(out/f"{period}_strategy_pnl.csv",index=False)
     with open(out/"daily_run.json","w") as f:
         json.dump({"run_date":datetime.utcnow().isoformat()+"Z","data_quality":quality,"strategy_run":meta,"strategy_count":len(ranking)},f,indent=2,default=str)
+    options_path=DEFAULT_PATHS.processed/"sensex_options.csv"
+    if options_path.exists():
+        options.to_csv(str(options_path)+".gz",index=False,compression="gzip")
+        options_path.unlink()
     log.info("Daily strategy leaderboard:\n%s",ranking.to_string(index=False))
 
 if __name__=="__main__": run()
