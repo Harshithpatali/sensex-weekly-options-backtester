@@ -121,7 +121,7 @@ def run_daily_strategy_suite(
                 + cost.other_charges
                 + (cost.brokerage_pct + cost.exchange_charges_pct) * entry_turnover
                 + cost.gst_pct * (cost.brokerage_per_lot + cost.other_charges
-                    + cost.exchange_charges_pct * entry_turnover)
+                    + (cost.brokerage_pct + cost.exchange_charges_pct) * entry_turnover)
                 + cost.stamp_duty_pct * entry_turnover
             )
             if entry_turnover + entry_fees > capital:
