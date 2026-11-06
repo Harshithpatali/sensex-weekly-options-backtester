@@ -24,7 +24,6 @@ concurrency:
 
 jobs:
   download-and-build:
-    if: github.event_name == 'workflow_dispatch' || github.event.head_commit.message == 'chore: start historical bootstrap'
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
@@ -42,8 +41,8 @@ jobs:
           pip install -e .
       - name: Download historical SENSEX index and BSE options
         env:
-          START_DATE: ${{ inputs.start_date || '2023-05-15' }}
-          END_DATE: ${{ inputs.end_date || '2026-11-06' }}
+          START_DATE: ${{ github.event.inputs.start_date || '2023-05-15' }}
+          END_DATE: ${{ github.event.inputs.end_date || '2026-11-06' }}
         run: |
           python - <<'PY'
           import os
