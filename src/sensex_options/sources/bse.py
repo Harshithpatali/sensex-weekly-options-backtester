@@ -200,25 +200,25 @@ def parse_bse_fo_file(path: Path, trade_date: Optional[datetime] = None) -> pd.D
                 return lower[cand.lower()]
         return None
 
-    # UDiFF-style columns
+    # UDiFF and legacy derivatives-bhavcopy columns (legacy names are uppercase).
     tckr = pick("TckrSymb", "ticker", "symbol", "scrip_name", "contract")
-    strike_c = pick("StrkPric", "strike", "strike_price", "strikeprice")
-    opt_c = pick("OptnTp", "option_type", "optiontype", "opt_type", "ce_pe")
-    exp_c = pick("XpryDt", "expiry", "expiry_date", "exp_date", "expirydate")
+    strike_c = pick("StrkPric", "STRIKE_PR", "strike", "strike_price", "strikeprice")
+    opt_c = pick("OptnTp", "OPTION_TYP", "option_type", "optiontype", "opt_type", "ce_pe")
+    exp_c = pick("XpryDt", "EXPIRY_DT", "expiry", "expiry_date", "exp_date", "expirydate")
     open_c = pick("OpnPric", "open", "open_price")
     high_c = pick("HghPric", "high", "high_price")
     low_c = pick("LwPric", "low", "low_price")
     close_c = pick("ClsPric", "close", "close_price")
-    settle_c = pick("SttlmPric", "settle_price", "settlement", "settle")
+    settle_c = pick("SttlmPric", "SETTLE_PR", "settle_price", "settlement", "settle")
     last_c = pick("LastPric", "last", "last_price", "ltp")
     und_c = pick("UndrlygPric", "underlying", "underlying_price", "spot")
-    vol_c = pick("TtlTradgVol", "volume", "contracts", "traded_contracts", "no_of_contracts")
-    oi_c = pick("OpnIntrst", "open_interest", "oi", "openinterest")
+    vol_c = pick("TtlTradgVol", "CONTRACTS", "volume", "traded_contracts", "no_of_contracts")
+    oi_c = pick("OpnIntrst", "OPEN_INT", "open_interest", "oi", "openinterest")
     lot_c = pick(
         "NewBrdLotQty", "LotSize", "lot_size", "board_lot", "market_lot", "BrdLotQty"
     )
     inst_c = pick("FinInstrmTp", "instrument", "instrument_type", "inst_type")
-    trad_c = pick("TradDt", "trade_date", "timestamp", "date", "BizDt")
+    trad_c = pick("TradDt", "TIMESTAMP", "trade_date", "timestamp", "date", "BizDt")
 
     out = pd.DataFrame()
 
