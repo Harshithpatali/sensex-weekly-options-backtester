@@ -253,3 +253,14 @@ Default research configuration uses **zero** brokerage/STT/slippage. This is **u
 
 MIT for the code. Market data remains subject to exchange terms.  
 **Financial risk disclaimer:** Options can expire worthless. Simulated results can differ materially from live trading. This software provides no investment advice.
+
+
+## Automated daily research workflow
+
+GitHub Actions is scheduled for **06:30 Asia/Kolkata (01:00 UTC), Monday–Friday**. It attempts to fetch the previous calendar day's BSE FO bhavcopy, refreshes SENSEX index history, validates the accumulated datasets, replays five transparent option-buying baselines, and publishes daily/weekly/monthly realized simulated P&L plus a ranked leaderboard.
+
+Strategies: ATM call, ATM put, one-step OTM call, one-step OTM put, and ATM long straddle. The leaderboard ranks the complete available historical replay by net P&L (not a prediction of tomorrow's best strategy). P&L is simulated from daily closing marks, not live fills. Estimated costs in this first version include configurable brokerage and slippage only; statutory charges, spread, impact, funding, margin and taxes are not fully modelled.
+
+**Important setup:** this workflow needs an initial historical dataset to be useful. The first scheduled run only adds the latest available day; it does not backfill all history. Run a historical BSE data bootstrap separately before relying on rankings. The workflow commits processed CSV history and reports to this repository so the Streamlit app can read them; this increases repository size over time. For long-term production, move market history to object storage or a database and keep only compact reports in Git.
+
+The daily workflow is research/replay, not machine-learning model training and not live order execution. It never places trades. If BSE has not published a file yet or the date is a holiday, inspect the Actions log and rerun after publication.
