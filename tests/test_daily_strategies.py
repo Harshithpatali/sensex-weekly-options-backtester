@@ -48,3 +48,21 @@ def test_daily_suite_skips_missing_next_session_quote():
     options = options[~((options["trade_date"] == exit_day) & (options["option_type"] == "CE"))]
     ledger, _, _ = run_daily_strategy_suite(index, options, capital=10000, cost=CostConfig())
     assert not ((ledger["entry_date"] == entry) & (ledger["option_type"] == "CE")).any()
+
+
+
+def test_daily_holdout_is_chronological_and_reports_only_test_window():
+    from sensex_options.daily_strategies import daily_holdout_evaluation
+
+    dates = pd.date_range("2024-01-01", periods=20, freq="B")
+    ledger = pd.DataFrame({
+        "strategy": ["DAILY_ATM_CALL"] * 20,
+        "entry_date": dates,
+        "exit_date": dates + pd.offsets.BDay(1),
+        "net_pnl": [100.0, -50.0] * 10,
+    })
+    result = daily_holdout_evaluation(ledger)
+    assert result["status"] == "ok"
+    assert result["holdout_sessions"] == 6
+    assert result["holdout_start"] > result["train_end"]
+    assert result["holdout_metrics"][0]["trades"] == 6
