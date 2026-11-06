@@ -226,9 +226,10 @@ def test_parser_supports_actual_spaced_bse_legacy_archive_schema(tmp_path: Path)
     future_rows = options[options["trade_date"] > pd.Timestamp("2024-07-05")]
     assert legacy_rows["lot_size"].eq(10).all()
     assert future_rows["lot_size"].isna().all()
-    assert options.set_index("option_type")["volume"].to_dict() == {"CE": 84, "PE": 107}
-    assert options.set_index("option_type")["open_interest"].to_dict() == {"CE": 250, "PE": 260}
-    assert options["trade_date"].eq(pd.Timestamp("2023-05-15")).sum() == 2
+    first_day = options[options["trade_date"] == pd.Timestamp("2023-05-15")]
+    assert first_day.set_index("option_type")["volume"].to_dict() == {"CE": 84, "PE": 107}
+    assert first_day.set_index("option_type")["open_interest"].to_dict() == {"CE": 250, "PE": 260}
+    assert len(first_day) == 2
     assert options["instrument_type"].eq("OPTIDX").all()
     # The expiry-day row has an index-level close, not an option premium.
     expiry_row = options[options["trade_date"] == pd.Timestamp("2024-07-05")].iloc[0]
