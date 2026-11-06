@@ -406,21 +406,10 @@ def page_daily_options_research():
     board_path = out / "daily_strategy_leaderboard.csv"
     holdout_path = out / "daily_strategy_holdout.json"
 
-    if st.button("Re-run daily strategies using available history", type="primary"):
-        index_data, option_data = load_index(), load_options()
-        with st.spinner("Testing daily Call, Put, momentum and mean-reversion strategies..."):
-            ledger, board, meta = run_daily_strategy_suite(index_data, option_data)
-            if ledger.empty:
-                st.error(meta.get("error", "No valid next-session contract round trips were found."))
-            else:
-                out.mkdir(parents=True, exist_ok=True)
-                ledger.to_csv(ledger_path, index=False)
-                board.to_csv(board_path, index=False)
-                holdout = daily_holdout_evaluation(ledger)
-                with open(holdout_path, "w", encoding="utf-8") as handle:
-                    json.dump(holdout, handle, indent=2, default=str)
-                st.success(f"Completed {len(ledger):,} daily trades across {ledger['entry_date'].nunique():,} entry sessions.")
-                st.json(meta)
+    st.caption(
+        "Daily replay, option OHLC risk-control testing and data collection run in the scheduled GitHub Actions workflow. "
+        "This dashboard displays saved reports only."
+    )
 
     if not ledger_path.exists() or not board_path.exists():
         st.warning("Daily strategy reports are not available yet. Run the historical bootstrap and the daily research workflow.")
@@ -508,6 +497,80 @@ def page_daily_options_research():
             st.caption(holdout.get("warning", ""))
         else:
             st.warning(holdout.get("note", "Not enough daily sessions for holdout testing."))
+
+    st.subheader("Monthly risk-control screening")
+    st.caption(
+        "Research target: monthly gross profit / gross loss ≥ 1.20, with at least three trades in that month. "
+        "Stop and target tests use the next session's BSE option OHLC, not the SENSEX index candles. "
+        "When both levels are touched within the same session, the stop is assumed first."
+    )
+    risk_board_path = out / "risk_managed_leaderboard.csv"
+    risk_monthly_path = out / "risk_managed_monthly.csv"
+    risk_report_path = out / "risk_managed_research.json"
+    if risk_report_path.exists():
+        try:
+            with open(risk_report_path, encoding="utf-8") as handle:
+                risk_report = json.load(handle)
+        except (OSError, json.JSONDecodeError):
+            risk_report = {}
+        r1, r2, r3 = st.columns(3)
+        r1.metric("Exit-rule variants tested", f"{risk_report.get('total_variants_including_baselines', 0):,}")
+        r2.metric("Option OHLC coverage", f"{risk_report.get('option_ohlc_coverage_pct', 0):.1f}%")
+        r3.metric("Validated candidates", f"{risk_report.get('approved_candidate_count', 0)}")
+        if risk_report.get("status") == "validation_candidates_found":
+            st.success("At least one candidate passed the training and chronological holdout screens.")
+        elif risk_report.get("status") == "no_candidate_met_monthly_target":
+            st.warning(
+                "No tested rule met the strict monthly target in every sufficiently active month "
+                "across both training and holdout. The research will not promote a failing rule as a live signal."
+            )
+        else:
+            st.info(risk_report.get("note", "Risk-control report is not yet complete."))
+        if risk_board_path.exists():
+            risk_board = pd.read_csv(risk_board_path)
+            if not risk_board.empty:
+                display_cols = [
+                    "training_rank", "strategy", "full_trades", "full_net_pnl", "full_aggregate_pf",
+                    "train_target_hit_pct", "train_aggregate_pf", "holdout_target_hit_pct",
+                    "holdout_aggregate_pf", "validation_candidate",
+                ]
+                available_cols = [col for col in display_cols if col in risk_board.columns]
+                st.dataframe(
+                    risk_board[available_cols].head(20),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                choices = risk_board.sort_values("training_rank")["strategy"].astype(str).tolist()
+                selected_risk = st.selectbox(
+                    "Monthly results for an exit-rule variant",
+                    choices,
+                    key="risk_managed_strategy_select",
+                )
+                if risk_monthly_path.exists():
+                    monthly_risk = pd.read_csv(risk_monthly_path)
+                    monthly_view = monthly_risk[monthly_risk["strategy"].astype(str) == selected_risk]
+                    st.dataframe(
+                        monthly_view.sort_values("month", ascending=False),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+                    st.download_button(
+                        "Download all monthly risk-control results",
+                        monthly_risk.to_csv(index=False),
+                        "risk_managed_monthly.csv",
+                        "text/csv",
+                        key="risk_managed_monthly_download",
+                    )
+                st.download_button(
+                    "Download risk-control leaderboard",
+                    risk_board.to_csv(index=False),
+                    "risk_managed_leaderboard.csv",
+                    "text/csv",
+                    key="risk_managed_board_download",
+                )
+        st.caption(risk_report.get("warning", ""))
+    else:
+        st.info("Saved risk-control results will appear after the scheduled GitHub Actions research workflow completes.")
 
     st.subheader("Intraday filters — Daily ATM Put")
     st.caption(
