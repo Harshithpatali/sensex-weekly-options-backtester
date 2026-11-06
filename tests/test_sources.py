@@ -280,7 +280,6 @@ def test_load_options_accepts_mixed_date_and_timestamp_formats(tmp_path: Path):
 
 
 def test_download_replaces_existing_rows_for_successfully_parsed_session(tmp_path, monkeypatch):
-    from sensex_options import sources as sources_pkg
     from sensex_options.config import Paths
     from sensex_options.sources import bse
 
