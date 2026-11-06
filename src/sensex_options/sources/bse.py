@@ -42,6 +42,18 @@ HEADERS = {
 
 UDIFF_START = datetime(2024, 7, 8)
 
+def _parse_bse_date(values: pd.Series) -> pd.Series:
+    """Parse BSE date strings and compact YYYYMMDD values safely."""
+    text = values.astype("string").str.strip()
+    compact = text.str.len().eq(8) & text.str.isnumeric().fillna(False)
+    parsed = pd.to_datetime(text.where(~compact), errors="coerce", dayfirst=True)
+    if compact.any():
+        parsed.loc[compact] = pd.to_datetime(
+            text.loc[compact], format="%Y%m%d", errors="coerce"
+        )
+    return parsed.dt.normalize()
+
+
 
 def _udiff_url(d: datetime) -> str:
     return (
