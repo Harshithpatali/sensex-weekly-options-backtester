@@ -1,5 +1,5 @@
 {
-  "run_time_utc": "2026-11-06T17:50:54.054923+00:00",
+  "run_time_utc": "2026-11-06T17:59:22.401799+00:00",
   "target_data_date": "2026-11-05",
   "downloaded_option_dates": [
     "2026-11-02",
@@ -3017,6 +3017,21 @@
   "daily_strategy_count": 7,
   "daily_strategy_trades": 2383,
   "daily_holdout_status": "ok",
+  "risk_managed_research": {
+    "status": "no_candidate_met_monthly_target",
+    "variants": 294,
+    "option_ohlc_coverage_pct": 100.0,
+    "approved_candidate_count": 0,
+    "top_training_ranked_strategy": {
+      "strategy": "DAILY_RSI_REVERSAL__SL20_TP40",
+      "train_net_pnl": -3172.89,
+      "train_aggregate_pf": 0.9385394129560398,
+      "train_target_hit_pct": 63.64,
+      "holdout_net_pnl": -27017.22,
+      "holdout_aggregate_pf": 0.13075399910760224,
+      "holdout_target_hit_pct": 0.0
+    }
+  },
   "intraday_research": {
     "status": "ok",
     "bars": 3071,
