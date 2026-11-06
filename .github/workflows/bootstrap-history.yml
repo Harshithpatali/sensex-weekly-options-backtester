@@ -1,6 +1,9 @@
 name: Bootstrap SENSEX historical dataset
 
 on:
+  push:
+    paths:
+      - ".github/bootstrap-history.trigger"
   workflow_dispatch:
     inputs:
       start_date:
@@ -21,6 +24,7 @@ concurrency:
 
 jobs:
   download-and-build:
+    if: github.event_name == 'workflow_dispatch' || github.event.head_commit.message == 'chore: start historical bootstrap'
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
@@ -38,8 +42,8 @@ jobs:
           pip install -e .
       - name: Download historical SENSEX index and BSE options
         env:
-          START_DATE: ${{ inputs.start_date }}
-          END_DATE: ${{ inputs.end_date }}
+          START_DATE: ${{ inputs.start_date || '2023-05-15' }}
+          END_DATE: ${{ inputs.end_date || '2026-11-06' }}
         run: |
           python - <<'PY'
           import os
