@@ -265,7 +265,14 @@ def test_option_chain_features_calculate_pcr_and_option_positioning():
     assert pd.notna(latest["put_oi_change_pct"])
     assert "atm_straddle_pct" in features.columns
 
-    signals = _candidate_signals(features)
+    index_features = build_lagged_features(index).rename(columns={"date": "signal_date"})
+    combined_features = features.merge(
+        index_features,
+        on="signal_date",
+        how="left",
+        validate="many_to_one",
+    )
+    signals = _candidate_signals(combined_features)
     assert any(name.startswith("PCR_OI_") for name in signals)
     assert any(name.startswith("CALL_OI_BUILDUP") for name in signals)
     assert any("CHEAP_STRADDLE" in name for name in signals)
