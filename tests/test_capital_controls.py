@@ -74,3 +74,20 @@ def test_capital_holdout_is_chronological_and_resets_each_period():
     assert report["train_end"] < report["validation_start"]
     assert board.iloc[0]["train_ending_capital"] >= 10_000
     assert board.iloc[0]["validation_ending_capital"] >= 10_000
+
+
+def test_risk_budget_includes_full_round_trip_costs():
+    ledger = pd.DataFrame([{
+        "strategy": "CALL", "entry_date": "2024-01-02", "exit_date": "2024-01-03",
+        "entry_premium": 15.5, "exit_premium": 0.0, "lot_size": 10,
+        "lots": 1, "quantity": 10, "net_pnl": -155.0,
+    }])
+    trades, board, report = apply_capital_controls(
+        ledger, initial_capital=10_000, risk_per_trade_pct=0.02,
+        daily_loss_limit_pct=0.02,
+    )
+    # Premium debit alone is ₹155, but full conservative round-trip charges
+    # push maximum loss beyond the ₹200 budget.
+    assert trades.empty
+    assert board.iloc[0]["trades_rejected_risk_budget"] == 1
+    assert report["feasible_trades"] == 0
