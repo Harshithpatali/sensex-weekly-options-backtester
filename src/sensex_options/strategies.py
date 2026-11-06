@@ -81,8 +81,11 @@ def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: floa
     for key,grp in trades_df.groupby("strategy"):
         pnl=grp.net_pnl
         gains=float(pnl[pnl>0].sum()); losses=float(-pnl[pnl<0].sum())
-        eq=pnl.cumsum(); dd=eq-eq.cummax()
-        summary.append({"strategy":key,"description":STRATEGIES[key],"trades":len(grp),"net_pnl":round(float(pnl.sum()),2),"win_rate_pct":round(float((pnl>0).mean()*100),2),"profit_factor":round(gains/losses,3) if losses else None,"max_drawdown_trade_sequence":round(float(dd.min()),2),"avg_trade_pnl":round(float(pnl.mean()),2)})
+        eq=capital+pnl.cumsum()
+        peak=pd.Series([capital]+eq.tolist()).cummax().iloc[1:].to_numpy()
+        dd=eq.to_numpy()-peak
+        dd_pct=(dd/peak*100) if len(peak) else []
+        summary.append({"strategy":key,"description":STRATEGIES[key],"trades":len(grp),"net_pnl":round(float(pnl.sum()),2),"win_rate_pct":round(float((pnl>0).mean()*100),2),"profit_factor":round(gains/losses,3) if losses else None,"max_drawdown":round(float(dd.min()),2) if len(dd) else 0.0,"max_drawdown_pct":round(float(min(dd_pct)),2) if len(dd_pct) else 0.0,"avg_trade_pnl":round(float(pnl.mean()),2),"max_loss":round(float(pnl.min()),2)})
     rank=pd.DataFrame(summary).sort_values(["net_pnl","profit_factor"],ascending=[False,False],na_position="last")
     return trades_df,rank,{"capital_per_strategy":capital,"cost_assumptions":{"brokerage_per_order":brokerage_per_order,"slippage_points_per_leg_side":slippage_points},"note":"EOD close-to-close simulations; no intraday fills, bid/ask spread, market impact, margin funding or taxes beyond stated estimated brokerage/slippage."}
 
