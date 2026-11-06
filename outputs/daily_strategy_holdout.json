@@ -9,6 +9,14 @@
   "holdout_sessions": 161,
   "holdout_metrics": [
     {
+      "strategy": "DAILY_5D_MOMENTUM",
+      "trades": 108,
+      "net_pnl": 9641.47,
+      "win_rate_pct": 37.04,
+      "profit_factor": 1.045,
+      "expectancy": 89.27
+    },
+    {
       "strategy": "DAILY_ATM_CALL",
       "trades": 93,
       "net_pnl": -87034.27,
@@ -25,6 +33,14 @@
       "expectancy": 852.09
     },
     {
+      "strategy": "DAILY_EMA_TREND",
+      "trades": 103,
+      "net_pnl": 33596.21,
+      "win_rate_pct": 37.86,
+      "profit_factor": 1.1743,
+      "expectancy": 326.18
+    },
+    {
       "strategy": "DAILY_MEAN_REVERSION",
       "trades": 100,
       "net_pnl": 24503.92,
@@ -39,6 +55,14 @@
       "win_rate_pct": 33.02,
       "profit_factor": 0.9301,
       "expectancy": -143.89
+    },
+    {
+      "strategy": "DAILY_RSI_REVERSAL",
+      "trades": 24,
+      "net_pnl": -28608.47,
+      "win_rate_pct": 33.33,
+      "profit_factor": 0.441,
+      "expectancy": -1192.02
     }
   ],
   "warning": "This is a fixed-rule holdout, not a guarantee of future performance. Review sample size and execution assumptions."
