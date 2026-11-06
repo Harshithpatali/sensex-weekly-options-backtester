@@ -79,14 +79,14 @@ def test_debit_vertical_spread_grid_evaluates_multiple_available_widths():
     quotes = []
     for i, day in enumerate(dates):
         premiums = {
-            ("CE", 100.0): 30.0 + i * 5,
-            ("CE", 110.0): 20.0 + i,
-            ("CE", 120.0): 12.0 + i * 0.5,
-            ("CE", 130.0): 6.0,
-            ("PE", 100.0): 30.0 + i * 4,
-            ("PE", 90.0): 20.0 + i,
-            ("PE", 80.0): 12.0 + i * 0.5,
-            ("PE", 70.0): 6.0,
+            ("CE", 100.0): 30.0 + i,
+            ("CE", 110.0): 22.0 + i * 0.5,
+            ("CE", 120.0): 12.0 + i * 0.3,
+            ("CE", 130.0): 6.0 + i * 0.2,
+            ("PE", 100.0): 30.0 + i,
+            ("PE", 90.0): 22.0 + i * 0.5,
+            ("PE", 80.0): 12.0 + i * 0.3,
+            ("PE", 70.0): 6.0 + i * 0.2,
         }
         for (option_type, strike), premium in premiums.items():
             quotes.append({
