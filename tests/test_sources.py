@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas as pd
 
 from sensex_options.sources.contracts import resolve_lot_size
-from sensex_options.sources.bse import parse_bse_fo_file
+from sensex_options.sources.bse import parse_bse_fo_file, download_bse_options_range
 
 
 def test_resolve_lot_size_from_row():
@@ -35,3 +35,34 @@ def test_parser_keeps_only_sensex_calls_and_puts(tmp_path: Path):
     assert set(parsed["symbol"]) == {"SENSEX"}
     assert set(parsed["option_type"]) == {"CE", "PE"}
     assert len(parsed) == 2
+
+
+
+def test_no_download_does_not_overwrite_existing_processed_history(tmp_path, monkeypatch):
+    import sensex_options.sources.bse as bse
+    from sensex_options.config import DEFAULT_PATHS
+
+    processed = tmp_path / "processed"
+    reports = tmp_path / "reports"
+    raw = tmp_path / "raw"
+    processed.mkdir()
+    reports.mkdir()
+    existing_path = processed / "sensex_options.csv"
+    original = pd.DataFrame([{
+        "trade_date": "2024-01-01", "expiry_date": "2024-01-04",
+        "symbol": "SENSEX", "strike": 70000, "option_type": "CE", "close": 123.0,
+    }])
+    original.to_csv(existing_path, index=False)
+
+    monkeypatch.setattr(DEFAULT_PATHS, "processed", processed)
+    monkeypatch.setattr(DEFAULT_PATHS, "reports", reports)
+    monkeypatch.setattr(DEFAULT_PATHS, "raw_options", raw)
+    monkeypatch.setattr(bse, "download_one_day", lambda *args, **kwargs: (None, "not_found_404"))
+    monkeypatch.setattr(bse.time, "sleep", lambda *_: None)
+
+    result = download_bse_options_range("2024-01-02", "2024-01-02", sleep=0)
+
+    assert result.empty
+    saved = pd.read_csv(existing_path)
+    assert len(saved) == 1
+    assert float(saved.iloc[0]["close"]) == 123.0
