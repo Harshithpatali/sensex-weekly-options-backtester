@@ -310,7 +310,7 @@ The daily workflow is research/replay, not machine-learning model training and n
 - Each baseline has an isolated capital curve, compounded sequentially from the configured starting capital. The five strategies are **not** a single portfolio sharing the same capital.
 - Strategy exits require a quote for each required contract on the same selected exit session. Missing legs are skipped; stale prices from different dates are not mixed.
 - Daily, weekly, and monthly strategy P&L files are **realized P&L grouped by trade exit date**. They are not mark-to-market valuations of positions still open.
-- The strategy replay uses EOD close marks and approximate brokerage/slippage. It does not model bid/ask spread, queue position, market impact, margin, full statutory charges, taxes, or live order execution.
+- The strategy replay uses EOD close marks and configurable estimates for brokerage, STT, exchange charges, GST, stamp duty, other charges, bid/ask spread, slippage and market impact. BSE bhavcopies do not contain historical order-book depth, so spread and impact are proxies. Queue position, margin funding, intraday fills, and guaranteed execution are not modelled.
 - Historical lot size is taken from source data. Missing lot sizes are not guessed; affected trades are skipped.
 - A historical leaderboard ranks the observed sample. It is not a forecast and does not select a live strategy automatically.
 - GitHub Actions CI validates code with unit tests. Those tests use synthetic fixtures and do not establish that a strategy is profitable on real-market data.
