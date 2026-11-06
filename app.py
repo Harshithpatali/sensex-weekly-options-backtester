@@ -16,8 +16,8 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from sensex_options.config import BacktestConfig, CostConfig, DEFAULT_PATHS, SENSEX_OPTIONS_LAUNCH
-from sensex_options.sources.index import download_sensex_index, load_index
-from sensex_options.sources.bse import download_bse_options_range, load_options
+from sensex_options.sources.index import load_index
+from sensex_options.sources.bse import load_options
 from sensex_options.validation import validate_all, save_validation_report
 from sensex_options.backtest import run_backtest
 from sensex_options.reports import write_backtest_reports
@@ -26,7 +26,7 @@ from sensex_options.strategies import run_strategy_suite, period_pnl
 from sensex_options.analytics import strategy_performance_metrics, walk_forward_evaluation
 from sensex_options.daily_strategies import run_daily_strategy_suite, daily_holdout_evaluation
 from sensex_options.intraday_research import (
-    download_sensex_intraday, latest_previous_close, evaluate_intraday_put_filters,
+    latest_previous_close,
 )
 
 st.set_page_config(
@@ -54,7 +54,6 @@ st.markdown(
 
 PAGES = [
     "Overview",
-    "Data Collection",
     "Data Validation",
     "Backtest Configuration",
     "Performance Dashboard",
@@ -117,50 +116,6 @@ def page_overview():
         st.warning("\n".join(report["warnings"]))
     if report.get("errors"):
         st.error("\n".join(report["errors"]))
-
-
-def page_data_collection():
-    st.title("Data Collection")
-    st.markdown(
-        "Download data **on demand**. Yahoo Finance for SENSEX index; "
-        "official BSE FO bhavcopy for options. Holidays and missing files are recorded."
-    )
-    col1, col2 = st.columns(2)
-    start = col1.date_input("Start date", value=pd.Timestamp(SENSEX_OPTIONS_LAUNCH).date())
-    end = col2.date_input("End date", value=date.today())
-    start_s, end_s = str(start), str(end)
-
-    if st.button("Download SENSEX index (yfinance)", type="primary"):
-        with st.spinner("Downloading index..."):
-            try:
-                df = download_sensex_index(start_s, end_s)
-                st.success(f"Downloaded {len(df)} index rows.")
-                st.dataframe(df.tail(10))
-            except Exception as e:
-                st.error(f"Index download failed: {e}")
-
-    if st.button("Download BSE options bhavcopy"):
-        st.info(
-            "This may take a long time (one HTTP request per trading day). "
-            "Progress is shown in the terminal if launched from CLI. "
-            "Failed/holiday days are logged in the manifest."
-        )
-        with st.spinner("Downloading BSE FO files (this can take minutes)..."):
-            try:
-                df = download_bse_options_range(start_s, end_s, sleep=0.6)
-                st.success(f"Parsed {len(df):,} SENSEX Call and Put option rows.")
-                if not df.empty:
-                    st.dataframe(df.head(20))
-                manifest = DEFAULT_PATHS.reports / "options_collection_manifest.csv"
-                if manifest.exists():
-                    st.subheader("Collection manifest (sample)")
-                    st.dataframe(pd.read_csv(manifest).tail(30))
-            except Exception as e:
-                st.error(f"Options download failed: {e}")
-                st.markdown(
-                    "**Manual fallback:** Place official BSE FO bhavcopy CSV/ZIP files "
-                    f"into `{DEFAULT_PATHS.raw_options}` and re-run collection or parse via CLI."
-                )
 
 
 def page_validation():
@@ -555,66 +510,77 @@ def page_daily_options_research():
             st.warning(holdout.get("note", "Not enough daily sessions for holdout testing."))
 
     st.subheader("Intraday filters — Daily ATM Put")
-    st.markdown(
-        "Download recent **5-minute SENSEX index candles** from Yahoo Finance, then test whether end-of-session "
-        "bearish trend, close versus the intraday average price, and volatility filters improve the later validation sample. "
-        "This uses index candles to filter an EOD option entry; it does not treat index points as option premiums."
-    )
-    st.warning(
-        "Important: Yahoo's intraday history is short-window data (typically up to about 60 days for 5m/15m). "
-        "BSE bhavcopy has daily option marks only. An intraday option-premium stop-loss cannot be backtested "
-        "from these files, so stop-loss results are deliberately not fabricated."
+    st.caption(
+        "Read-only results from the scheduled GitHub Actions data pipeline. "
+        "The dashboard does not download or collect market data."
     )
     intraday_path = out / "sensex_intraday_5m.csv"
+    feature_path = out / "sensex_intraday_session_features.csv"
     filter_report_path = out / "daily_put_intraday_validation.json"
     filter_metrics_path = out / "daily_put_intraday_validation.csv"
-    if st.button("Download recent 5-minute SENSEX data and test Put filters", key="download_test_intraday"):
-        with st.spinner("Downloading recent SENSEX 5-minute candles and matching daily option trades..."):
-            try:
-                bars = download_sensex_intraday(interval="5m", period="60d", output_path=intraday_path)
-                if bars.empty:
-                    st.error("Yahoo Finance returned no intraday SENSEX candles. Try again later.")
-                else:
-                    joined, filter_report, features = evaluate_intraday_put_filters(ledger, bars)
-                    features.to_csv(out / "sensex_intraday_session_features.csv", index=False)
-                    if filter_report.get("status") == "ok":
-                        metrics_frame = pd.DataFrame(filter_report["validation_metrics"])
-                        metrics_frame.to_csv(filter_metrics_path, index=False)
-                        with open(filter_report_path, "w", encoding="utf-8") as handle:
-                            json.dump(filter_report, handle, indent=2, default=str)
-                        st.success(
-                            f"Downloaded {len(bars):,} intraday bars; matched {filter_report['matched_sessions']} "
-                            f"Daily ATM Put sessions. Validation window: {filter_report['validation_start']} "
-                            f"to {filter_report['validation_end']}."
-                        )
-                        st.dataframe(metrics_frame, use_container_width=True, hide_index=True)
-                    else:
-                        st.warning(filter_report.get("note", "Not enough overlapping data to evaluate filters."))
-                        st.json(filter_report)
-            except Exception as exc:
-                st.error(f"Intraday download or filter analysis failed: {exc}")
-    if filter_report_path.exists() and filter_metrics_path.exists():
-        with open(filter_report_path, encoding="utf-8") as handle:
-            filter_report = json.load(handle)
-        st.subheader("Latest intraday filter validation")
-        if filter_report.get("status") == "ok":
-            st.caption(
-                f"Training: {filter_report.get('training_start')} → {filter_report.get('training_end')} · "
-                f"Validation: {filter_report.get('validation_start')} → {filter_report.get('validation_end')} · "
-                f"Volatility cutoff learned from training only: {filter_report.get('training_median_range_pct')}% range"
-            )
-            st.dataframe(pd.read_csv(filter_metrics_path), use_container_width=True, hide_index=True)
-            st.caption(filter_report.get("warning", ""))
-            st.error(filter_report.get("stop_loss_status", ""))
-            st.download_button(
-                "Download intraday filter validation CSV",
-                filter_metrics_path.read_bytes(), "daily_put_intraday_validation.csv", "text/csv",
-            )
-        else:
-            st.warning(filter_report.get("note", "Intraday validation is not available."))
+    intraday_run = {}
+    daily_run_path = out / "daily_run.json"
+    if daily_run_path.exists():
+        try:
+            with open(daily_run_path, encoding="utf-8") as handle:
+                intraday_run = json.load(handle).get("intraday_research", {})
+        except (OSError, json.JSONDecodeError):
+            intraday_run = {}
+    status = intraday_run.get("status", "not_available")
+    if status == "ok":
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Saved 5-minute bars", f"{intraday_run.get('bars', 0):,}")
+        m2.metric("Matched option sessions", f"{intraday_run.get('matched_sessions', 0):,}")
+        m3.metric("Validation period", f"{intraday_run.get('validation_start', '—')} → {intraday_run.get('validation_end', '—')}")
+    elif status == "insufficient_data":
+        st.warning(intraday_run.get("note", "The scheduled run did not have enough overlapping data for validation."))
+    elif status == "download_error":
+        st.warning("The latest scheduled intraday download failed. Previously saved reports, if present, remain available.")
+        if intraday_run.get("error"):
+            st.caption(str(intraday_run["error"]))
     else:
-        st.caption("No intraday filter report yet. Download the recent 5-minute data to run this separate validation.")
-    
+        st.info("No saved intraday research output yet. It will appear after the scheduled data workflow completes.")
+
+    if intraday_path.exists():
+        bars_saved = pd.read_csv(intraday_path)
+        if not bars_saved.empty:
+            st.caption(
+                f"Saved intraday dataset: {len(bars_saved):,} rows · "
+                f"{bars_saved['timestamp'].min()} to {bars_saved['timestamp'].max()}"
+            )
+            with st.expander("View saved intraday SENSEX candles"):
+                st.dataframe(bars_saved.tail(100), use_container_width=True, hide_index=True)
+            st.download_button(
+                "Download saved SENSEX intraday data",
+                intraday_path.read_bytes(), "sensex_intraday_5m.csv", "text/csv",
+            )
+
+    if filter_report_path.exists():
+        try:
+            with open(filter_report_path, encoding="utf-8") as handle:
+                filter_report = json.load(handle)
+            st.subheader("Saved intraday filter validation")
+            if filter_report.get("status") == "ok":
+                st.caption(
+                    f"Training: {filter_report.get('training_start')} → {filter_report.get('training_end')} · "
+                    f"Validation: {filter_report.get('validation_start')} → {filter_report.get('validation_end')} · "
+                    f"Volatility threshold learned from training only: {filter_report.get('training_median_range_pct')}% range"
+                )
+                if filter_metrics_path.exists():
+                    st.dataframe(pd.read_csv(filter_metrics_path), use_container_width=True, hide_index=True)
+                    st.download_button(
+                        "Download saved filter validation CSV",
+                        filter_metrics_path.read_bytes(), "daily_put_intraday_validation.csv", "text/csv",
+                    )
+                st.caption(filter_report.get("warning", ""))
+                st.warning(filter_report.get("stop_loss_status", ""))
+            else:
+                st.info(filter_report.get("note", "No valid validation result was saved in the latest workflow run."))
+        except (OSError, json.JSONDecodeError) as exc:
+            st.warning(f"Saved intraday validation report could not be read: {exc}")
+    else:
+        st.caption("The intraday validation report has not been generated by the scheduled workflow yet.")
+
     st.subheader("Daily trade ledger")
     choices = ["All strategies"] + sorted(ledger["strategy"].dropna().unique().tolist())
     selected = st.selectbox("Filter daily strategy", choices, key="daily_options_strategy_filter")
@@ -800,8 +766,6 @@ def main():
     page = sidebar()
     if page == "Overview":
         page_overview()
-    elif page == "Data Collection":
-        page_data_collection()
     elif page == "Data Validation":
         page_validation()
     elif page == "Backtest Configuration":
