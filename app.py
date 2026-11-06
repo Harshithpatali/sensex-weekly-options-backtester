@@ -42,191 +42,326 @@ st.set_page_config(
 )
 
 # ─────────────────────────────────────────────────────────────
-# Modern Quant Terminal CSS
+# Modern Quant Terminal CSS — fixed contrast, no white top bar
 # ─────────────────────────────────────────────────────────────
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+    /* ---------- Force dark base ---------- */
+    html, body, [class*="css"], .stApp {
+        background-color: #0a0c12 !important;
+        color: #e8eaed !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    }
 
-    /* Base */
-    html, body, [class*="css"] {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
     .stApp {
-        background: linear-gradient(180deg, #0a0c12 0%, #0e1117 40%, #0a0c12 100%);
-        color: #e8eaed;
+        background: linear-gradient(180deg, #0a0c12 0%, #0e1117 45%, #0a0c12 100%) !important;
     }
+
     .main .block-container {
-        padding-top: 1.5rem;
-        padding-bottom: 3rem;
+        padding-top: 1.25rem !important;
+        padding-bottom: 2.5rem !important;
         max-width: 1400px;
     }
 
-    /* Typography */
-    h1, h2, h3 {
+    /* ---------- Kill the white top bar / header ---------- */
+    header[data-testid="stHeader"] {
+        background: transparent !important;
+        background-color: transparent !important;
+        height: 0px !important;
+        min-height: 0px !important;
+        border: none !important;
+    }
+    header[data-testid="stHeader"] > div {
+        background: transparent !important;
+    }
+    /* Hide Streamlit toolbar / Deploy button area */
+    div[data-testid="stToolbar"] {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+    }
+    .stDeployButton, [data-testid="stDecoration"] {
+        display: none !important;
+    }
+    /* Remove extra top padding that creates white strip */
+    .stApp > header {
+        background-color: transparent !important;
+    }
+    section[data-testid="stSidebar"] + div {
+        background: transparent !important;
+    }
+
+    /* ---------- Typography (high contrast) ---------- */
+    h1, h2, h3, h4, h5, h6 {
+        color: #f0f2f5 !important;
         font-weight: 600 !important;
         letter-spacing: -0.02em;
-        color: #f0f2f5 !important;
     }
-    h1 { font-size: 1.85rem !important; margin-bottom: 0.35rem !important; }
-    h2 { font-size: 1.35rem !important; margin-top: 1.75rem !important; }
-    h3 { font-size: 1.1rem !important; color: #00d4aa !important; }
+    h1 { font-size: 1.75rem !important; margin-bottom: 0.3rem !important; }
+    h2 { font-size: 1.3rem !important; margin-top: 1.6rem !important; color: #f0f2f5 !important; }
+    h3 { font-size: 1.05rem !important; color: #00d4aa !important; }
 
-    /* Sidebar */
+    p, span, label, .stMarkdown, .stCaption, div[data-testid="stMarkdownContainer"] {
+        color: #e8eaed !important;
+    }
+    .stCaption, [data-testid="stCaptionContainer"] {
+        color: #9aa0a6 !important;
+    }
+
+    /* ---------- Sidebar ---------- */
     [data-testid="stSidebar"] {
-        background: #0c0e14;
-        border-right: 1px solid #1e2433;
+        background-color: #0c0e14 !important;
+        border-right: 1px solid #1e2433 !important;
+    }
+    [data-testid="stSidebar"] * {
+        color: #e8eaed !important;
     }
     [data-testid="stSidebar"] .stRadio label {
-        font-size: 0.92rem;
-        padding: 0.35rem 0;
+        font-size: 0.92rem !important;
+        color: #e8eaed !important;
     }
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
-        color: #9aa0a6;
-        font-size: 0.8rem;
+        color: #9aa0a6 !important;
+        font-size: 0.8rem !important;
     }
 
-    /* Metrics */
+    /* ---------- Metrics (high visibility) ---------- */
     div[data-testid="stMetric"] {
-        background: #12151e;
-        border: 1px solid #1e2433;
-        border-radius: 10px;
-        padding: 0.85rem 1rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+        background: #12151e !important;
+        border: 1px solid #1e2433 !important;
+        border-radius: 10px !important;
+        padding: 0.85rem 1rem !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
     div[data-testid="stMetricValue"] {
         color: #00d4aa !important;
-        font-family: 'JetBrains Mono', monospace !important;
-        font-size: 1.35rem !important;
+        font-family: "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace !important;
+        font-size: 1.3rem !important;
         font-weight: 500 !important;
     }
     div[data-testid="stMetricLabel"] {
         color: #9aa0a6 !important;
-        font-size: 0.78rem !important;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
+        font-size: 0.75rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.04em !important;
     }
     div[data-testid="stMetricDelta"] {
-        font-family: 'JetBrains Mono', monospace;
+        font-family: "SF Mono", Consolas, monospace !important;
     }
 
-    /* Cards / containers */
+    /* ---------- Cards ---------- */
     .quant-card {
-        background: #12151e;
-        border: 1px solid #1e2433;
-        border-radius: 12px;
-        padding: 1.25rem 1.4rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        background: #12151e !important;
+        border: 1px solid #1e2433 !important;
+        border-radius: 12px !important;
+        padding: 1.15rem 1.3rem !important;
+        margin-bottom: 1rem !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        color: #e8eaed !important;
     }
     .quant-card-header {
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: #9aa0a6;
-        margin-bottom: 0.5rem;
+        font-size: 0.72rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.06em !important;
+        color: #9aa0a6 !important;
+        margin-bottom: 0.4rem !important;
     }
     .quant-accent {
-        color: #00d4aa;
-        font-family: 'JetBrains Mono', monospace;
+        color: #00d4aa !important;
+        font-family: "SF Mono", Consolas, monospace !important;
     }
     .quant-muted {
-        color: #9aa0a6;
-        font-size: 0.85rem;
+        color: #9aa0a6 !important;
+        font-size: 0.85rem !important;
     }
 
-    /* Buttons */
+    /* ---------- Buttons ---------- */
     .stButton > button {
-        border-radius: 8px;
-        font-weight: 500;
-        border: 1px solid #2a3142;
+        border-radius: 8px !important;
+        font-weight: 500 !important;
+        border: 1px solid #2a3142 !important;
+        color: #e8eaed !important;
+        background: #1a1f2e !important;
         transition: all 0.15s ease;
     }
+    .stButton > button:hover {
+        border-color: #00d4aa !important;
+        color: #00d4aa !important;
+    }
     .stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, #00b894 0%, #00d4aa 100%);
-        color: #0a0c12;
-        border: none;
-        font-weight: 600;
+        background: linear-gradient(135deg, #00b894 0%, #00d4aa 100%) !important;
+        color: #0a0c12 !important;
+        border: none !important;
+        font-weight: 600 !important;
     }
     .stButton > button[kind="primary"]:hover {
-        background: linear-gradient(135deg, #00d4aa 0%, #00e6b8 100%);
-        box-shadow: 0 0 20px rgba(0, 212, 170, 0.25);
+        background: linear-gradient(135deg, #00d4aa 0%, #00e6b8 100%) !important;
+        box-shadow: 0 0 18px rgba(0, 212, 170, 0.3) !important;
+        color: #0a0c12 !important;
     }
 
-    /* Dataframes */
-    [data-testid="stDataFrame"] {
-        border: 1px solid #1e2433;
-        border-radius: 10px;
-        overflow: hidden;
+    /* ---------- DataFrames / Tables (critical fix) ---------- */
+    [data-testid="stDataFrame"],
+    [data-testid="stTable"] {
+        background: #12151e !important;
+        border: 1px solid #1e2433 !important;
+        border-radius: 10px !important;
+        overflow: hidden !important;
+    }
+    /* Table header */
+    [data-testid="stDataFrame"] thead th,
+    [data-testid="stDataFrame"] th {
+        background-color: #1a1f2e !important;
+        color: #00d4aa !important;
+        font-weight: 600 !important;
+        border-bottom: 1px solid #2a3142 !important;
+    }
+    /* Table body */
+    [data-testid="stDataFrame"] tbody td,
+    [data-testid="stDataFrame"] td {
+        background-color: #12151e !important;
+        color: #e8eaed !important;
+        border-bottom: 1px solid #1e2433 !important;
+    }
+    [data-testid="stDataFrame"] tbody tr:hover td {
+        background-color: #1a1f2e !important;
+    }
+    /* Force any remaining white cells */
+    div[data-testid="stDataFrame"] div[data-testid="stTable"] {
+        background: #12151e !important;
+    }
+    /* Streamlit dataframe internal */
+    .stDataFrame, .dataframe {
+        background-color: #12151e !important;
+        color: #e8eaed !important;
+    }
+    .stDataFrame th {
+        background: #1a1f2e !important;
+        color: #00d4aa !important;
+    }
+    .stDataFrame td {
+        background: #12151e !important;
+        color: #e8eaed !important;
     }
 
-    /* Tabs */
+    /* ---------- Tabs ---------- */
     .stTabs [data-baseweb="tab-list"] {
         gap: 4px;
-        background: #0c0e14;
+        background: #0c0e14 !important;
         border-radius: 10px;
         padding: 4px;
     }
     .stTabs [data-baseweb="tab"] {
-        border-radius: 8px;
-        color: #9aa0a6;
-        font-weight: 500;
+        border-radius: 8px !important;
+        color: #9aa0a6 !important;
+        font-weight: 500 !important;
+        background: transparent !important;
     }
     .stTabs [aria-selected="true"] {
         background: #1a1f2e !important;
         color: #00d4aa !important;
     }
 
-    /* Expander */
+    /* ---------- Expander ---------- */
     [data-testid="stExpander"] {
-        background: #12151e;
-        border: 1px solid #1e2433;
-        border-radius: 10px;
+        background: #12151e !important;
+        border: 1px solid #1e2433 !important;
+        border-radius: 10px !important;
+    }
+    [data-testid="stExpander"] summary {
+        color: #e8eaed !important;
     }
 
-    /* Info / warning / error */
+    /* ---------- Alerts ---------- */
     .stAlert {
-        border-radius: 10px;
-        border: 1px solid #1e2433;
+        border-radius: 10px !important;
+        border: 1px solid #1e2433 !important;
+        color: #e8eaed !important;
     }
 
-    /* Input fields */
-    .stNumberInput input, .stTextInput input, .stSelectbox [data-baseweb="select"] {
-        background: #0c0e14 !important;
+    /* ---------- Inputs ---------- */
+    .stNumberInput input,
+    .stTextInput input,
+    .stSelectbox [data-baseweb="select"] > div,
+    .stDateInput input {
+        background-color: #0c0e14 !important;
         border: 1px solid #2a3142 !important;
         border-radius: 8px !important;
         color: #e8eaed !important;
     }
-
-    /* Divider */
-    hr {
-        border: none;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, #1e2433, transparent);
-        margin: 1.5rem 0;
+    .stSelectbox [data-baseweb="select"] span {
+        color: #e8eaed !important;
+    }
+    /* Dropdown menu */
+    [data-baseweb="popover"] {
+        background-color: #12151e !important;
+        border: 1px solid #2a3142 !important;
+    }
+    [data-baseweb="menu"] li {
+        color: #e8eaed !important;
+    }
+    [data-baseweb="menu"] li:hover {
+        background-color: #1a1f2e !important;
     }
 
-    /* Plotly container */
-    .js-plotly-plot {
-        border-radius: 10px;
+    /* ---------- Radio / Checkbox ---------- */
+    .stRadio label, .stCheckbox label {
+        color: #e8eaed !important;
+    }
+
+    /* ---------- Download buttons ---------- */
+    .stDownloadButton > button {
+        background: #1a1f2e !important;
+        color: #e8eaed !important;
+        border: 1px solid #2a3142 !important;
+    }
+    .stDownloadButton > button:hover {
+        border-color: #00d4aa !important;
+        color: #00d4aa !important;
+    }
+
+    /* ---------- Dividers ---------- */
+    hr {
+        border: none !important;
+        height: 1px !important;
+        background: linear-gradient(90deg, transparent, #1e2433, transparent) !important;
+        margin: 1.4rem 0 !important;
+    }
+
+    /* ---------- Plotly ---------- */
+    .js-plotly-plot, .plotly {
+        border-radius: 10px !important;
         overflow: hidden;
     }
 
-    /* Scrollbar */
+    /* ---------- Scrollbar ---------- */
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: #0a0c12; }
     ::-webkit-scrollbar-thumb { background: #2a3142; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #3a4558; }
 
-    /* Footer */
+    /* ---------- Footer ---------- */
     .quant-footer {
         text-align: center;
-        color: #5f6368;
+        color: #5f6368 !important;
         font-size: 0.75rem;
-        margin-top: 3rem;
-        padding-top: 1.5rem;
+        margin-top: 2.5rem;
+        padding-top: 1.25rem;
         border-top: 1px solid #1e2433;
+    }
+
+    /* ---------- Info / Warning text contrast ---------- */
+    .stAlert p, .stAlert span {
+        color: #e8eaed !important;
+    }
+
+    /* ---------- Fix any remaining white backgrounds ---------- */
+    .stApp > div:first-child {
+        background: transparent !important;
+    }
+    div[data-testid="stVerticalBlock"] > div {
+        background: transparent !important;
     }
     </style>
     """,
@@ -239,12 +374,13 @@ st.markdown(
 PLOTLY_LAYOUT = dict(
     template="plotly_dark",
     paper_bgcolor="rgba(0,0,0,0)",
-    plot_bgcolor="rgba(18,21,30,0.6)",
-    font=dict(family="Inter, sans-serif", color="#e8eaed", size=12),
+    plot_bgcolor="rgba(18,21,30,0.7)",
+    font=dict(family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif", color="#e8eaed", size=12),
     margin=dict(l=40, r=30, t=50, b=40),
-    xaxis=dict(gridcolor="#1e2433", zerolinecolor="#2a3142", showline=False),
-    yaxis=dict(gridcolor="#1e2433", zerolinecolor="#2a3142", showline=False),
+    xaxis=dict(gridcolor="#1e2433", zerolinecolor="#2a3142", showline=False, color="#9aa0a6"),
+    yaxis=dict(gridcolor="#1e2433", zerolinecolor="#2a3142", showline=False, color="#9aa0a6"),
     colorway=["#00d4aa", "#00b4d8", "#7b68ee", "#f72585", "#ff9f1c", "#4cc9f0"],
+    title_font=dict(color="#f0f2f5", size=14),
 )
 
 def apply_plotly_theme(fig: go.Figure) -> go.Figure:
@@ -270,12 +406,12 @@ PAGES = [
 def sidebar() -> str:
     st.sidebar.markdown(
         """
-        <div style="padding: 0.5rem 0 1rem 0;">
+        <div style="padding: 0.4rem 0 1rem 0;">
             <div style="font-size: 1.15rem; font-weight: 700; color: #00d4aa; letter-spacing: -0.02em;">
                 ◈ SENSEX OPTIONS
             </div>
-            <div style="font-size: 0.72rem; color: #5f6368; margin-top: 2px; letter-spacing: 0.04em;">
-                QUANT RESEARCH TERMINAL
+            <div style="font-size: 0.7rem; color: #5f6368; margin-top: 3px; letter-spacing: 0.05em; text-transform: uppercase;">
+                Quant Research Terminal
             </div>
         </div>
         """,
@@ -285,7 +421,7 @@ def sidebar() -> str:
     st.sidebar.markdown("---")
     st.sidebar.markdown(
         """
-        <div style="background:#12151e; border:1px solid #1e2433; border-radius:10px; padding:0.9rem 1rem; font-size:0.78rem; color:#9aa0a6; line-height:1.45;">
+        <div style="background:#12151e; border:1px solid #1e2433; border-radius:10px; padding:0.85rem 1rem; font-size:0.78rem; color:#9aa0a6; line-height:1.5;">
             <strong style="color:#00d4aa;">Research only</strong><br>
             Not live trading. Zero-cost defaults are unrealistic.
             Never fabricates option premiums. Uses observed BSE bhavcopy only.
@@ -296,7 +432,7 @@ def sidebar() -> str:
     return page
 
 # ─────────────────────────────────────────────────────────────
-# Helper: section header
+# Helper
 # ─────────────────────────────────────────────────────────────
 def section_header(title: str, subtitle: str | None = None):
     st.markdown(f"## {title}")
@@ -309,11 +445,11 @@ def section_header(title: str, subtitle: str | None = None):
 def page_overview():
     st.markdown(
         """
-        <div style="margin-bottom: 1.5rem;">
-            <h1 style="margin-bottom:0.2rem;">SENSEX Weekly Options</h1>
+        <div style="margin-bottom: 1.4rem;">
+            <h1 style="margin-bottom:0.25rem; color:#f0f2f5;">SENSEX Weekly Options</h1>
             <p style="color:#9aa0a6; font-size:0.95rem; margin:0;">
                 Research platform for daily Call / Put trades and expiry-based strategies using observed BSE derivatives bhavcopy premiums.
-                Default capital: <span class="quant-accent">₹10,000</span> per isolated strategy.
+                Default capital: <span style="color:#00d4aa; font-family:monospace;">₹10,000</span> per isolated strategy.
             </p>
         </div>
         """,
@@ -364,7 +500,7 @@ def page_overview():
             f"""
             <div class="quant-card">
                 <div class="quant-card-header">Index history</div>
-                <div style="font-size:1.05rem;">{report.get('index_start', '—')} → {report.get('index_end', '—')}</div>
+                <div style="font-size:1.05rem; color:#e8eaed;">{report.get('index_start', '—')} → {report.get('index_end', '—')}</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -374,7 +510,7 @@ def page_overview():
             f"""
             <div class="quant-card">
                 <div class="quant-card-header">Options history</div>
-                <div style="font-size:1.05rem;">{report.get('options_start', '—')} → {report.get('options_end', '—')}</div>
+                <div style="font-size:1.05rem; color:#e8eaed;">{report.get('options_start', '—')} → {report.get('options_end', '—')}</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -444,7 +580,7 @@ def page_backtest_config():
     exit_slip = st.number_input("Exit slippage (points)", min_value=0.0, value=0.0)
     max_lots = st.number_input("Max lots (0 = unlimited by capital)", min_value=0, value=0)
 
-    if st.button("Run Backtest", type="primary", use_container_width=False):
+    if st.button("Run Backtest", type="primary"):
         cost = CostConfig(
             brokerage_per_lot=brokerage,
             stt_pct=stt / 100.0 if stt > 1 else stt,
@@ -770,10 +906,23 @@ def page_daily_options_research():
     board_path = out / "daily_strategy_leaderboard.csv"
     holdout_path = out / "daily_strategy_holdout.json"
 
-    st.caption(
-        "Daily strategy replay, entry-signal research and data collection run in the scheduled GitHub Actions workflow. "
-        "This dashboard only displays saved reports."
-    )
+    if st.button("Re-run daily strategies using available history", type="primary"):
+        index_data, option_data = load_index(), load_options()
+        with st.spinner("Testing daily Call, Put, momentum and mean-reversion strategies…"):
+            ledger, board, meta = run_daily_strategy_suite(index_data, option_data)
+            if ledger.empty:
+                st.error(meta.get("error", "No valid next-session contract round trips were found."))
+            else:
+                out.mkdir(parents=True, exist_ok=True)
+                ledger.to_csv(ledger_path, index=False)
+                board.to_csv(board_path, index=False)
+                holdout = daily_holdout_evaluation(ledger)
+                with open(holdout_path, "w", encoding="utf-8") as handle:
+                    json.dump(holdout, handle, indent=2, default=str)
+                st.success(
+                    f"Completed {len(ledger):,} daily trades across {ledger['entry_date'].nunique():,} entry sessions."
+                )
+                st.json(meta)
 
     if not ledger_path.exists() or not board_path.exists():
         st.warning(
@@ -910,117 +1059,6 @@ def page_daily_options_research():
             st.caption(holdout.get("warning", ""))
         else:
             st.warning(holdout.get("note", "Not enough daily sessions for holdout testing."))
-
-    st.subheader("Alternative signals, option positioning and defined-risk spreads")
-    signal_report_path = out / "entry_signal_research.json"
-    signal_board_path = out / "entry_signal_leaderboard.csv"
-    signal_monthly_path = out / "entry_signal_monthly.csv"
-    signal_selector_path = out / "entry_signal_selector_monthly.csv"
-    signal_trade_path = out / "entry_signal_trade_ledger.csv"
-    if signal_report_path.exists():
-        try:
-            with open(signal_report_path, encoding="utf-8") as handle:
-                signal_report = json.load(handle)
-        except (OSError, json.JSONDecodeError):
-            signal_report = {}
-        s1, s2, s3, s4 = st.columns(4)
-        s1.metric("Option outcome samples", f"{signal_report.get('option_outcome_sessions', 0):,}")
-        s2.metric("Signal rules tested", f"{signal_report.get('candidate_rules_tested', 0):,}")
-        s3.metric("Rules passing screen", f"{signal_report.get('candidate_pass_count', 0)}")
-        s4.metric("Monthly target PF", f"{signal_report.get('monthly_target_profit_factor', 1.2):.2f}")
-        st.caption(
-            f"Instrument families: {', '.join(signal_report.get('instrument_families_tested', []))} · "
-            f"Moneyness: {', '.join(signal_report.get('moneyness_variants_tested', [])) or 'not applicable'} · "
-            f"Holding periods: {', '.join(str(x) for x in signal_report.get('holding_periods_tested', []))} sessions · "
-            f"Training through {signal_report.get('training_end', '—')} · "
-            f"Chronological holdout from {signal_report.get('holdout_start', '—')} "
-            f"to {signal_report.get('holdout_end', '—')}"
-        )
-        st.caption(
-            "Candidate pass rule: every month with at least 3 trades must have PF ≥ 1.20 "
-            "in both training and holdout. Research now includes ATM long options, debit spreads, "
-            "credit spreads, option-chain PCR/OI build-up and a straddle-versus-realised-volatility proxy. "
-            "Credit spreads are filtered by estimated defined maximum loss, not broker margin."
-        )
-        if signal_report.get("position_sizing"):
-            st.caption(signal_report["position_sizing"])
-        if signal_report.get("status") == "candidates_found":
-            st.success("At least one predeclared entry rule passed the training and holdout research screens. Review its monthly records before paper testing.")
-        elif signal_report.get("status") == "no_candidate_met_research_screen":
-            st.warning("No entry rule passed both training and holdout. The dashboard will not promote a losing or unstable rule as profitable.")
-        else:
-            st.info(signal_report.get("note", "Signal research needs more paired historical option data."))
-
-        if signal_board_path.exists():
-            signal_board = pd.read_csv(signal_board_path)
-            if not signal_board.empty:
-                display_cols = [
-                    "training_rank", "strategy", "full_trades", "full_net_pnl",
-                    "full_aggregate_pf", "full_monthly_target_hit_pct",
-                    "train_trades", "train_net_pnl", "train_aggregate_pf",
-                    "train_monthly_target_hit_pct", "train_max_drawdown",
-                    "holdout_trades", "holdout_net_pnl", "holdout_aggregate_pf",
-                    "holdout_monthly_target_hit_pct", "holdout_max_drawdown",
-                    "candidate_pass",
-                ]
-                display_cols = [col for col in display_cols if col in signal_board.columns]
-                st.dataframe(
-                    signal_board[display_cols].head(20),
-                    use_container_width=True,
-                    hide_index=True,
-                )
-                selected_signal = st.selectbox(
-                    "Inspect monthly performance for a signal",
-                    signal_board.sort_values("training_rank")["strategy"].astype(str).tolist(),
-                    key="entry_signal_strategy_select",
-                )
-                if signal_monthly_path.exists():
-                    signal_monthly = pd.read_csv(signal_monthly_path)
-                    signal_monthly_view = signal_monthly[
-                        signal_monthly["strategy"].astype(str) == selected_signal
-                    ]
-                    st.dataframe(
-                        signal_monthly_view.sort_values("month", ascending=False),
-                        use_container_width=True,
-                        hide_index=True,
-                    )
-                st.download_button(
-                    "Download entry-signal leaderboard",
-                    signal_board.to_csv(index=False),
-                    "entry_signal_leaderboard.csv",
-                    "text/csv",
-                    key="entry_signal_board_download",
-                )
-        if signal_selector_path.exists():
-            selector_monthly = pd.read_csv(signal_selector_path)
-            if not selector_monthly.empty:
-                st.markdown("**Rolling 3-month and 6-month selector (paper research)**")
-                st.caption("Selects only from the previous complete months when prior trade count and PF qualify; otherwise stays in cash.")
-                st.dataframe(
-                    selector_monthly.sort_values(["strategy", "month"]),
-                    use_container_width=True,
-                    hide_index=True,
-                )
-                st.download_button(
-                    "Download rolling selector monthly results",
-                    selector_monthly.to_csv(index=False),
-                    "entry_signal_selector_monthly.csv",
-                    "text/csv",
-                    key="entry_signal_selector_download",
-                )
-        if signal_trade_path.exists():
-            signal_trades_saved = pd.read_csv(signal_trade_path)
-            if not signal_trades_saved.empty:
-                st.download_button(
-                    "Download alternative signal trade ledger",
-                    signal_trades_saved.to_csv(index=False),
-                    "entry_signal_trade_ledger.csv",
-                    "text/csv",
-                    key="entry_signal_ledger_download",
-                )
-        st.caption(signal_report.get("caveat", ""))
-    else:
-        st.info("Saved entry-signal experiments will appear after the scheduled GitHub Actions workflow completes.")
 
     st.subheader("Intraday filters — Daily ATM Put")
     st.caption(
