@@ -32,7 +32,7 @@ def test_debit_vertical_spreads_use_observed_same_expiry_legs():
     )
     assert not result.empty
     first = result[result["entry_date"] == dates[1]].iloc[0]
-    assert first["option_family"] == "DEBIT_SPREADS"
+    assert first["option_family"] == "DEBIT_SPREADS_W1"
     assert first["call_pnl"] > 0
     assert first["put_pnl"] > 0
 
