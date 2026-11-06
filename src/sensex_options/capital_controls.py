@@ -74,8 +74,11 @@ def apply_capital_controls(
                 rejected_daily_stop += 1
                 continue
             # Long-option worst-case loss is the entire premium debit plus costs.
-            entry_cost = compute_transaction_costs(entry, entry, lot, lots, cfg)["total_cost"] / 2
-            worst_case = entry * qty + entry_cost
+            # Use the full conservative round-trip cost at a zero-value exit.
+            # Dividing round-trip costs by two understates the loss budget and can
+            # incorrectly admit a trade near the 2% cap.
+            worst_case_costs = compute_transaction_costs(entry, 0.0, lot, lots, cfg)
+            worst_case = entry * qty + worst_case_costs["total_cost"]
             risk_budget = equity * risk_per_trade_pct
             if worst_case > risk_budget:
                 rejected_risk += 1
