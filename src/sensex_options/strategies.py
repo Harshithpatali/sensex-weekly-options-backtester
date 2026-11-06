@@ -10,10 +10,18 @@ STRATEGIES = {
     "ATM_STRADDLE": "Buy ATM call + ATM put",
 }
 
-def _last_contract_row(frame, expiry, strike, opt_type, symbol):
-    x=frame[(frame.expiry_date==expiry)&(frame.option_type==opt_type)&(frame.strike==strike)]
-    if symbol is not None and "symbol" in x: x=x[x.symbol==symbol]
-    return x.sort_values("trade_date").tail(1)
+def _last_contract_row(frame, expiry, trade_date, strike, opt_type, symbol):
+    # Require a mark on the same selected exit session. Never silently use a
+    # stale quote from an earlier date for one leg of a multi-leg strategy.
+    x = frame[
+        (frame.expiry_date == expiry)
+        & (frame.trade_date == trade_date)
+        & (frame.option_type == opt_type)
+        & (frame.strike == strike)
+    ]
+    if symbol is not None and "symbol" in x:
+        x = x[x.symbol == symbol]
+    return x.sort_values("symbol").tail(1)
 
 def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: float=10000.0, brokerage_per_order: float=20.0, slippage_points: float=0.5):
     if index.empty or options.empty:
@@ -23,6 +31,8 @@ def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: floa
     opt["trade_date"]=pd.to_datetime(opt.trade_date).dt.normalize()
     opt["expiry_date"]=pd.to_datetime(opt.expiry_date).dt.normalize()
     for c in ("strike","close","lot_size"): opt[c]=pd.to_numeric(opt[c],errors="coerce")
+    if "symbol" in opt.columns:
+        opt["symbol"] = opt["symbol"].astype(str).str.strip().str.upper()
     opt=opt.dropna(subset=["trade_date","expiry_date","strike","close"])
     opt=opt[(opt.close>0)&(opt.strike>0)&(opt.option_type.isin(["CE","PE"]))]
     trades=[]
@@ -43,8 +53,15 @@ def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: floa
         step_down=[s for s in strikes if s<atm]
         otm_call=min(step_candidates) if step_candidates else None
         otm_put=max(step_down) if step_down else None
-        exit_day=opt.loc[opt.expiry_date.eq(expiry),"trade_date"].max()
-        if pd.isna(exit_day): continue
+        eligible_exit_dates = opt.loc[
+            opt.expiry_date.eq(expiry)
+            & opt.trade_date.le(expiry)
+            & opt.trade_date.gt(entry_date),
+            "trade_date",
+        ]
+        if eligible_exit_dates.empty:
+            continue
+        exit_day = eligible_exit_dates.max()
         for key,legs in {
             "ATM_CALL":[("CE",atm)],"ATM_PUT":[("PE",atm)],
             "OTM_CALL_1":[("CE",otm_call)],"OTM_PUT_1":[("PE",otm_put)],
@@ -56,7 +73,7 @@ def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: floa
                 er=entry[(entry.option_type==typ)&(entry.strike==strike)].sort_values("symbol").head(1)
                 if er.empty: break
                 symbol=er.iloc[0].get("symbol")
-                xr=_last_contract_row(opt[opt.trade_date<=exit_day],expiry,strike,typ,symbol)
+                xr=_last_contract_row(opt,expiry,exit_day,strike,typ,symbol)
                 if xr.empty: break
                 entry_rows.append(er.iloc[0]); exit_rows.append(xr.iloc[0])
             if len(entry_rows)!=len(legs): continue
@@ -68,6 +85,10 @@ def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: floa
             exit_credit=sum(max(0.0,float(r.close)-slippage_points) for r in exit_rows)
             if entry_debit<=0: continue
             n_lots=int(capital//(entry_debit*lots))
+            # Reserve enough cash for entry-side brokerage before accepting a lot.
+            entry_fees = brokerage_per_order * len(legs)
+            while n_lots > 0 and (entry_debit * lots * n_lots + entry_fees) > capital:
+                n_lots -= 1
             if n_lots<1: continue
             qty=n_lots*lots
             gross=(exit_credit-entry_debit)*qty
@@ -95,6 +116,8 @@ def period_pnl(trades: pd.DataFrame):
     x["day"]=x.exit_date.dt.strftime("%Y-%m-%d")
     x["week"]=x.exit_date.dt.to_period("W-SUN").astype(str)
     x["month"]=x.exit_date.dt.to_period("M").astype(str)
+    # These are realized P&L buckets by trade exit date, not daily mark-to-market
+    # returns on positions that remain open.
     return {
       "daily":x.groupby(["day","strategy"],as_index=False).net_pnl.sum(),
       "weekly":x.groupby(["week","strategy"],as_index=False).net_pnl.sum(),
