@@ -19,6 +19,7 @@ from sensex_options.sources.index import download_sensex_index, load_index
 from sensex_options.validation import validate_all, save_validation_report
 from sensex_options.strategies import run_strategy_suite, period_pnl
 from sensex_options.analytics import strategy_performance_metrics, walk_forward_evaluation
+from sensex_options.daily_strategies import run_daily_strategy_suite, daily_holdout_evaluation
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("daily_pipeline")
@@ -136,6 +137,23 @@ def run() -> dict:
     with open(output_dir / "walk_forward_report.json", "w", encoding="utf-8") as handle:
         json.dump(walk_forward, handle, indent=2, default=str)
 
+    # Daily one-session strategies are a separate experiment from expiry trades.
+    daily_trades, daily_ranking, daily_meta = run_daily_strategy_suite(index, options)
+    daily_holdout = daily_holdout_evaluation(daily_trades)
+    if not daily_trades.empty:
+        daily_trades.to_csv(output_dir / "daily_strategy_trade_ledger.csv", index=False)
+        daily_ranking.to_csv(output_dir / "daily_strategy_leaderboard.csv", index=False)
+        with open(output_dir / "daily_strategy_holdout.json", "w", encoding="utf-8") as handle:
+            json.dump(daily_holdout, handle, indent=2, default=str)
+        daily_periods = daily_trades.copy()
+        daily_periods["day"] = pd.to_datetime(daily_periods["exit_date"]).dt.strftime("%Y-%m-%d")
+        daily_periods["week"] = pd.to_datetime(daily_periods["exit_date"]).dt.to_period("W-SUN").astype(str)
+        daily_periods["month"] = pd.to_datetime(daily_periods["exit_date"]).dt.to_period("M").astype(str)
+        for period in ("day", "week", "month"):
+            daily_periods.groupby([period, "strategy"], as_index=False)["net_pnl"].sum().to_csv(
+                output_dir / f"daily_options_{period}_pnl.csv", index=False
+            )
+
     run_info = {
         "run_time_utc": datetime.now(timezone.utc).isoformat(),
         "target_data_date": target.isoformat(),
@@ -147,6 +165,9 @@ def run() -> dict:
         "strategy_count": int(len(ranking)),
         "performance_metrics": performance.to_dict("records") if not performance.empty else [],
         "walk_forward_status": walk_forward.get("status"),
+        "daily_strategy_count": int(len(daily_ranking)),
+        "daily_strategy_trades": int(len(daily_trades)),
+        "daily_holdout_status": daily_holdout.get("status"),
         "pnl_semantics": "realized P&L grouped by trade exit date; not daily mark-to-market",
         "validation_report": str(validation_path),
     }
