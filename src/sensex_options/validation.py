@@ -1,13 +1,10 @@
-"""
-Data validation and quality reports.
-"""
-
+"""Structural and statistical data-quality checks for normalized SENSEX data."""
 from __future__ import annotations
 
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 
@@ -17,77 +14,121 @@ from sensex_options.config import DEFAULT_PATHS
 logger = logging.getLogger(__name__)
 
 
-def validate_all(
-    index: pd.DataFrame,
-    options: pd.DataFrame,
-) -> Dict[str, Any]:
-    report: Dict[str, Any] = {
-        "index_rows": len(index),
-        "options_rows": len(options),
+def validate_all(index: pd.DataFrame, options: pd.DataFrame) -> dict[str, Any]:
+    report: dict[str, Any] = {
+        "index_rows": int(len(index)),
+        "options_rows": int(len(options)),
         "warnings": [],
         "errors": [],
     }
 
+    index_required = {"date", "close"}
+    options_required = {"trade_date", "expiry_date", "strike", "option_type", "close"}
+    missing_index = sorted(index_required - set(index.columns))
+    missing_options = sorted(options_required - set(options.columns))
+
     if index.empty:
         report["errors"].append("Index data is empty. Run collect-index.")
+    elif missing_index:
+        report["errors"].append(f"Index dataset missing required columns: {missing_index}")
     else:
-        report["index_start"] = str(index["date"].min().date())
-        report["index_end"] = str(index["date"].max().date())
-        dups = index.duplicated(subset=["date"]).sum()
-        if dups:
-            report["warnings"].append(f"Duplicate index dates: {dups}")
-        invalid = (index["close"] <= 0).sum()
-        if invalid:
-            report["warnings"].append(f"Non-positive index closes: {invalid}")
+        idx = index.copy()
+        idx["date"] = pd.to_datetime(idx["date"], errors="coerce")
+        idx["close"] = pd.to_numeric(idx["close"], errors="coerce")
+        invalid_dates = int(idx["date"].isna().sum())
+        invalid_closes = int((idx["close"].isna() | (idx["close"] <= 0)).sum())
+        if invalid_dates:
+            report["errors"].append(f"Invalid index dates: {invalid_dates}")
+        if invalid_closes:
+            report["warnings"].append(f"Missing or non-positive index closes: {invalid_closes}")
+        valid_idx = idx.dropna(subset=["date", "close"]).copy()
+        if not valid_idx.empty:
+            report["index_start"] = str(valid_idx["date"].min().date())
+            report["index_end"] = str(valid_idx["date"].max().date())
+        duplicates = int(idx.duplicated(subset=["date"]).sum())
+        if duplicates:
+            report["warnings"].append(f"Duplicate index dates: {duplicates}")
 
     if options.empty:
         report["errors"].append(
-            "Options data is empty. Run collect-options. "
-            "BSE SENSEX options coverage starts ~May 2023."
+            "Options data is empty. Run collect-options. BSE SENSEX options coverage starts around May 2023."
         )
         report["expiries"] = 0
+    elif missing_options:
+        report["errors"].append(f"Options dataset missing required columns: {missing_options}")
     else:
-        report["options_start"] = str(pd.to_datetime(options["trade_date"]).min().date())
-        report["options_end"] = str(pd.to_datetime(options["trade_date"]).max().date())
-        expiries = available_expiries(options)
-        report["expiries"] = len(expiries)
-        report["expiry_list_sample"] = [str(d.date()) for d in expiries[:10]]
+        opt = options.copy()
+        opt["trade_date"] = pd.to_datetime(opt["trade_date"], errors="coerce")
+        opt["expiry_date"] = pd.to_datetime(opt["expiry_date"], errors="coerce")
+        opt["strike"] = pd.to_numeric(opt["strike"], errors="coerce")
+        opt["close"] = pd.to_numeric(opt["close"], errors="coerce")
+        opt["option_type"] = opt["option_type"].astype(str).str.strip().str.upper()
 
-        missing_close = options["close"].isna().sum()
-        if missing_close:
-            report["warnings"].append(f"Options rows with missing close: {missing_close}")
+        invalid_dates = int((opt["trade_date"].isna() | opt["expiry_date"].isna()).sum())
+        if invalid_dates:
+            report["errors"].append(f"Invalid option trade/expiry dates: {invalid_dates}")
+        invalid_strikes = int((opt["strike"].isna() | (opt["strike"] <= 0)).sum())
+        if invalid_strikes:
+            report["warnings"].append(f"Missing or non-positive option strikes: {invalid_strikes}")
+        invalid_types = int((~opt["option_type"].isin(["CE", "PE"])).sum())
+        if invalid_types:
+            report["warnings"].append(f"Rows with option type other than CE/PE: {invalid_types}")
+        invalid_closes = int((opt["close"].isna() | (opt["close"] < 0)).sum())
+        if invalid_closes:
+            report["warnings"].append(f"Missing or negative option closes: {invalid_closes}")
+        reversed_dates = int((opt["expiry_date"] < opt["trade_date"]).sum())
+        if reversed_dates:
+            report["errors"].append(f"Option expiry precedes trade date: {reversed_dates}")
 
-        zero_vol = (options["volume"].fillna(0) == 0).sum() if "volume" in options.columns else 0
-        if zero_vol:
-            report["warnings"].append(f"Zero-volume option rows: {zero_vol}")
+        valid_dates = opt["trade_date"].dropna()
+        if not valid_dates.empty:
+            report["options_start"] = str(valid_dates.min().date())
+            report["options_end"] = str(valid_dates.max().date())
 
-        missing_lot = options["lot_size"].isna().sum() if "lot_size" in options.columns else len(options)
-        report["missing_lot_size_rows"] = int(missing_lot)
-        if missing_lot == len(options):
+        expiries = available_expiries(opt)
+        report["expiries"] = int(len(expiries))
+        report["expiry_list_sample"] = [str(value.date()) for value in expiries[:10]]
+
+        counts = opt["option_type"].value_counts().to_dict()
+        report["option_type_counts"] = {str(key): int(value) for key, value in counts.items()}
+        for side in ("CE", "PE"):
+            if counts.get(side, 0) == 0:
+                report["warnings"].append(f"No {side} rows found; strategies requiring both sides may be skipped.")
+
+        if "volume" in opt.columns:
+            volume = pd.to_numeric(opt["volume"], errors="coerce")
+            zero_volume = int((volume.fillna(0) <= 0).sum())
+            if zero_volume:
+                report["warnings"].append(f"Zero or missing-volume option rows: {zero_volume}")
+
+        missing_lot = (
+            int(pd.to_numeric(opt["lot_size"], errors="coerce").isna().sum())
+            if "lot_size" in opt.columns else len(opt)
+        )
+        report["missing_lot_size_rows"] = missing_lot
+        if missing_lot:
             report["warnings"].append(
-                "No lot_size values present in options data. "
-                "Trades will be skipped until lot size metadata is supplied."
+                f"Missing historical lot size on {missing_lot} rows; trades using those rows will be skipped."
             )
 
-        dups = detect_duplicate_expiries(options)
-        report["duplicate_contract_samples"] = len(dups)
-        if dups:
-            report["warnings"].append(f"Possible duplicate contracts: {len(dups)} samples")
+        duplicates = detect_duplicate_expiries(opt)
+        report["duplicate_contract_samples"] = len(duplicates)
+        if duplicates:
+            report["warnings"].append(f"Possible duplicate contract keys: {len(duplicates)} samples")
 
-        # Premiums that look stale / extreme (heuristic only)
-        if "close" in options.columns:
-            extreme = options[options["close"] > 50_000]
-            if len(extreme):
-                report["warnings"].append(f"Extreme premium values (>50000): {len(extreme)}")
+        if "symbol" in opt.columns:
+            non_sensex = int((~opt["symbol"].astype(str).str.upper().str.startswith("SENSEX")).sum())
+            if non_sensex:
+                report["warnings"].append(f"Non-SENSEX symbols found in options dataset: {non_sensex}")
 
-    report["status"] = "ok" if not report["errors"] else "incomplete"
+    report["status"] = "incomplete" if report["errors"] else ("warning" if report["warnings"] else "ok")
     return report
 
 
-def save_validation_report(report: Dict[str, Any], path: Path | None = None) -> Path:
+def save_validation_report(report: dict[str, Any], path: Path | None = None) -> Path:
     path = path or DEFAULT_PATHS.reports / "data_validation.json"
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(report, f, indent=2, default=str)
+    with open(path, "w", encoding="utf-8") as handle:
+        json.dump(report, handle, indent=2, default=str)
     logger.info("Validation report saved to %s", path)
     return path
