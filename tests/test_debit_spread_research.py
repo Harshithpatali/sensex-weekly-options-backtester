@@ -65,3 +65,43 @@ def test_debit_vertical_spreads_skip_missing_exit_leg():
     first = result[result["entry_date"] == dates[1]].iloc[0]
     assert pd.notna(first["call_pnl"])
     assert pd.isna(first["put_pnl"])
+
+
+def test_debit_vertical_spread_grid_evaluates_multiple_available_widths():
+    dates = pd.bdate_range("2024-02-01", periods=5)
+    close = [100.0] * len(dates)
+    index = pd.DataFrame({
+        "date": dates, "open": close, "high": [101.0] * 5,
+        "low": [99.0] * 5, "close": close,
+    })
+    expiry = dates[-1] + pd.Timedelta(days=7)
+    strikes = [70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0]
+    quotes = []
+    for i, day in enumerate(dates):
+        premiums = {
+            ("CE", 100.0): 30.0 + i * 5,
+            ("CE", 110.0): 20.0 + i,
+            ("CE", 120.0): 12.0 + i * 0.5,
+            ("CE", 130.0): 6.0,
+            ("PE", 100.0): 30.0 + i * 4,
+            ("PE", 90.0): 20.0 + i,
+            ("PE", 80.0): 12.0 + i * 0.5,
+            ("PE", 70.0): 6.0,
+        }
+        for (option_type, strike), premium in premiums.items():
+            quotes.append({
+                "trade_date": day, "expiry_date": expiry, "strike": strike,
+                "symbol": "SENSEX", "option_type": option_type,
+                "close": premium, "lot_size": 10,
+            })
+    result = _option_debit_vertical_outcomes(
+        index, pd.DataFrame(quotes), holding_periods=(1,),
+        spread_width_steps=(1, 2, 3), cost=CostConfig(),
+    )
+    first_entry = result[result["entry_date"] == dates[1]]
+    assert set(first_entry["spread_width_steps"].astype(int)) == {1, 2, 3}
+    assert set(first_entry["option_family"]) == {
+        "DEBIT_SPREADS_W1", "DEBIT_SPREADS_W2", "DEBIT_SPREADS_W3"
+    }
+    assert first_entry["call_pnl"].notna().all()
+    assert first_entry["put_pnl"].notna().all()
