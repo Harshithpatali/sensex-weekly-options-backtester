@@ -22,7 +22,7 @@ def test_parse_empty_file(tmp_path: Path):
 
 def test_parser_keeps_only_sensex_calls_and_puts(tmp_path: Path):
     raw = pd.DataFrame({
-        "TradDt": ["2026-11-05"] * 3, "XpryDt": ["2026-11-12"] * 3,
+        "TradDt": [20261105] * 3, "XpryDt": [20261112] * 3,
         "TckrSymb": ["SENSEX", "SENSEX", "NIFTY"], "StrkPric": [80000, 80000, 25000],
         "OptnTp": ["CE", "PE", "CE"], "OpnPric": [100, 110, 90],
         "HghPric": [120, 130, 100], "LwPric": [80, 90, 70],
