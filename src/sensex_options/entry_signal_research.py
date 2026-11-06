@@ -1207,61 +1207,146 @@ def _one_position_at_a_time(frame: pd.DataFrame) -> tuple[pd.DataFrame, int]:
 
 
 def _monthly_stats(frame: pd.DataFrame) -> pd.DataFrame:
-    if frame.empty:
+    """Vectorized monthly gross profit/loss summary for all candidate rules."""
+    if frame is None or frame.empty:
         return pd.DataFrame()
-    rows = []
-    for (strategy, month), group in frame.groupby(["strategy", "month"], sort=True):
-        pnl = pd.to_numeric(group["net_pnl"], errors="coerce").dropna()
-        gp = float(pnl[pnl > 0].sum())
-        gl = float(-pnl[pnl < 0].sum())
-        pf = _profit_factor(pnl)
-        trades = len(pnl)
-        target_testable = trades >= MIN_MONTH_TRADES
-        rows.append({
-            "strategy": strategy,
-            "month": month,
-            "trades": trades,
-            "gross_profit": round(gp, 2),
-            "gross_loss": round(gl, 2),
-            "net_pnl": round(float(pnl.sum()), 2),
-            "profit_factor": pf,
-            "target_pf": TARGET_PF,
-            "target_testable": target_testable,
-            "target_met": bool(pf is not None and pf >= TARGET_PF) if target_testable else None,
-        })
-    return pd.DataFrame(rows)
+    x = frame[["strategy", "month", "net_pnl"]].copy()
+    x["net_pnl"] = pd.to_numeric(x["net_pnl"], errors="coerce")
+    x = x.dropna(subset=["strategy", "month", "net_pnl"])
+    if x.empty:
+        return pd.DataFrame()
+    x["gross_profit_component"] = x["net_pnl"].clip(lower=0)
+    x["gross_loss_component"] = (-x["net_pnl"]).clip(lower=0)
+    grouped = x.groupby(["strategy", "month"], sort=True).agg(
+        trades=("net_pnl", "count"),
+        gross_profit=("gross_profit_component", "sum"),
+        gross_loss=("gross_loss_component", "sum"),
+        net_pnl=("net_pnl", "sum"),
+    ).reset_index()
+    grouped["profit_factor"] = np.where(
+        grouped["gross_loss"] > 0,
+        grouped["gross_profit"] / grouped["gross_loss"],
+        np.where(grouped["gross_profit"] > 0, np.inf, np.nan),
+    )
+    grouped["target_pf"] = TARGET_PF
+    grouped["target_testable"] = grouped["trades"] >= MIN_MONTH_TRADES
+    grouped["target_met"] = [
+        (bool(pf >= TARGET_PF) if testable and _finite(pf) else
+         bool(np.isinf(pf)) if testable and isinstance(pf, (float, np.floating)) and np.isinf(pf) else
+         None)
+        for pf, testable in zip(grouped["profit_factor"], grouped["target_testable"])
+    ]
+    grouped["gross_profit"] = grouped["gross_profit"].round(2)
+    grouped["gross_loss"] = grouped["gross_loss"].round(2)
+    grouped["net_pnl"] = grouped["net_pnl"].round(2)
+    return grouped
+
+
+def _empty_score(split: str) -> dict:
+    return {
+        f"{split}_trades": 0,
+        f"{split}_net_pnl": 0.0,
+        f"{split}_gross_profit": 0.0,
+        f"{split}_gross_loss": 0.0,
+        f"{split}_aggregate_pf": None,
+        f"{split}_win_rate_pct": None,
+        f"{split}_expectancy": None,
+        f"{split}_median_trade_pnl": None,
+        f"{split}_max_drawdown": None,
+        f"{split}_active_months": 0,
+        f"{split}_target_months": 0,
+        f"{split}_monthly_target_hit_pct": None,
+        f"{split}_positive_months": 0,
+        f"{split}_months": 0,
+    }
+
+
+def _score_many(frame: pd.DataFrame, split: str) -> dict[str, dict]:
+    """Compute all per-candidate metrics with a small number of vectorized groupbys."""
+    empty = _empty_score(split)
+    if frame is None or frame.empty:
+        return {}
+
+    x = frame[["strategy", "month", "entry_date", "exit_date", "net_pnl"]].copy()
+    x["net_pnl"] = pd.to_numeric(x["net_pnl"], errors="coerce")
+    x = x.dropna(subset=["strategy", "month", "entry_date", "exit_date", "net_pnl"])
+    if x.empty:
+        return {}
+    x["gross_profit_component"] = x["net_pnl"].clip(lower=0)
+    x["gross_loss_component"] = (-x["net_pnl"]).clip(lower=0)
+    x["win_component"] = (x["net_pnl"] > 0).astype(float)
+
+    aggregate = x.groupby("strategy", sort=False).agg(
+        trades=("net_pnl", "count"),
+        net_pnl=("net_pnl", "sum"),
+        gross_profit=("gross_profit_component", "sum"),
+        gross_loss=("gross_loss_component", "sum"),
+        win_rate=("win_component", "mean"),
+        expectancy=("net_pnl", "mean"),
+        median_trade_pnl=("net_pnl", "median"),
+    )
+
+    ordered = x.sort_values(["strategy", "exit_date", "entry_date"], kind="stable").copy()
+    ordered["equity"] = 10000.0 + ordered.groupby("strategy", sort=False)["net_pnl"].cumsum()
+    ordered["peak"] = ordered["equity"].clip(lower=10000.0).groupby(
+        ordered["strategy"], sort=False
+    ).cummax()
+    ordered["drawdown"] = ordered["equity"] - ordered["peak"]
+    drawdown = ordered.groupby("strategy", sort=False)["drawdown"].min()
+    aggregate["max_drawdown"] = drawdown
+
+    monthly = _monthly_stats(x)
+    if not monthly.empty:
+        monthly["active_flag"] = monthly["target_testable"].astype(int)
+        monthly["target_pass_flag"] = (
+            monthly["target_met"].fillna(False).astype(int)
+        )
+        monthly["positive_month_flag"] = (monthly["net_pnl"] > 0).astype(int)
+        monthly_summary = monthly.groupby("strategy", sort=False).agg(
+            active_months=("active_flag", "sum"),
+            target_months=("target_pass_flag", "sum"),
+            positive_months=("positive_month_flag", "sum"),
+            months=("month", "count"),
+        )
+        aggregate = aggregate.join(monthly_summary, how="left")
+
+    aggregate["active_months"] = aggregate.get("active_months", 0)
+    aggregate["target_months"] = aggregate.get("target_months", 0)
+    aggregate["positive_months"] = aggregate.get("positive_months", 0)
+    aggregate["months"] = aggregate.get("months", 0)
+    result = {}
+    for strategy, row in aggregate.iterrows():
+        gp, gl = float(row["gross_profit"]), float(row["gross_loss"])
+        pf = gp / gl if gl > 0 else (float("inf") if gp > 0 else None)
+        active_months = int(row["active_months"])
+        passed = int(row["target_months"])
+        result[str(strategy)] = {
+            f"{split}_trades": int(row["trades"]),
+            f"{split}_net_pnl": round(float(row["net_pnl"]), 2),
+            f"{split}_gross_profit": round(gp, 2),
+            f"{split}_gross_loss": round(gl, 2),
+            f"{split}_aggregate_pf": pf,
+            f"{split}_win_rate_pct": round(float(row["win_rate"]) * 100, 2),
+            f"{split}_expectancy": round(float(row["expectancy"]), 2),
+            f"{split}_median_trade_pnl": round(float(row["median_trade_pnl"]), 2),
+            f"{split}_max_drawdown": round(float(row["max_drawdown"]), 2),
+            f"{split}_active_months": active_months,
+            f"{split}_target_months": passed,
+            f"{split}_monthly_target_hit_pct": (
+                round(passed / active_months * 100, 2) if active_months else None
+            ),
+            f"{split}_positive_months": int(row["positive_months"]),
+            f"{split}_months": int(row["months"]),
+        }
+    return result
 
 
 def _score(frame: pd.DataFrame, split: str) -> dict:
-    pnl = pd.to_numeric(frame["net_pnl"], errors="coerce").dropna() if not frame.empty else pd.Series(dtype=float)
-    gp = float(pnl[pnl > 0].sum())
-    gl = float(-pnl[pnl < 0].sum())
-    pf = _profit_factor(pnl)
-    net = float(pnl.sum())
-    monthly = _monthly_stats(frame)
-    active = monthly[monthly["target_testable"]] if not monthly.empty else monthly
-    met = int(active["target_met"].fillna(False).sum()) if not active.empty else 0
-    count = len(active)
-    ordered = pnl.reset_index(drop=True)
-    curve = 10000.0 + ordered.cumsum()
-    peaks = pd.concat([pd.Series([10000.0]), curve], ignore_index=True).cummax().iloc[1:].reset_index(drop=True) if len(curve) else pd.Series(dtype=float)
-    dd = (curve.reset_index(drop=True) - peaks) if len(curve) else pd.Series(dtype=float)
-    return {
-        f"{split}_trades": int(len(pnl)),
-        f"{split}_net_pnl": round(net, 2),
-        f"{split}_gross_profit": round(gp, 2),
-        f"{split}_gross_loss": round(gl, 2),
-        f"{split}_aggregate_pf": pf,
-        f"{split}_win_rate_pct": round(float((pnl > 0).mean() * 100), 2) if len(pnl) else None,
-        f"{split}_expectancy": round(float(pnl.mean()), 2) if len(pnl) else None,
-        f"{split}_median_trade_pnl": round(float(pnl.median()), 2) if len(pnl) else None,
-        f"{split}_max_drawdown": round(float(dd.min()), 2) if len(dd) else None,
-        f"{split}_active_months": count,
-        f"{split}_target_months": met,
-        f"{split}_monthly_target_hit_pct": round(met / count * 100, 2) if count else None,
-        f"{split}_positive_months": int((monthly["net_pnl"] > 0).sum()) if not monthly.empty else 0,
-        f"{split}_months": len(monthly),
-    }
+    """Single-rule reference implementation retained for unit-test comparability."""
+    if frame is None or frame.empty:
+        return _empty_score(split)
+    result = _score_many(frame, split)
+    return result.get(str(frame["strategy"].iloc[0]), _empty_score(split))
 
 
 def _build_monthly_selector(
@@ -1507,12 +1592,18 @@ def run_entry_signal_research(
     monthly = _monthly_stats(trades)
     leaderboard_rows = []
     candidate_names = sorted(trades["strategy"].unique())
-    for name, group in trades.groupby("strategy", sort=True):
-        train = group[group["split"] == "train"]
-        holdout = group[group["split"] == "holdout"]
-        train_metrics = _score(train, "train")
-        holdout_metrics = _score(holdout, "holdout")
-        full_metrics = _score(group, "full")
+    split_scores = {
+        "train": _score_many(trades[trades["split"] == "train"], "train"),
+        "holdout": _score_many(trades[trades["split"] == "holdout"], "holdout"),
+        "full": _score_many(trades, "full"),
+    }
+    empty_train = _empty_score("train")
+    empty_holdout = _empty_score("holdout")
+    empty_full = _empty_score("full")
+    for name in candidate_names:
+        train_metrics = split_scores["train"].get(str(name), empty_train)
+        holdout_metrics = split_scores["holdout"].get(str(name), empty_holdout)
+        full_metrics = split_scores["full"].get(str(name), empty_full)
         train_ok = (
             train_metrics["train_trades"] >= MIN_TRAIN_TRADES
             and train_metrics["train_active_months"] >= 6
