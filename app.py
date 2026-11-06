@@ -924,13 +924,14 @@ def page_daily_options_research():
         except (OSError, json.JSONDecodeError):
             signal_report = {}
         s1, s2, s3, s4 = st.columns(4)
-        s1.metric("Paired ATM outcomes", f"{signal_report.get('paired_trades', 0):,}")
+        s1.metric("ATM outcome sessions", f"{signal_report.get('option_outcome_sessions', 0):,}")
         s2.metric("Signal rules tested", f"{signal_report.get('candidate_rules_tested', 0):,}")
         s3.metric("Rules passing screen", f"{signal_report.get('candidate_pass_count', 0)}")
         s4.metric("Monthly target PF", f"{signal_report.get('monthly_target_profit_factor', 1.2):.2f}")
         st.caption(
+            f"Holding periods tested: {', '.join(str(x) for x in signal_report.get('holding_periods_tested', []))} sessions · "
             f"Training through {signal_report.get('training_end', '—')} · "
-            f"Untouched chronological holdout from {signal_report.get('holdout_start', '—')} "
+            f"Chronological holdout from {signal_report.get('holdout_start', '—')} "
             f"to {signal_report.get('holdout_end', '—')}"
         )
         if signal_report.get("status") == "candidates_found":
