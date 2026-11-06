@@ -770,23 +770,10 @@ def page_daily_options_research():
     board_path = out / "daily_strategy_leaderboard.csv"
     holdout_path = out / "daily_strategy_holdout.json"
 
-    if st.button("Re-run daily strategies using available history", type="primary"):
-        index_data, option_data = load_index(), load_options()
-        with st.spinner("Testing daily Call, Put, momentum and mean-reversion strategies…"):
-            ledger, board, meta = run_daily_strategy_suite(index_data, option_data)
-            if ledger.empty:
-                st.error(meta.get("error", "No valid next-session contract round trips were found."))
-            else:
-                out.mkdir(parents=True, exist_ok=True)
-                ledger.to_csv(ledger_path, index=False)
-                board.to_csv(board_path, index=False)
-                holdout = daily_holdout_evaluation(ledger)
-                with open(holdout_path, "w", encoding="utf-8") as handle:
-                    json.dump(holdout, handle, indent=2, default=str)
-                st.success(
-                    f"Completed {len(ledger):,} daily trades across {ledger['entry_date'].nunique():,} entry sessions."
-                )
-                st.json(meta)
+    st.caption(
+        "Daily strategy replay, entry-signal research and data collection run in the scheduled GitHub Actions workflow. "
+        "This dashboard only displays saved reports."
+    )
 
     if not ledger_path.exists() or not board_path.exists():
         st.warning(
@@ -923,6 +910,106 @@ def page_daily_options_research():
             st.caption(holdout.get("warning", ""))
         else:
             st.warning(holdout.get("note", "Not enough daily sessions for holdout testing."))
+
+    st.subheader("Alternative entry signals and market regimes")
+    signal_report_path = out / "entry_signal_research.json"
+    signal_board_path = out / "entry_signal_leaderboard.csv"
+    signal_monthly_path = out / "entry_signal_monthly.csv"
+    signal_selector_path = out / "entry_signal_selector_monthly.csv"
+    signal_trade_path = out / "entry_signal_trade_ledger.csv"
+    if signal_report_path.exists():
+        try:
+            with open(signal_report_path, encoding="utf-8") as handle:
+                signal_report = json.load(handle)
+        except (OSError, json.JSONDecodeError):
+            signal_report = {}
+        s1, s2, s3, s4 = st.columns(4)
+        s1.metric("Paired ATM outcomes", f"{signal_report.get('paired_trades', 0):,}")
+        s2.metric("Signal rules tested", f"{signal_report.get('candidate_rules_tested', 0):,}")
+        s3.metric("Rules passing screen", f"{signal_report.get('candidate_pass_count', 0)}")
+        s4.metric("Monthly target PF", f"{signal_report.get('monthly_target_profit_factor', 1.2):.2f}")
+        st.caption(
+            f"Training through {signal_report.get('training_end', '—')} · "
+            f"Untouched chronological holdout from {signal_report.get('holdout_start', '—')} "
+            f"to {signal_report.get('holdout_end', '—')}"
+        )
+        if signal_report.get("status") == "candidates_found":
+            st.success("At least one predeclared entry rule passed the training and holdout research screens. Review its monthly records before paper testing.")
+        elif signal_report.get("status") == "no_candidate_met_research_screen":
+            st.warning("No entry rule passed both training and holdout. The dashboard will not promote a losing or unstable rule as profitable.")
+        else:
+            st.info(signal_report.get("note", "Signal research needs more paired historical option data."))
+
+        if signal_board_path.exists():
+            signal_board = pd.read_csv(signal_board_path)
+            if not signal_board.empty:
+                display_cols = [
+                    "training_rank", "strategy", "full_trades", "full_net_pnl",
+                    "full_aggregate_pf", "full_monthly_target_hit_pct",
+                    "train_trades", "train_net_pnl", "train_aggregate_pf",
+                    "train_monthly_target_hit_pct", "train_max_drawdown",
+                    "holdout_trades", "holdout_net_pnl", "holdout_aggregate_pf",
+                    "holdout_monthly_target_hit_pct", "holdout_max_drawdown",
+                    "candidate_pass",
+                ]
+                display_cols = [col for col in display_cols if col in signal_board.columns]
+                st.dataframe(
+                    signal_board[display_cols].head(20),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                selected_signal = st.selectbox(
+                    "Inspect monthly performance for a signal",
+                    signal_board.sort_values("training_rank")["strategy"].astype(str).tolist(),
+                    key="entry_signal_strategy_select",
+                )
+                if signal_monthly_path.exists():
+                    signal_monthly = pd.read_csv(signal_monthly_path)
+                    signal_monthly_view = signal_monthly[
+                        signal_monthly["strategy"].astype(str) == selected_signal
+                    ]
+                    st.dataframe(
+                        signal_monthly_view.sort_values("month", ascending=False),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+                st.download_button(
+                    "Download entry-signal leaderboard",
+                    signal_board.to_csv(index=False),
+                    "entry_signal_leaderboard.csv",
+                    "text/csv",
+                    key="entry_signal_board_download",
+                )
+        if signal_selector_path.exists():
+            selector_monthly = pd.read_csv(signal_selector_path)
+            if not selector_monthly.empty:
+                st.markdown("**Rolling 3-month and 6-month selector (paper research)**")
+                st.caption("Selects only from the previous complete months when prior trade count and PF qualify; otherwise stays in cash.")
+                st.dataframe(
+                    selector_monthly.sort_values(["strategy", "month"]),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.download_button(
+                    "Download rolling selector monthly results",
+                    selector_monthly.to_csv(index=False),
+                    "entry_signal_selector_monthly.csv",
+                    "text/csv",
+                    key="entry_signal_selector_download",
+                )
+        if signal_trade_path.exists():
+            signal_trades_saved = pd.read_csv(signal_trade_path)
+            if not signal_trades_saved.empty:
+                st.download_button(
+                    "Download alternative signal trade ledger",
+                    signal_trades_saved.to_csv(index=False),
+                    "entry_signal_trade_ledger.csv",
+                    "text/csv",
+                    key="entry_signal_ledger_download",
+                )
+        st.caption(signal_report.get("caveat", ""))
+    else:
+        st.info("Saved entry-signal experiments will appear after the scheduled GitHub Actions workflow completes.")
 
     st.subheader("Intraday filters — Daily ATM Put")
     st.caption(
