@@ -1,0 +1,31 @@
+{
+  "index_rows": 11,
+  "options_rows": 2847,
+  "warnings": [
+    "Zero or missing-volume option rows: 563"
+  ],
+  "errors": [],
+  "index_start": "2026-10-22",
+  "index_end": "2026-11-05",
+  "options_start": "2026-11-02",
+  "options_end": "2026-11-05",
+  "expiries": 9,
+  "expiry_list_sample": [
+    "2026-11-05",
+    "2026-11-12",
+    "2026-11-19",
+    "2026-11-26",
+    "2026-12-03",
+    "2026-12-10",
+    "2026-12-31",
+    "2027-03-25",
+    "2027-12-30"
+  ],
+  "option_type_counts": {
+    "PE": 1544,
+    "CE": 1303
+  },
+  "missing_lot_size_rows": 0,
+  "duplicate_contract_samples": 0,
+  "status": "warning"
+}

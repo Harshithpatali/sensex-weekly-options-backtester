@@ -1,0 +1,5 @@
+strategy,strategy_description,expiry_date,entry_date,exit_date,spot,strikes,legs,entry_debit,exit_credit,lot_size,lots,quantity,starting_capital,ending_capital,gross_pnl,estimated_costs,net_pnl,return_pct,status
+ATM_CALL,Buy nearest-ATM call,2026-11-05,2026-11-04,2026-11-05,77301.3984375,77300.0,1,314.45,2005.2,20,1,20,10000.0,43775.0,33815.0,40.0,33775.0,537.049,completed
+ATM_PUT,Buy nearest-ATM put,2026-11-05,2026-11-04,2026-11-05,77301.3984375,77300.0,1,303.9,0.0,20,1,20,10000.0,3882.0,-6078.0,40.0,-6118.0,-100.658,completed
+OTM_CALL_1,Buy one strike-step OTM call,2026-11-05,2026-11-04,2026-11-05,77301.3984375,77400.0,1,268.6,1905.4,20,1,20,10000.0,42696.0,32736.0,40.0,32696.0,608.637,completed
+OTM_PUT_1,Buy one strike-step OTM put,2026-11-05,2026-11-04,2026-11-05,77301.3984375,77200.0,1,252.7,0.0,20,1,20,10000.0,4906.0,-5054.0,40.0,-5094.0,-100.791,completed

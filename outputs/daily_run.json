@@ -1,0 +1,55 @@
+{
+  "run_time_utc": "2026-11-06T15:45:16.992558+00:00",
+  "target_data_date": "2026-11-05",
+  "downloaded_option_dates": [
+    "2026-11-02",
+    "2026-11-03",
+    "2026-11-04",
+    "2026-11-05"
+  ],
+  "index_rows": 11,
+  "option_rows": 2847,
+  "data_quality": {
+    "index_rows": 11,
+    "options_rows": 2847,
+    "warnings": [
+      "Zero or missing-volume option rows: 563"
+    ],
+    "errors": [],
+    "index_start": "2026-10-22",
+    "index_end": "2026-11-05",
+    "options_start": "2026-11-02",
+    "options_end": "2026-11-05",
+    "expiries": 9,
+    "expiry_list_sample": [
+      "2026-11-05",
+      "2026-11-12",
+      "2026-11-19",
+      "2026-11-26",
+      "2026-12-03",
+      "2026-12-10",
+      "2026-12-31",
+      "2027-03-25",
+      "2027-12-30"
+    ],
+    "option_type_counts": {
+      "PE": 1544,
+      "CE": 1303
+    },
+    "missing_lot_size_rows": 0,
+    "duplicate_contract_samples": 0,
+    "status": "warning"
+  },
+  "strategy_run": {
+    "initial_capital_per_strategy": 10000.0,
+    "sizing": "sequential compounding per strategy; strategies have isolated capital and are not combined into one portfolio",
+    "cost_assumptions": {
+      "brokerage_per_order": 20.0,
+      "slippage_points_per_leg_side": 0.5
+    },
+    "note": "EOD close-to-close simulations; no intraday fills, bid/ask spread, market impact, margin funding or taxes beyond stated estimated brokerage/slippage."
+  },
+  "strategy_count": 4,
+  "pnl_semantics": "realized P&L grouped by trade exit date; not daily mark-to-market",
+  "validation_report": "/home/runner/work/sensex-weekly-options-backtester/sensex-weekly-options-backtester/data/reports/data_validation.json"
+}
