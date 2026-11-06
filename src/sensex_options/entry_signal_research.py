@@ -484,8 +484,13 @@ def _option_debit_vertical_outcomes(
                     lot_size = int(long_lot)
                     entry_long_premium = float(long_entry["close"])
                     entry_short_premium = float(short_entry["close"])
+                    spread_width = abs(float(long_strike) - float(short_strike))
                     entry_debit = entry_long_premium - entry_short_premium
-                    if not _finite(entry_debit) or entry_debit <= 0:
+                    if (
+                        not _finite(entry_debit)
+                        or entry_debit <= 0
+                        or entry_debit >= spread_width
+                    ):
                         continue
 
                     long_exit_rows = exit_options[
@@ -510,8 +515,8 @@ def _option_debit_vertical_outcomes(
                     ):
                         continue
                     exit_credit = exit_long_premium - exit_short_premium
-                    if exit_credit < 0:
-                        # Reject inverted/possibly stale spread marks instead of fabricating a floor.
+                    if exit_credit < 0 or exit_credit > spread_width:
+                        # A vertical spread cannot be worth less than zero or more than its width.
                         continue
 
                     quantity = lot_size
@@ -821,8 +826,13 @@ def _option_credit_vertical_outcomes(
                     lot_size = int(short_lot)
                     short_entry_premium = float(short_entry["close"])
                     long_entry_premium = float(long_entry["close"])
+                    spread_width = abs(float(short_strike) - float(long_strike))
                     entry_credit = short_entry_premium - long_entry_premium
-                    if not _finite(entry_credit) or entry_credit <= 0:
+                    if (
+                        not _finite(entry_credit)
+                        or entry_credit <= 0
+                        or entry_credit >= spread_width
+                    ):
                         continue
                     short_exits = exit_chain[
                         (exit_chain["strike"] == short_strike)
@@ -844,8 +854,8 @@ def _option_credit_vertical_outcomes(
                     ):
                         continue
                     exit_debit = short_exit_premium - long_exit_premium
-                    if exit_debit < 0:
-                        # Reject inverted spread marks rather than clipping liability.
+                    if exit_debit < 0 or exit_debit > spread_width:
+                        # A vertical spread cannot have a liability greater than its strike width.
                         continue
                     quantity = lot_size
                     entry_fees = _debit_vertical_entry_fees(
