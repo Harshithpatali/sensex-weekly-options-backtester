@@ -56,7 +56,8 @@ def test_ml_dataset_has_paired_observed_sides_and_lagged_features():
     assert (pd.to_datetime(dataset["signal_date"]) < pd.to_datetime(dataset["entry_date"])).all()
     assert {"target_win", "target_return_pct", "target_net_pnl"}.issubset(dataset.columns)
     assert len(features) >= 3
-    assert not {"target_win", "target_return_pct", "target_net_pnl", "signal_spot", "close"}.intersection(features)
+    assert not {"target_win", "target_return_pct", "target_net_pnl", "signal_spot", "close", "ema_5", "ema_20", "atr_14", "near_atm_call_oi"}.intersection(features)
+    assert not any(name.startswith("donchian_high_") or name.startswith("donchian_low_") for name in features)
 
 
 def test_ml_strategy_selection_uses_at_most_one_candidate_per_entry_session():
