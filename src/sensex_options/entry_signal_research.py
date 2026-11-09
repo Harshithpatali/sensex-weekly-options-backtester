@@ -893,6 +893,10 @@ def _option_credit_vertical_outcomes(
             if not len(eligible):
                 continue
             expiry = pd.Timestamp(min(eligible))
+            expiry_sessions = sessions.loc[sessions["date"] <= expiry, "date"]
+            if expiry_sessions.empty:
+                continue
+            last_expiry_session = pd.Timestamp(expiry_sessions.max())
             chain = entry_options[entry_options["expiry_date"] == expiry]
             strikes = sorted(pd.to_numeric(chain["strike"], errors="coerce").dropna().unique())
             if len(strikes) < 2:
@@ -967,7 +971,7 @@ def _option_credit_vertical_outcomes(
                     if (
                         (short_exit_premium > 0 and not _is_liquid_option_row(short_exit))
                         or (long_exit_premium > 0 and not _is_liquid_option_row(long_exit))
-                        or ((short_exit_premium == 0 or long_exit_premium == 0) and exit_day != expiry)
+                        or ((short_exit_premium == 0 or long_exit_premium == 0) and exit_day != last_expiry_session)
                     ):
                         continue
                     exit_debit = short_exit_premium - long_exit_premium
