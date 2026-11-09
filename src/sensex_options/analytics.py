@@ -274,7 +274,8 @@ def strategy_performance_metrics(trades: pd.DataFrame, initial_capital: float = 
             "profit_factor": round(gains / losses, 4) if losses > 0 else None,
             "expectancy": round(float(pnl.mean()), 2),
             "sharpe_trade_annualized": round(sharpe, 4) if sharpe is not None else None,
-            "max_drawdown": round(float(dd.min()), 2) if len(dd) else 0.0,\n            "drawdown_basis": "additive one-lot premium-return index (base 100)",
+            "max_drawdown": round(float(dd.min()), 2) if len(dd) else 0.0,
+            "drawdown_basis": "additive one-lot premium-return index (base 100)",
             "max_drawdown_pct": round(float((dd / peak.replace(0, np.nan) * 100).min()), 2) if len(dd) else 0.0,
             "sample_warning": "Small samples are not statistically reliable" if len(pnl) < 30 else "",
         })
