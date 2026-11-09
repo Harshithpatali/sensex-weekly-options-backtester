@@ -1538,7 +1538,7 @@ def page_ml_strategy_lab():
     metric_cols[0].metric("Selected model", report.get("selected_model", "—"))
     metric_cols[1].metric("ROC-AUC", classification.get("roc_auc", "—"))
     metric_cols[2].metric("PR-AUC", classification.get("pr_auc", "—"))
-    metric_cols[3].metric("Probability threshold", report.get("selected_probability_threshold", "—"))
+    metric_cols[3].metric("Probability threshold", report.get("selected_probability_threshold") if report.get("selected_probability_threshold") is not None else "—")
     trade_cols = st.columns(7)
     trade_cols[0].metric("Selected trades", trading.get("trades", 0))
     trade_cols[1].metric("Profit factor", trading.get("profit_factor") if trading.get("profit_factor") is not None else "—")
