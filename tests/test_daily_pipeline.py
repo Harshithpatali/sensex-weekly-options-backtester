@@ -56,3 +56,29 @@ def test_entry_signal_ledger_is_compressed_and_legacy_csv_removed(tmp_path):
     assert not legacy_path.exists()
     restored = pd.read_csv(saved_path, compression="gzip")
     pd.testing.assert_frame_equal(restored, trades)
+
+
+def test_merge_csv_compresses_options_and_parses_mixed_dates(tmp_path):
+    path = tmp_path / "sensex_options.csv"
+    keys = ["trade_date", "expiry_date", "symbol", "strike", "option_type"]
+    old = pd.DataFrame([{
+        "trade_date": "2023-05-15", "expiry_date": "2023-05-19",
+        "symbol": "SENSEX", "strike": 63000, "option_type": "CE", "close": 100.0,
+    }])
+    old.to_csv(path, index=False)
+    new = pd.DataFrame([{
+        "trade_date": "2024-07-08 00:00:00", "expiry_date": "2024-07-12 00:00:00",
+        "symbol": "SENSEX", "strike": 80000, "option_type": "PE", "close": 150.0,
+    }])
+
+    result = merge_csv(new, path, keys)
+
+    compressed = tmp_path / "sensex_options.csv.gz"
+    assert len(result) == 2
+    assert not path.exists()
+    assert compressed.exists()
+    restored = pd.read_csv(compressed, compression="gzip")
+    assert len(restored) == 2
+    assert set(pd.to_datetime(restored["trade_date"], format="mixed").dt.strftime("%Y-%m-%d")) == {
+        "2023-05-15", "2024-07-08"
+    }
