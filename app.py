@@ -401,6 +401,7 @@ PAGES = [
     "Daily / Weekly / Monthly P&L",
     "Daily Options Research",
     "Research & Walk-Forward",
+    "ML & Strategy Lab",
 ]
 
 def sidebar() -> str:
@@ -1492,6 +1493,117 @@ def page_research_lab():
             "text/csv",
         )
 
+
+def page_ml_strategy_lab():
+    st.title("ML & Strategy Lab")
+    st.caption(
+        "Supervised models trained on observed BSE option outcomes. Predictors are lagged to the prior completed session; "
+        "the final chronological holdout is reserved for one evaluation."
+    )
+    report_path = DEFAULT_PATHS.outputs / "ml_option_research.json"
+    comparison_path = DEFAULT_PATHS.outputs / "ml_option_model_comparison.csv"
+    importance_path = DEFAULT_PATHS.outputs / "ml_option_feature_importance.csv"
+    predictions_path = DEFAULT_PATHS.outputs / "ml_option_holdout_predictions.csv.gz"
+    if not report_path.exists():
+        st.info("No ML research report is available yet. Run the scheduled research workflow to build it.")
+        return
+    try:
+        with open(report_path, encoding="utf-8") as handle:
+            report = json.load(handle)
+    except (OSError, json.JSONDecodeError):
+        st.error("The ML research report could not be read.")
+        return
+
+    dataset = report.get("dataset", {})
+    split = report.get("split_dates", {})
+    st.subheader("Research dataset")
+    data_cols = st.columns(4)
+    data_cols[0].metric("Matched observations", f"{dataset.get('rows', 0):,}")
+    data_cols[1].metric("Entry sessions", f"{dataset.get('entry_sessions', 0):,}")
+    data_cols[2].metric("Predictors", f"{dataset.get('feature_count', 0):,}")
+    data_cols[3].metric("Model status", report.get("status", "not run"))
+
+    if report.get("status") != "holdout_evaluated":
+        st.warning(report.get("note", "The ML experiment has not produced a valid holdout evaluation."))
+        if report.get("split_rows"):
+            st.json(report["split_rows"])
+        return
+
+    classification = report.get("holdout_classification", {})
+    trading = report.get("holdout_strategy", {})
+    st.subheader("Untouched holdout results")
+    metric_cols = st.columns(4)
+    metric_cols[0].metric("Selected model", report.get("selected_model", "—"))
+    metric_cols[1].metric("ROC-AUC", classification.get("roc_auc", "—"))
+    metric_cols[2].metric("PR-AUC", classification.get("pr_auc", "—"))
+    metric_cols[3].metric("Probability threshold", report.get("selected_probability_threshold", "—"))
+    trade_cols = st.columns(5)
+    trade_cols[0].metric("Selected trades", trading.get("trades", 0))
+    trade_cols[1].metric("Profit factor", trading.get("profit_factor", "—"))
+    trade_cols[2].metric("Win rate", f"{trading.get('win_rate_pct', 0):.1f}%" if trading.get("win_rate_pct") is not None else "—")
+    trade_cols[3].metric("Net one-lot P&L", f"₹{trading.get('net_pnl', 0):,.2f}")
+    trade_cols[4].metric("Expectancy / trade", f"{trading.get('expectancy_pnl', 0):,.2f}" if trading.get("expectancy_pnl") is not None else "—")
+    st.caption(
+        f"Train: {split.get('train_start')} to {split.get('train_end')} · "
+        f"Validation: {split.get('validation_start')} to {split.get('validation_end')} · "
+        f"Holdout: {split.get('holdout_start')} to {split.get('holdout_end')}"
+    )
+
+    if comparison_path.exists():
+        st.subheader("Model comparison — validation only")
+        comparison = pd.read_csv(comparison_path)
+        st.dataframe(comparison, use_container_width=True)
+
+    if importance_path.exists():
+        importance = pd.read_csv(importance_path).head(20)
+        if not importance.empty and "importance_mean" in importance:
+            st.subheader("Feature importance — validation permutation test")
+            fig = px.bar(
+                importance.sort_values("importance_mean"),
+                x="importance_mean", y="feature", orientation="h",
+                error_x="importance_std", title="Top 20 predictors by validation average-precision impact",
+            )
+            apply_plotly_theme(fig)
+            st.plotly_chart(fig, use_container_width=True)
+
+    if predictions_path.exists():
+        predictions = pd.read_csv(predictions_path, compression="gzip")
+        selected = predictions[predictions.get("selected_for_strategy", False).astype(bool)].copy()
+        if not selected.empty:
+            selected["entry_date"] = pd.to_datetime(selected["entry_date"])
+            selected = selected.sort_values("entry_date")
+            selected["cumulative_one_lot_pnl"] = pd.to_numeric(selected["target_net_pnl"], errors="coerce").cumsum()
+            st.subheader("Holdout one-lot research curve")
+            fig = px.line(
+                selected, x="entry_date", y="cumulative_one_lot_pnl",
+                title="Cumulative simulated P&L — selected option outcome per session",
+            )
+            apply_plotly_theme(fig)
+            st.plotly_chart(fig, use_container_width=True)
+        st.download_button(
+            "Download holdout predictions",
+            predictions.to_csv(index=False),
+            "ml_option_holdout_predictions.csv",
+            "text/csv",
+        )
+        st.dataframe(
+            predictions[[c for c in [
+                "entry_date", "option_side", "moneyness", "predicted_win_probability",
+                "target_win", "target_return_pct", "target_net_pnl", "selected_for_strategy",
+            ] if c in predictions.columns]],
+            use_container_width=True,
+        )
+
+    with st.expander("Methodology and limitations"):
+        st.json({
+            "selection_rule": report.get("selection_rule"),
+            "split_rows": report.get("split_rows"),
+            "feature_timing": dataset.get("signal_timing"),
+            "holdout_selection": report.get("holdout_selection"),
+            "execution_caveat": report.get("execution_caveat"),
+            "research_warning": report.get("research_warning"),
+        })
+
 # ─────────────────────────────────────────────────────────────
 # Main
 # ─────────────────────────────────────────────────────────────
@@ -1517,6 +1629,8 @@ def main():
         page_daily_options_research()
     elif page == "Research & Walk-Forward":
         page_research_lab()
+    elif page == "ML & Strategy Lab":
+        page_ml_strategy_lab()
 
     st.markdown(
         """
