@@ -1847,7 +1847,7 @@ def run_entry_signal_research(
             "at one-, two- and three-available-strike widths for one-, two-, three- and five-session holds. "
             "Long-option candidates include ATM, one-step ITM, and one-, two-, three- and five-step OTM contracts. "
             "Both spread types require liquid observed legs at entry and exit, reject impossible marks beyond "
-            "their strike width, and cap estimated maximum loss plus entry fees at the configured 2% risk budget. Option-chain PCR, OI build-up and ATM straddle/realised-volatility "
+            "their strike width. Default research evaluates one historical lot without an account-level affordability or risk-budget gate; an optional risk_per_trade_pct can enable that separate filter. Option-chain PCR, OI build-up and ATM straddle/realised-volatility "
             "proxies are aligned to the prior completed signal session. "
             "Option outcomes are rebuilt from observed BSE daily candles, with the exact same contract "
             "held through the selected exit session. A missing side is not fabricated; that direction is "
