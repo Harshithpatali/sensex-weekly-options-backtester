@@ -345,8 +345,8 @@ def _selected_trade_metrics(frame: pd.DataFrame, probability: np.ndarray, thresh
     eligible = scored[scored["predicted_win_probability"] >= threshold]
     selected = (
         eligible.sort_values(
-            ["entry_date", "predicted_win_probability", "target_return_pct"],
-            ascending=[True, False, False],
+            ["entry_date", "predicted_win_probability", "option_side", "moneyness"],
+            ascending=[True, False, True, True],
         )
         .drop_duplicates("entry_date", keep="first")
         .sort_values("entry_date")
