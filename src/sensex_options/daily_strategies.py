@@ -2,6 +2,7 @@ from __future__ import annotations
 
 """Daily close-to-close long-option research; uses observed BSE marks only."""
 
+import numpy as np
 import pandas as pd
 
 from sensex_options.config import CostConfig
