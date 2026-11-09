@@ -1523,12 +1523,14 @@ def page_ml_strategy_lab():
     data_cols[2].metric("Predictors", f"{dataset.get('feature_count', 0):,}")
     data_cols[3].metric("Model status", report.get("status", "not run"))
 
-    if report.get("status") != "holdout_evaluated":
+    if report.get("status") not in {"holdout_evaluated", "holdout_classifier_only"}:
         st.warning(report.get("note", "The ML experiment has not produced a valid holdout evaluation."))
         if report.get("split_rows"):
             st.json(report["split_rows"])
         return
 
+    if report.get("status") == "holdout_classifier_only":
+        st.warning("The classifier was evaluated on holdout, but no validation threshold met the minimum trade-count requirement. No trading strategy was forced.")
     classification = report.get("holdout_classification", {})
     trading = report.get("holdout_strategy", {})
     st.subheader("Untouched holdout results")
@@ -1539,7 +1541,7 @@ def page_ml_strategy_lab():
     metric_cols[3].metric("Probability threshold", report.get("selected_probability_threshold", "—"))
     trade_cols = st.columns(7)
     trade_cols[0].metric("Selected trades", trading.get("trades", 0))
-    trade_cols[1].metric("Profit factor", trading.get("profit_factor", "—"))
+    trade_cols[1].metric("Profit factor", trading.get("profit_factor") if trading.get("profit_factor") is not None else "—")
     trade_cols[2].metric("Win rate", f"{trading.get('win_rate_pct', 0):.1f}%" if trading.get("win_rate_pct") is not None else "—")
     trade_cols[3].metric("Net one-lot P&L", f"₹{trading.get('net_pnl', 0):,.2f}")
     trade_cols[4].metric("Expectancy / trade", f"{trading.get('expectancy_pnl', 0):,.2f}" if trading.get("expectancy_pnl") is not None else "—")
