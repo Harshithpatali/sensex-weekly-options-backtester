@@ -1340,8 +1340,14 @@ def page_research_lab():
             )
 
     st.subheader("Execution and cost assumptions")
+    use_capital_filter = st.checkbox(
+        "Apply account affordability filter (optional)",
+        value=False,
+        help="Off by default: compare each candidate at one historical lot. Turn on only for a separate cash-limited account simulation.",
+    )
     x1, x2, x3 = st.columns(3)
-    capital = x1.number_input("Capital per strategy (₹)", min_value=1000.0, value=10000.0, step=1000.0, key="research_capital")
+    capital = x1.number_input("Illustrative capital (₹)", min_value=1000.0, value=10000.0, step=1000.0, key="research_capital")
+    st.caption("Default research uses one historical lot per candidate. The ₹10,000 value is illustrative unless the optional affordability filter is enabled.")
     brokerage = x2.number_input("Brokerage (₹ / lot / order)", min_value=0.0, value=20.0, step=5.0, key="research_brokerage")
     brokerage_pct = x3.number_input("Brokerage (% turnover)", min_value=0.0, value=0.0, format="%.4f", key="research_brokerage_pct")
 
@@ -1386,7 +1392,8 @@ def page_research_lab():
             market_impact_points=impact,
         )
         with st.spinner("Replaying all available expiry cycles…"):
-            trades, ranking, meta = run_strategy_suite(index, options, capital=capital, cost=cost)
+            research_capital = capital if use_capital_filter else None
+            trades, ranking, meta = run_strategy_suite(index, options, capital=research_capital, cost=cost)
             if trades.empty:
                 st.error(meta.get("error", "No complete trades were produced."))
                 return
@@ -1403,7 +1410,8 @@ def page_research_lab():
             st.session_state["research_trades"] = trades
             st.session_state["research_metrics"] = metrics
             st.session_state["research_walk_forward"] = walk
-            st.success(f"Completed {len(trades):,} strategy trades across {trades['expiry_date'].nunique()} expiry cycles.")
+            sizing_label = "capital-filtered" if use_capital_filter else "one-lot research"
+            st.success(f"Completed {len(trades):,} {sizing_label} strategy trades across {trades['expiry_date'].nunique()} expiry cycles.")
             if trades["expiry_date"].nunique() < 30:
                 st.warning("Small sample: these results are not statistically reliable. Backfill additional historical expiries.")
             st.json(meta)
