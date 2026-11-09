@@ -87,3 +87,16 @@ def test_extended_daily_indicators_are_replayed_when_history_is_sufficient():
     ledger, board, _ = run_daily_strategy_suite(index, pd.DataFrame(rows), capital=10000, cost=CostConfig(), max_atm_distance_pct=0.03)
     assert {"DAILY_5D_MOMENTUM", "DAILY_EMA_TREND", "DAILY_RSI_REVERSAL"}.issubset(set(board["strategy"]))
     assert {"CE", "PE"}.issubset(set(ledger["option_type"]))
+
+
+def test_default_daily_research_does_not_apply_ten_thousand_affordability_gate():
+    index, options = daily_fixture()
+    options["close"] = 1500.0
+    research, _, _ = run_daily_strategy_suite(
+        index, options, cost=CostConfig(), max_atm_distance_pct=0.02
+    )
+    constrained, _, _ = run_daily_strategy_suite(
+        index, options, capital=10000, cost=CostConfig(), max_atm_distance_pct=0.02
+    )
+    assert not research.empty
+    assert constrained.empty
