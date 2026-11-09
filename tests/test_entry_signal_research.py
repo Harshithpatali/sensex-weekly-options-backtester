@@ -509,3 +509,27 @@ def test_zero_premium_on_expiry_is_a_valid_long_option_loss():
     assert not outcomes.empty
     assert (outcomes["call_pnl"] < 0).all()
     assert (outcomes["put_pnl"] < 0).all()
+
+
+def test_zero_premium_on_last_trading_session_before_holiday_expiry_is_valid():
+    dates = pd.to_datetime(["2024-01-01", "2024-01-02", "2024-01-03", "2024-01-04", "2024-01-08"])
+    index = pd.DataFrame({"date": dates, "close": [72000.0] * len(dates)})
+    options = pd.DataFrame([
+        {
+            "trade_date": dates[2], "expiry_date": pd.Timestamp("2024-01-05"),
+            "strike": 72000.0, "symbol": "SENSEX", "option_type": side,
+            "close": 10.0, "lot_size": 20, "volume": 100, "open_interest": 500,
+        }
+        for side in ("CE", "PE")
+    ] + [
+        {
+            "trade_date": dates[3], "expiry_date": pd.Timestamp("2024-01-05"),
+            "strike": 72000.0, "symbol": "SENSEX", "option_type": side,
+            "close": 0.0, "lot_size": 20, "volume": 0, "open_interest": 0,
+        }
+        for side in ("CE", "PE")
+    ])
+    outcomes = _option_horizon_outcomes(index, options, holding_periods=(1,), moneyness_variants=("ATM",))
+    assert not outcomes.empty
+    assert (outcomes["call_pnl"] < 0).all()
+    assert (outcomes["put_pnl"] < 0).all()
