@@ -644,6 +644,7 @@ def run_ml_option_research(
         "holdout_classification": holdout_classification,
         "holdout_strategy": holdout_trading,
         "holdout_selection": ("At most one highest-probability candidate per entry session; one-session holding period; no overlapping positions." if strategy_selected else "Classifier-only holdout; no strategy threshold met validation requirements."),
+        "drawdown_basis": "compounded premium-return index, base 100; per-trade loss floored at -100%; not a cash-account return",
         "feature_importance_window": "validation",
         "model_artifact": str(model_path),
         "execution_caveat": (
