@@ -1606,6 +1606,7 @@ def page_ml_strategy_lab():
             "split_rows": report.get("split_rows"),
             "feature_timing": dataset.get("signal_timing"),
             "holdout_selection": report.get("holdout_selection"),
+            "drawdown_basis": report.get("drawdown_basis"),
             "execution_caveat": report.get("execution_caveat"),
             "research_warning": report.get("research_warning"),
         })
