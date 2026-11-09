@@ -111,3 +111,33 @@ def test_zero_expiry_exit_premium_is_a_valid_observed_loss():
     atm_call = trades[trades.strategy == "ATM_CALL"].iloc[0]
     assert atm_call["raw_exit_credit"] == 0.0
     assert atm_call["net_pnl"] < 0
+
+
+def test_default_expiry_research_keeps_one_lot_after_unit_lot_loss_exceeds_ten_thousand():
+    dates = ["2024-01-04", "2024-01-05", "2024-01-11", "2024-01-12"]
+    index = pd.DataFrame({"date": dates, "close": [100.0] * 4})
+    rows = []
+    for expiry, entry_day, exit_day, entry_price, exit_price in [
+        ("2024-01-05", "2024-01-04", "2024-01-05", 2000.0, 0.0),
+        ("2024-01-12", "2024-01-11", "2024-01-12", 5.0, 6.0),
+    ]:
+        for option_type in ("CE", "PE"):
+            for strike in (99.0, 100.0, 101.0):
+                rows.extend([
+                    {"trade_date": entry_day, "expiry_date": expiry, "symbol": "SENSEX",
+                     "strike": strike, "option_type": option_type, "close": entry_price, "lot_size": 10},
+                    {"trade_date": exit_day, "expiry_date": expiry, "symbol": "SENSEX",
+                     "strike": strike, "option_type": option_type, "close": exit_price, "lot_size": 10},
+                ])
+    research, _, meta = run_strategy_suite(
+        index, pd.DataFrame(rows), brokerage_per_order=0, slippage_points=0
+    )
+    atm_calls = research[research.strategy == "ATM_CALL"]
+    assert len(atm_calls) == 2
+    assert atm_calls.lots.tolist() == [1, 1]
+    assert "no account affordability filter" in meta["sizing"]
+
+    constrained, _, _ = run_strategy_suite(
+        index, pd.DataFrame(rows), capital=10000, brokerage_per_order=0, slippage_points=0
+    )
+    assert len(constrained[constrained.strategy == "ATM_CALL"]) == 1
