@@ -464,3 +464,24 @@ def test_far_otm_contract_variants_select_correct_strikes():
     first = outcomes[outcomes["entry_date"] == dates[1]].iloc[0]
     assert first["call_strike"] == 105.0
     assert first["put_strike"] == 95.0
+
+
+def test_default_option_outcomes_ignore_capital_risk_budget_but_explicit_budget_applies():
+    dates = pd.bdate_range("2024-01-01", periods=8)
+    index = pd.DataFrame({"date": dates, "close": [72000.0] * len(dates)})
+    expiry = dates[-1] + pd.Timedelta(days=7)
+    rows = []
+    for day in dates:
+        for option_type in ("CE", "PE"):
+            rows.append({
+                "trade_date": day, "expiry_date": expiry, "strike": 72000.0,
+                "symbol": "SENSEX", "option_type": option_type, "close": 100.0,
+                "lot_size": 20, "volume": 100, "open_interest": 500,
+            })
+    options = pd.DataFrame(rows)
+    unit_lot = _option_horizon_outcomes(index, options, holding_periods=(1,))
+    budgeted = _option_horizon_outcomes(
+        index, options, holding_periods=(1,), capital=10000.0, risk_pct=0.02
+    )
+    assert not unit_lot.empty
+    assert budgeted.empty
