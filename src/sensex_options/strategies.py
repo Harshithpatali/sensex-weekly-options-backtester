@@ -59,6 +59,14 @@ def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: floa
     # Zero close is a valid observed expiry payoff for a worthless option.
     # Entry premiums are checked separately and must be strictly positive.
     opt=opt[(opt.close>=0)&(opt.strike>0)&(opt.option_type.isin(["CE","PE"]))]
+    # Only matured contracts can produce an expiry outcome. Without this
+    # guard, a long-dated contract beyond the end of the dataset can be marked
+    # against the last available day and falsely appear to be an expiry trade.
+    last_observed_session = min(idx["date"].max(), opt["trade_date"].max())
+    opt = opt[opt["expiry_date"] <= last_observed_session].copy()
+    if opt.empty:
+        return pd.DataFrame(), pd.DataFrame(), {"error": "No matured option expiries are available in the observed data window."}
+
     trades=[]
     # Each strategy has its own isolated, sequential capital curve. It is not
     # a shared portfolio and it does not imply concurrent positions.
@@ -83,7 +91,7 @@ def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: floa
         step_down=[s for s in strikes if s<atm]
         otm_call=min(step_candidates) if step_candidates else None
         otm_put=max(step_down) if step_down else None
-        # Exit only on the final observed SENSEX index session on/before expiry.
+        # Exit only on the final observed SENSEX index session on/before a matured expiry.
         # If the contract quote is missing on that exact session, skip it rather
         # than silently marking the position with an earlier stale close.
         exit_sessions = idx.loc[idx.date.le(expiry), "date"]
