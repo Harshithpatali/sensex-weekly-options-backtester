@@ -485,3 +485,27 @@ def test_default_option_outcomes_ignore_capital_risk_budget_but_explicit_budget_
     )
     assert not unit_lot.empty
     assert budgeted.empty
+
+
+def test_zero_premium_on_expiry_is_a_valid_long_option_loss():
+    dates = pd.bdate_range("2024-01-01", periods=3)
+    index = pd.DataFrame({"date": dates, "close": [72000.0, 72000.0, 72000.0]})
+    options = pd.DataFrame([
+        {
+            "trade_date": dates[1], "expiry_date": dates[2], "strike": 72000.0,
+            "symbol": "SENSEX", "option_type": side, "close": 10.0,
+            "lot_size": 20, "volume": 100, "open_interest": 500,
+        }
+        for side in ("CE", "PE")
+    ] + [
+        {
+            "trade_date": dates[2], "expiry_date": dates[2], "strike": 72000.0,
+            "symbol": "SENSEX", "option_type": side, "close": 0.0,
+            "lot_size": 20, "volume": 0, "open_interest": 0,
+        }
+        for side in ("CE", "PE")
+    ])
+    outcomes = _option_horizon_outcomes(index, options, holding_periods=(1,), moneyness_variants=("ATM",))
+    assert not outcomes.empty
+    assert (outcomes["call_pnl"] < 0).all()
+    assert (outcomes["put_pnl"] < 0).all()
