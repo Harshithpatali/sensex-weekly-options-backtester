@@ -179,7 +179,7 @@ def _option_horizon_outcomes(
     holding_periods: tuple[int, ...] = (1, 2, 3, 5),
     moneyness_variants: tuple[str, ...] = ("ATM", "ITM1", "OTM1", "OTM2", "OTM3", "OTM5"),
     capital: float = 10000.0,
-    risk_pct: float = 0.02,
+    risk_pct: float | None = None,
     cost: CostConfig | None = None,
 ) -> pd.DataFrame:
     """Build observed outcomes for ATM, ITM1, and OTM1/2/3/5 contracts.
@@ -303,7 +303,7 @@ def _option_horizon_outcomes(
                         entry_premium, 0.0, lot_size, 1, cfg
                     )
                     worst_case_loss = entry_premium * lot_size + worst_case_costs["total_cost"]
-                    if worst_case_loss > capital * risk_pct:
+                    if risk_pct is not None and worst_case_loss > capital * risk_pct:
                         continue
 
                     exit_candidates = exit_options[
@@ -425,7 +425,7 @@ def _option_debit_vertical_outcomes(
     holding_periods: tuple[int, ...] = (1, 2, 3, 5),
     spread_width_steps: tuple[int, ...] = (1, 2, 3),
     capital: float = 10000.0,
-    risk_pct: float = 0.02,
+    risk_pct: float | None = None,
     cost: CostConfig | None = None,
 ) -> pd.DataFrame:
     """Generate ATM debit vertical outcomes from observed BSE option candles.
@@ -573,7 +573,7 @@ def _option_debit_vertical_outcomes(
                         quantity, cfg,
                     )
                     worst_case_loss = entry_debit * quantity + worst_case_costs["total_cost"]
-                    if worst_case_loss > capital * risk_pct:
+                    if risk_pct is not None and worst_case_loss > capital * risk_pct:
                         continue
                     charges = _debit_vertical_costs(
                         entry_long_premium, entry_short_premium,
@@ -783,7 +783,7 @@ def _option_credit_vertical_outcomes(
     holding_periods: tuple[int, ...] = (1, 2, 3, 5),
     spread_width_steps: tuple[int, ...] = (1, 2, 3),
     capital: float = 10000.0,
-    risk_pct: float = 0.02,
+    risk_pct: float | None = None,
     cost: CostConfig | None = None,
 ) -> pd.DataFrame:
     """Build defined-risk bull-put and bear-call credit spreads from real quotes.
@@ -922,7 +922,7 @@ def _option_credit_vertical_outcomes(
                         spread_width, quantity, cfg,
                     )
                     worst_case_loss = max_loss + worst_case_costs["total_cost"]
-                    if max_loss <= 0 or worst_case_loss > capital * risk_pct:
+                    if max_loss <= 0 or (risk_pct is not None and worst_case_loss > capital * risk_pct):
                         continue
                     charges = _debit_vertical_costs(
                         long_entry_premium, short_entry_premium,
@@ -1516,7 +1516,7 @@ def run_entry_signal_research(
     options: pd.DataFrame | None = None,
     holding_periods: tuple[int, ...] = (1, 2, 3, 5),
     capital: float = 10000.0,
-    risk_per_trade_pct: float = 0.02,
+    risk_per_trade_pct: float | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict]:
     """Test predeclared signals across one-, two-, three- and five-session holds."""
     if options is not None:
@@ -1804,18 +1804,22 @@ def run_entry_signal_research(
             "ATM straddle premium versus trailing realised-volatility proxy",
         ] if options is not None else [],
         "initial_capital": float(capital),
-        "risk_per_trade_pct": float(risk_per_trade_pct) * 100,
-        "maximum_risk_per_trade": round(float(capital) * float(risk_per_trade_pct), 2),
+        "risk_per_trade_pct": float(risk_per_trade_pct) * 100 if risk_per_trade_pct is not None else None,
+        "maximum_risk_per_trade": round(float(capital) * float(risk_per_trade_pct), 2) if risk_per_trade_pct is not None else None,
         "credit_spread_risk_budget": (
             f"Defined-risk credit spreads require maximum theoretical loss plus entry fees <= "
             f"₹{float(capital) * float(risk_per_trade_pct):.2f} ({float(risk_per_trade_pct) * 100:.2f}% of capital); "
             "this is a conservative theoretical loss estimate, not a broker margin quote."
+        ) if risk_per_trade_pct is not None else (
+            "No ₹10,000 affordability or 2% risk cap is applied in signal research; each observed strategy outcome uses one historical lot."
         ),
         "candidate_rules_tested": int(len(candidate_names)),
         "position_sizing": (
             f"One lot per candidate, one open position at a time; maximum theoretical loss including "
             f"entry fees is capped at {float(risk_per_trade_pct) * 100:.2f}% of ₹{float(capital):.0f} "
             "for long options and defined-risk spreads."
+        ) if risk_per_trade_pct is not None else (
+            "One historical lot per candidate outcome; no account affordability filter or capital-based position sizing."
         ),
         "overlapping_candidate_entries_skipped": int(
             pd.to_numeric(
