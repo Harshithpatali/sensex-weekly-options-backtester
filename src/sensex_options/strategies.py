@@ -1,5 +1,6 @@
 from __future__ import annotations
 """Comparable expiry-to-expiry research strategies. EOD marks are not executable fills."""
+import numpy as np
 import pandas as pd
 
 from sensex_options.config import CostConfig
