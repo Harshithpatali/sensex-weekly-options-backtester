@@ -338,6 +338,7 @@ def _option_horizon_outcomes(
                         "lot_size": lot_size,
                         "quantity": quantity,
                         "net_pnl": round(net, 2),
+                        "return_pct": round(net / (entry_premium * lot_size) * 100, 5),
                     })
 
     outcomes = pd.DataFrame(rows)
@@ -347,11 +348,20 @@ def _option_horizon_outcomes(
         "entry_date", "exit_date", "holding_sessions", "expiry_date",
         "atm_reference_strike", "moneyness", "option_family",
     ]
-    calls = outcomes[outcomes["option_type"] == "CE"][keys + ["selected_strike", "net_pnl"]].rename(
-        columns={"selected_strike": "call_strike", "net_pnl": "call_pnl"}
+    value_columns = ["selected_strike", "net_pnl", "entry_premium", "return_pct", "lot_size"]
+    calls = outcomes[outcomes["option_type"] == "CE"][keys + value_columns].rename(
+        columns={
+            "selected_strike": "call_strike", "net_pnl": "call_pnl",
+            "entry_premium": "call_entry_premium", "return_pct": "call_return_pct",
+            "lot_size": "call_lot_size",
+        }
     )
-    puts = outcomes[outcomes["option_type"] == "PE"][keys + ["selected_strike", "net_pnl"]].rename(
-        columns={"selected_strike": "put_strike", "net_pnl": "put_pnl"}
+    puts = outcomes[outcomes["option_type"] == "PE"][keys + value_columns].rename(
+        columns={
+            "selected_strike": "put_strike", "net_pnl": "put_pnl",
+            "entry_premium": "put_entry_premium", "return_pct": "put_return_pct",
+            "lot_size": "put_lot_size",
+        }
     )
     combined = calls.merge(puts, on=keys, how="outer", validate="one_to_one")
     combined["month"] = pd.to_datetime(combined["exit_date"]).dt.strftime("%Y-%m")
