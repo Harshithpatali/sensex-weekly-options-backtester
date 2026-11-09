@@ -264,7 +264,7 @@ def strategy_performance_metrics(trades: pd.DataFrame, initial_capital: float = 
         # additive premium-return index (base 100), separately from ₹ P&L.
         returns = returns.reset_index(drop=True)
         equity = 100.0 + returns.cumsum() * 100.0
-        peak = equity.cummax()
+        peak = equity.cummax().clip(lower=100.0)
         return_dd = equity / peak.replace(0, np.nan) - 1.0
         pnl_curve = pnl.reset_index(drop=True).cumsum()
         pnl_peak = pnl_curve.cummax().clip(lower=0)
