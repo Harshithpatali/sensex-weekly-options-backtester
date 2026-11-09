@@ -1,8 +1,9 @@
-# SENSEX Weekly Options Backtester
+# SENSEX Weekly Options Quant Research Lab
 
-Research platform for historical SENSEX index and BSE options data, a transparent single-strategy backtester, and a five-strategy comparative research suite.
+Research platform for historical SENSEX index and BSE options data, combining one-lot backtesting, rule-based signal research, volatility/regime analysis, supervised ML classifiers, and chronological out-of-sample evaluation.
 
-- **Initial capital (default):** ₹10,000  
+- **Primary research sizing:** one historical lot per candidate; no ₹10,000 affordability gate.  
+- **Illustrative capital scenario:** ₹10,000 account sizing is reported separately and does not suppress research observations.  
 - Uses **actual** historical SENSEX index data (Yahoo Finance) and **actual** BSE equity-derivatives bhavcopy option premiums.  
 - **Never fabricates** option prices, lot sizes, or successful trades.  
 - Missing data → trade is **skipped** with an explicit reason.
@@ -11,9 +12,9 @@ Research platform for historical SENSEX index and BSE options data, a transparen
 
 ---
 
-## Core backtest strategy rules
+## Legacy capital-sized backtest strategy rules
 
-The original single-strategy backtest uses the following rules for each **actual** historical SENSEX options expiry present in BSE data:
+The original account simulation retains explicit capital-based sizing. The scheduled comparative research pipeline separately uses one historical lot per candidate by default.
 
 1. Identify the previous SENSEX trading session before expiry.  
 2. Take the SENSEX **closing price** on that session as the reference.  
@@ -236,6 +237,7 @@ Pages:
 8. **Strategy Leaderboard** – historical strategy ranking  
 9. **Daily / Weekly / Monthly P&L** – realized expiry-trade P&L  
 10. **Research & Walk-Forward** – editable execution costs, risk metrics, chronological holdout and rolling expiry tests  
+11. **ML & Strategy Lab** – model comparison, validation feature importance, holdout metrics, and one-lot research curve  
 
 Dark financial-terminal theme.
 
@@ -260,12 +262,21 @@ The comparative option research applies the same minimum liquidity checks to ent
 - A missing liquidity field, zero premium, or inactive candle is rejected rather than treated as an executable mark.
 - Long-option maximum loss is the full premium debit plus conservative round-trip costs.
 - Debit and credit spread risk uses theoretical maximum loss plus full estimated round-trip costs.
-- Candidate maximum loss is capped at **2% of the ₹10,000 research account (₹200)**. A contract that cannot fit this limit is not traded in the simulated account.
+- **Primary signal research does not apply an account affordability or fixed ₹200 loss gate.** It records one historical lot per candidate.
+- A separate capital-controlled report applies explicit account and risk assumptions; rejected candidates remain visible in the signal research ledger.
 - Long-option research includes ATM, ITM1, and OTM1/2/3/5 contracts to test lower-premium alternatives. These are candidates, not recommendations.
 
 The source is daily OHLC/volume/open-interest bhavcopy, not historical bid/ask or order-book data. Liquidity filters reduce stale-mark risk but do not prove a fill was available. All results remain EOD research approximations until validated with timestamped executable quotes.
 
 ---
+
+## Supervised ML and quantitative research
+
+The pipeline compares Logistic Regression, Random Forest and HistGradientBoosting using matched one-session Call/Put outcomes. Predictors are lagged to the prior completed session and include index indicators, prior option-chain features, and approximate Black–Scholes IV/delta/gamma/theta/vega when a valid prior-session mark exists. Greeks assume a 6.5% risk-free rate, no dividend yield and European-style pricing.
+
+The data is split chronologically into training, validation and an untouched final holdout. Model and probability threshold selection use validation only. Holdout metrics include ROC-AUC, PR-AUC, Brier score, profit factor, expectancy, trade-return Sharpe, drawdown and trade count. At most one candidate is selected per entry session. Saved artifacts include model comparison, validation permutation importance, holdout predictions, JSON metrics and a fitted joblib model. The Streamlit ML & Strategy Lab reads saved outputs and does not train during app startup.
+
+BSE bhavcopy contains EOD OHLC/volume/open-interest, not timestamped bid/ask quotes. Model results are therefore close-to-close research approximations, not executable-fill claims. Freeze the research choices and use a prospective paper period before claiming a persistent edge.
 
 ## Historical data limitations
 
