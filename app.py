@@ -1548,6 +1548,8 @@ def page_ml_strategy_lab():
     trade_cols[5].metric("Strategy Sharpe (ann.)", trading.get("sharpe_annualized", "—"))
     trade_cols[6].metric("Max DD (return index)", f"{trading.get('max_drawdown_return_pct', 0):.1f}%" if trading.get("max_drawdown_return_pct") is not None else "—")
     st.caption(
+        f"PR-AUC prevalence baseline: {classification.get('pr_auc_baseline', '—')} · "
+        f"PR-AUC lift vs baseline: {classification.get('pr_auc_lift_vs_prevalence', '—')} · "
         f"Train: {split.get('train_start')} to {split.get('train_end')} · "
         f"Validation: {split.get('validation_start')} to {split.get('validation_end')} · "
         f"Holdout: {split.get('holdout_start')} to {split.get('holdout_end')}"
