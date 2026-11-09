@@ -8,6 +8,7 @@ prices or model executable bid/ask fills.
 """
 
 import json
+from math import erf, exp, log, pi, sqrt
 from pathlib import Path
 from typing import Any
 
@@ -35,6 +36,133 @@ from sensex_options.entry_signal_research import (
     _option_horizon_outcomes,
     build_lagged_features,
 )
+
+
+
+RISK_FREE_RATE = 0.065
+
+
+def _normal_cdf(value: float) -> float:
+    return 0.5 * (1.0 + erf(value / sqrt(2.0)))
+
+
+def _normal_pdf(value: float) -> float:
+    return exp(-0.5 * value * value) / sqrt(2.0 * pi)
+
+
+def _black_scholes_price(
+    spot: float, strike: float, years: float, rate: float, volatility: float, option_side: str
+) -> float:
+    if min(spot, strike, years, volatility) <= 0:
+        return float("nan")
+    root_t = sqrt(years)
+    d1 = (log(spot / strike) + (rate + 0.5 * volatility * volatility) * years) / (volatility * root_t)
+    d2 = d1 - volatility * root_t
+    discounted_strike = strike * exp(-rate * years)
+    if option_side == "CE":
+        return spot * _normal_cdf(d1) - discounted_strike * _normal_cdf(d2)
+    return discounted_strike * _normal_cdf(-d2) - spot * _normal_cdf(-d1)
+
+
+def _implied_volatility(
+    market_price: float, spot: float, strike: float, years: float,
+    rate: float, option_side: str,
+) -> float | None:
+    """Bisection IV estimate; None when the observed premium violates model bounds."""
+    if not all(np.isfinite(v) for v in (market_price, spot, strike, years)):
+        return None
+    if market_price <= 0 or spot <= 0 or strike <= 0 or years <= 0:
+        return None
+    discounted_strike = strike * exp(-rate * years)
+    intrinsic = max(spot - discounted_strike, 0.0) if option_side == "CE" else max(discounted_strike - spot, 0.0)
+    upper = spot if option_side == "CE" else discounted_strike
+    if market_price < intrinsic - 1e-6 or market_price >= upper:
+        return None
+    low, high = 1e-4, 5.0
+    for _ in range(60):
+        mid = (low + high) / 2.0
+        model_price = _black_scholes_price(spot, strike, years, rate, mid, option_side)
+        if not np.isfinite(model_price):
+            return None
+        if model_price > market_price:
+            high = mid
+        else:
+            low = mid
+    return (low + high) / 2.0
+
+
+def _black_scholes_greeks(
+    spot: float, strike: float, years: float, rate: float,
+    volatility: float, option_side: str,
+) -> dict[str, float]:
+    """Approximate European Greeks; theta is per calendar day and vega per 1 vol point."""
+    root_t = sqrt(years)
+    d1 = (log(spot / strike) + (rate + 0.5 * volatility * volatility) * years) / (volatility * root_t)
+    d2 = d1 - volatility * root_t
+    density = _normal_pdf(d1)
+    gamma = density / (spot * volatility * root_t)
+    vega = spot * density * root_t / 100.0
+    if option_side == "CE":
+        delta = _normal_cdf(d1)
+        theta = (
+            -spot * density * volatility / (2.0 * root_t)
+            - rate * strike * exp(-rate * years) * _normal_cdf(d2)
+        ) / 365.0
+    else:
+        delta = _normal_cdf(d1) - 1.0
+        theta = (
+            -spot * density * volatility / (2.0 * root_t)
+            + rate * strike * exp(-rate * years) * _normal_cdf(-d2)
+        ) / 365.0
+    return {
+        "lagged_iv": volatility,
+        "lagged_delta": delta,
+        "lagged_gamma": gamma,
+        "lagged_theta_per_day": theta,
+        "lagged_vega_per_1pct": vega,
+    }
+
+
+def _lagged_greek_features(dataset: pd.DataFrame, options: pd.DataFrame) -> pd.DataFrame:
+    """Estimate Greeks from prior-session closes only; missing marks remain missing."""
+    opt = options.copy()
+    required = {"trade_date", "expiry_date", "strike", "option_type", "close"}
+    if opt.empty or not required.issubset(opt.columns):
+        return pd.DataFrame(index=dataset.index)
+    for col in ("trade_date", "expiry_date"):
+        opt[col] = pd.to_datetime(opt[col], errors="coerce").dt.normalize()
+    for col in ("strike", "close"):
+        opt[col] = pd.to_numeric(opt[col], errors="coerce")
+    opt["option_type"] = opt["option_type"].astype(str).str.upper().str.strip()
+    opt = opt.dropna(subset=list(required))
+    opt = opt[(opt["close"] > 0) & (opt["strike"] > 0)]
+    opt = opt.sort_values("symbol" if "symbol" in opt.columns else "trade_date")
+    opt = opt.drop_duplicates(
+        ["trade_date", "expiry_date", "strike", "option_type"], keep="last"
+    )
+    price_lookup = {
+        (row.trade_date, row.expiry_date, float(row.strike), row.option_type): float(row.close)
+        for row in opt.itertuples()
+    }
+    rows = []
+    for row in dataset.itertuples():
+        signal_date = pd.Timestamp(row.signal_date).normalize()
+        expiry_date = pd.Timestamp(row.expiry_date).normalize()
+        strike = float(row.selected_strike)
+        side = str(row.option_side)
+        premium = price_lookup.get((signal_date, expiry_date, strike, side))
+        spot = float(row.signal_spot)
+        years = max((expiry_date - signal_date).days, 1) / 365.25
+        iv = _implied_volatility(
+            premium, spot, strike, years, RISK_FREE_RATE, side
+        ) if premium is not None else None
+        if iv is None:
+            rows.append({})
+        else:
+            rows.append(_black_scholes_greeks(
+                spot, strike, years, RISK_FREE_RATE, iv, side
+            ))
+    return pd.DataFrame(rows, index=dataset.index)
 
 
 def build_ml_option_dataset(
@@ -136,13 +264,16 @@ def build_ml_option_dataset(
     dataset = pd.concat(rows, ignore_index=True, sort=False)
     dataset = dataset.replace([np.inf, -np.inf], np.nan)
     dataset = dataset.dropna(subset=["entry_date", "exit_date", "target_net_pnl", "target_return_pct"])
+    dataset = dataset.reset_index(drop=True)
+    greek_features = _lagged_greek_features(dataset, options)
+    dataset = pd.concat([dataset, greek_features.reset_index(drop=True)], axis=1)
     dummies = pd.get_dummies(dataset["moneyness"], prefix="moneyness", dtype=float)
-    dataset = pd.concat([dataset.reset_index(drop=True), dummies.reset_index(drop=True)], axis=1)
+    dataset = pd.concat([dataset, dummies.reset_index(drop=True)], axis=1)
 
     feature_cols = (
         index_feature_cols
         + option_feature_cols
-        + ["option_type_call", "dte_calendar_days", "moneyness_distance_pct"]
+        + ["option_type_call", "dte_calendar_days", "moneyness_distance_pct",\n           "lagged_iv", "lagged_delta", "lagged_gamma", "lagged_theta_per_day", "lagged_vega_per_1pct"]
         + list(dummies.columns)
     )
     feature_cols = list(dict.fromkeys(c for c in feature_cols if c in dataset.columns))
@@ -169,7 +300,7 @@ def build_ml_option_dataset(
         "moneyness_variants": sorted(dataset["moneyness"].unique().tolist()),
         "side_counts": dataset["option_side"].value_counts().to_dict(),
         "target": "net option P&L after estimated costs > 0",
-        "signal_timing": "all index and option-chain predictors are from the prior completed SENSEX session",
+        "signal_timing": "all index, option-chain and model-derived Greek predictors are from the prior completed SENSEX session",\n        "greeks": "Black-Scholes approximations from prior-session option close and index close; 6.5% risk-free rate, no dividend yield; missing/invalid IV remains null",
     }
     return dataset, feature_cols, report
 
