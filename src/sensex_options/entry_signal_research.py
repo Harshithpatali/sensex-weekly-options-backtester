@@ -1813,7 +1813,7 @@ def run_entry_signal_research(
             "call/put open-interest changes matched to premium changes",
             "ATM straddle premium versus trailing realised-volatility proxy",
         ] if options is not None else [],
-        "initial_capital": float(capital),
+        "initial_capital": float(capital),\n        "capital_is_sizing_constraint": risk_per_trade_pct is not None,
         "risk_per_trade_pct": float(risk_per_trade_pct) * 100 if risk_per_trade_pct is not None else None,
         "maximum_risk_per_trade": round(float(capital) * float(risk_per_trade_pct), 2) if risk_per_trade_pct is not None else None,
         "credit_spread_risk_budget": (
