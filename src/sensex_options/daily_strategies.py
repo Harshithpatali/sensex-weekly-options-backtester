@@ -307,10 +307,16 @@ def daily_holdout_evaluation(ledger: pd.DataFrame) -> dict:
         negative = pnl[pnl < 0]
         ordered = group.sort_values("entry_date").copy()
         all_dates = pd.Index(sorted(pd.to_datetime(test["entry_date"]).dropna().unique()))
-        trade_returns = (
-            ordered.assign(entry_date=pd.to_datetime(ordered["entry_date"]))
-            .set_index("entry_date")["return_pct"].astype(float) / 100.0
-        )
+        if "return_pct" in ordered:
+            trade_returns = (
+                ordered.assign(entry_date=pd.to_datetime(ordered["entry_date"]))
+                .set_index("entry_date")["return_pct"].astype(float) / 100.0
+            )
+        else:
+            trade_returns = (
+                ordered.assign(entry_date=pd.to_datetime(ordered["entry_date"]))
+                .set_index("entry_date")["net_pnl"].astype(float) / 10000.0
+            )
         daily_returns = trade_returns.reindex(all_dates, fill_value=0.0)
         return_index = 100.0 + daily_returns.cumsum() * 100.0
         return_peak = return_index.cummax()
