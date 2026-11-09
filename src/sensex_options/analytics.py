@@ -265,7 +265,10 @@ def strategy_performance_metrics(trades: pd.DataFrame, initial_capital: float = 
         returns = returns.reset_index(drop=True)
         equity = 100.0 + returns.cumsum() * 100.0
         peak = equity.cummax()
-        dd = equity - peak
+        return_dd = equity / peak.replace(0, np.nan) - 1.0
+        pnl_curve = pnl.reset_index(drop=True).cumsum()
+        pnl_peak = pnl_curve.cummax().clip(lower=0)
+        dd = pnl_curve - pnl_peak
         std = float(returns.std(ddof=1)) if len(returns) > 1 else np.nan
         sharpe = float(returns.mean() / std * np.sqrt(52)) if pd.notna(std) and std > 0 else None
         rows.append({
@@ -275,7 +278,8 @@ def strategy_performance_metrics(trades: pd.DataFrame, initial_capital: float = 
             "expectancy": round(float(pnl.mean()), 2),
             "sharpe_trade_annualized": round(sharpe, 4) if sharpe is not None else None,
             "max_drawdown": round(float(dd.min()), 2) if len(dd) else 0.0,
-            "drawdown_basis": "additive one-lot premium-return index (base 100)",
+            "max_drawdown_pct": round(float(return_dd.min() * 100), 2) if len(return_dd.dropna()) else 0.0,
+            "drawdown_basis": "₹ one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
             "max_drawdown_pct": round(float((dd / peak.replace(0, np.nan) * 100).min()), 2) if len(dd) else 0.0,
             "sample_warning": "Small samples are not statistically reliable" if len(pnl) < 30 else "",
         })
