@@ -20,3 +20,5 @@ Re-run against the latest main commit: persist the independent chronological ₹
 research mode: capital-independent one-lot strategy outcomes; optional capital sizing remains a separate report
 
 ML research enabled; matured-expiry filter and zero-premium expiry outcomes validated
+
+Final research rerun: stationary feature set, no-lookahead selection, normalized drawdown, and holiday-adjusted zero-expiry outcomes
