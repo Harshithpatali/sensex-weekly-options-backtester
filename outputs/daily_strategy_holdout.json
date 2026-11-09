@@ -18,6 +18,9 @@
       "median_trade_pnl": -1590.25,
       "best_trade": 36968.35,
       "worst_trade": -26030.19,
+      "max_drawdown_pnl": -223794.99,
+      "max_drawdown_return_pct": -900.97,
+      "sharpe_trade_annualized": -0.4614,
       "top3_wins_share_of_net_pct": null
     },
     {
@@ -30,6 +33,9 @@
       "median_trade_pnl": -1590.25,
       "best_trade": 48499.42,
       "worst_trade": -20963.49,
+      "max_drawdown_pnl": -259173.9,
+      "max_drawdown_return_pct": -17518.04,
+      "sharpe_trade_annualized": -1.6111,
       "top3_wins_share_of_net_pct": null
     },
     {
@@ -42,6 +48,9 @@
       "median_trade_pnl": -1039.56,
       "best_trade": 34967.46,
       "worst_trade": -26030.19,
+      "max_drawdown_pnl": -110331.22,
+      "max_drawdown_return_pct": -227.39,
+      "sharpe_trade_annualized": 1.0693,
       "top3_wins_share_of_net_pct": 135.13
     },
     {
@@ -54,6 +63,9 @@
       "median_trade_pnl": -1590.25,
       "best_trade": 36968.35,
       "worst_trade": -26030.19,
+      "max_drawdown_pnl": -204447.24,
+      "max_drawdown_return_pct": -5209.55,
+      "sharpe_trade_annualized": 0.264,
       "top3_wins_share_of_net_pct": 316.56
     },
     {
@@ -66,6 +78,9 @@
       "median_trade_pnl": -1704.81,
       "best_trade": 34967.46,
       "worst_trade": -26030.19,
+      "max_drawdown_pnl": -222427.02,
+      "max_drawdown_return_pct": -376.09,
+      "sharpe_trade_annualized": -0.1492,
       "top3_wins_share_of_net_pct": null
     },
     {
@@ -78,6 +93,9 @@
       "median_trade_pnl": -1040.51,
       "best_trade": 48499.42,
       "worst_trade": -22420.55,
+      "max_drawdown_pnl": -106364.98,
+      "max_drawdown_return_pct": -2997.71,
+      "sharpe_trade_annualized": 0.1372,
       "top3_wins_share_of_net_pct": 149.31
     },
     {
@@ -90,6 +108,9 @@
       "median_trade_pnl": -1511.81,
       "best_trade": 20686.34,
       "worst_trade": -17471.61,
+      "max_drawdown_pnl": -95903.56,
+      "max_drawdown_return_pct": -964.98,
+      "sharpe_trade_annualized": -2.5495,
       "top3_wins_share_of_net_pct": null
     }
   ],

@@ -1,69 +1,74 @@
 {
   "status": "ok",
-  "distinct_expiries": 134,
-  "train_expiries": 93,
-  "holdout_expiries": 41,
-  "holdout_start": "2026-04-16",
-  "holdout_end": "2027-12-30",
+  "distinct_expiries": 123,
+  "train_expiries": 86,
+  "holdout_expiries": 37,
+  "holdout_start": "2026-02-26",
+  "holdout_end": "2026-11-05",
   "holdout_metrics": [
-    {
-      "strategy": "OTM_CALL_1",
-      "trades": 34,
-      "net_pnl": -10990.96,
-      "win_rate_pct": 20.59,
-      "profit_factor": 0.8879,
-      "expectancy": -323.26,
-      "sharpe_trade_annualized": 0.6903,
-      "max_drawdown": -74941.29,
-      "max_drawdown_pct": 7.76,
-      "sample_warning": ""
-    },
-    {
-      "strategy": "ATM_CALL",
-      "trades": 38,
-      "net_pnl": -12798.95,
-      "win_rate_pct": 21.05,
-      "profit_factor": 0.8809,
-      "expectancy": -336.81,
-      "sharpe_trade_annualized": 0.6818,
-      "max_drawdown": -78067.01,
-      "max_drawdown_pct": 8.37,
-      "sample_warning": ""
-    },
     {
       "strategy": "ATM_PUT",
       "trades": 37,
-      "net_pnl": -27664.6,
-      "win_rate_pct": 24.32,
-      "profit_factor": 0.7263,
-      "expectancy": -747.69,
-      "sharpe_trade_annualized": -1.0268,
+      "net_pnl": 229.33,
+      "win_rate_pct": 32.43,
+      "profit_factor": 1.0017,
+      "expectancy": 6.2,
+      "sharpe_trade_annualized": 0.3585,
       "max_drawdown": -65783.21,
-      "max_drawdown_pct": -151.07,
+      "max_drawdown_pct": -85066.86,
+      "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
       "sample_warning": ""
     },
     {
       "strategy": "OTM_PUT_1",
-      "trades": 35,
-      "net_pnl": -29209.51,
-      "win_rate_pct": 25.71,
-      "profit_factor": 0.6854,
-      "expectancy": -834.56,
-      "sharpe_trade_annualized": -1.193,
+      "trades": 37,
+      "net_pnl": -2653.24,
+      "win_rate_pct": 32.43,
+      "profit_factor": 0.9786,
+      "expectancy": -71.71,
+      "sharpe_trade_annualized": 0.3584,
       "max_drawdown": -62049.09,
-      "max_drawdown_pct": -175.64,
+      "max_drawdown_pct": -8351.57,
+      "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
+      "sample_warning": ""
+    },
+    {
+      "strategy": "OTM_CALL_1",
+      "trades": 37,
+      "net_pnl": -25306.62,
+      "win_rate_pct": 24.32,
+      "profit_factor": 0.8053,
+      "expectancy": -683.96,
+      "sharpe_trade_annualized": -0.633,
+      "max_drawdown": -90840.74,
+      "max_drawdown_pct": -179761.63,
+      "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
       "sample_warning": ""
     },
     {
       "strategy": "ATM_STRADDLE",
-      "trades": 34,
-      "net_pnl": -38769.26,
-      "win_rate_pct": 32.35,
-      "profit_factor": 0.7142,
-      "expectancy": -1140.27,
-      "sharpe_trade_annualized": 1.6476,
-      "max_drawdown": -116073.75,
-      "max_drawdown_pct": 14.18,
+      "trades": 37,
+      "net_pnl": -25940.08,
+      "win_rate_pct": 37.84,
+      "profit_factor": 0.8427,
+      "expectancy": -701.08,
+      "sharpe_trade_annualized": -0.2826,
+      "max_drawdown": -128057.31,
+      "max_drawdown_pct": -184721.09,
+      "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
+      "sample_warning": ""
+    },
+    {
+      "strategy": "ATM_CALL",
+      "trades": 37,
+      "net_pnl": -26169.44,
+      "win_rate_pct": 27.03,
+      "profit_factor": 0.814,
+      "expectancy": -707.28,
+      "sharpe_trade_annualized": -0.6331,
+      "max_drawdown": -94597.54,
+      "max_drawdown_pct": -162438.25,
+      "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
       "sample_warning": ""
     }
   ],
@@ -84,9 +89,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 1.5409,
           "expectancy": 1192.23,
-          "sharpe_trade_annualized": 1.9525,
+          "sharpe_trade_annualized": 1.8446,
           "max_drawdown": -4897.11,
-          "max_drawdown_pct": -15.86,
+          "max_drawdown_pct": -2186.28,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -96,9 +102,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 1.4695,
           "expectancy": 757.69,
-          "sharpe_trade_annualized": 1.3221,
+          "sharpe_trade_annualized": 0.1208,
           "max_drawdown": -3965.37,
-          "max_drawdown_pct": -13.69,
+          "max_drawdown_pct": -1148.73,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -108,9 +115,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 1.4786,
           "expectancy": 667.2,
-          "sharpe_trade_annualized": 2.2641,
+          "sharpe_trade_annualized": 1.6496,
           "max_drawdown": -5576.5,
-          "max_drawdown_pct": -41.55,
+          "max_drawdown_pct": -1026.65,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -120,9 +128,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 1.2697,
           "expectancy": 525.03,
-          "sharpe_trade_annualized": 1.0593,
+          "sharpe_trade_annualized": -0.2851,
           "max_drawdown": -4882.22,
-          "max_drawdown_pct": -16.2,
+          "max_drawdown_pct": -1688.53,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -132,9 +141,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 1.2008,
           "expectancy": 318.87,
-          "sharpe_trade_annualized": 1.7071,
+          "sharpe_trade_annualized": 1.5225,
           "max_drawdown": -6350.82,
-          "max_drawdown_pct": -45.48,
+          "max_drawdown_pct": -1038.58,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -155,9 +165,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 3.4779,
           "expectancy": 1854.55,
-          "sharpe_trade_annualized": 4.025,
+          "sharpe_trade_annualized": 3.4175,
           "max_drawdown": -2993.78,
-          "max_drawdown_pct": -22.29,
+          "max_drawdown_pct": -912.18,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -167,9 +178,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 2.8562,
           "expectancy": 1474.59,
-          "sharpe_trade_annualized": 3.6774,
+          "sharpe_trade_annualized": 3.1065,
           "max_drawdown": -3177.63,
-          "max_drawdown_pct": -25.48,
+          "max_drawdown_pct": -977.63,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -179,9 +191,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 0.5149,
           "expectancy": -850.14,
-          "sharpe_trade_annualized": -1.6554,
+          "sharpe_trade_annualized": -1.8033,
           "max_drawdown": -7010.06,
-          "max_drawdown_pct": -22.22,
+          "max_drawdown_pct": -5717.22,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -191,9 +204,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -2430.52,
-          "sharpe_trade_annualized": -23.8796,
+          "sharpe_trade_annualized": -25.5076,
           "max_drawdown": -9722.09,
-          "max_drawdown_pct": -30.38,
+          "max_drawdown_pct": 199429.14,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -203,9 +217,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -2704.68,
-          "sharpe_trade_annualized": -16.1954,
+          "sharpe_trade_annualized": -16.1251,
           "max_drawdown": -10818.72,
-          "max_drawdown_pct": -33.56,
+          "max_drawdown_pct": 276968.37,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -226,9 +241,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 1.9163,
           "expectancy": 1944.55,
-          "sharpe_trade_annualized": 2.0015,
+          "sharpe_trade_annualized": 2.1275,
           "max_drawdown": -8488.78,
-          "max_drawdown_pct": -38.11,
+          "max_drawdown_pct": 0.0,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -238,9 +254,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 1.7008,
           "expectancy": 1747.76,
-          "sharpe_trade_annualized": 1.9808,
+          "sharpe_trade_annualized": 1.9253,
           "max_drawdown": -9976.35,
-          "max_drawdown_pct": -46.58,
+          "max_drawdown_pct": 0.0,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -250,9 +267,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 1.2512,
           "expectancy": 680.51,
-          "sharpe_trade_annualized": 1.3834,
+          "sharpe_trade_annualized": 0.6532,
           "max_drawdown": -10835.35,
-          "max_drawdown_pct": -40.61,
+          "max_drawdown_pct": -11370.92,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -262,9 +280,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.4189,
           "expectancy": -1067.24,
-          "sharpe_trade_annualized": -2.5263,
+          "sharpe_trade_annualized": -1.4722,
           "max_drawdown": -7346.14,
-          "max_drawdown_pct": -40.06,
+          "max_drawdown_pct": -2845.49,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -274,9 +293,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.3419,
           "expectancy": -1180.49,
-          "sharpe_trade_annualized": -3.4134,
+          "sharpe_trade_annualized": -2.0567,
           "max_drawdown": -7175.1,
-          "max_drawdown_pct": -44.95,
+          "max_drawdown_pct": -2816.28,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -297,9 +317,10 @@
           "win_rate_pct": 66.67,
           "profit_factor": 2.336,
           "expectancy": 1645.3,
-          "sharpe_trade_annualized": 2.9074,
+          "sharpe_trade_annualized": 3.3391,
           "max_drawdown": -3694.59,
-          "max_drawdown_pct": -10.91,
+          "max_drawdown_pct": -1677.61,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -309,9 +330,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 1.4243,
           "expectancy": 717.88,
-          "sharpe_trade_annualized": 1.4622,
+          "sharpe_trade_annualized": 1.1566,
           "max_drawdown": -4025.22,
-          "max_drawdown_pct": -13.41,
+          "max_drawdown_pct": -3419.4,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -321,9 +343,10 @@
           "win_rate_pct": 66.67,
           "profit_factor": 0.6403,
           "expectancy": -852.34,
-          "sharpe_trade_annualized": -0.6472,
+          "sharpe_trade_annualized": -0.2256,
           "max_drawdown": -7109.66,
-          "max_drawdown_pct": -23.0,
+          "max_drawdown_pct": -5753.92,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -333,9 +356,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -2647.02,
-          "sharpe_trade_annualized": -17.4871,
+          "sharpe_trade_annualized": -935.5273,
           "max_drawdown": -7941.07,
-          "max_drawdown_pct": -90.35,
+          "max_drawdown_pct": 97204.53,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -345,9 +369,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -2723.92,
-          "sharpe_trade_annualized": -27.6391,
+          "sharpe_trade_annualized": -48.9208,
           "max_drawdown": -8171.75,
-          "max_drawdown_pct": -74.33,
+          "max_drawdown_pct": 130901.8,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -368,9 +393,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 1.0805,
           "expectancy": 201.05,
-          "sharpe_trade_annualized": 3.2884,
+          "sharpe_trade_annualized": 1.874,
           "max_drawdown": -7193.93,
-          "max_drawdown_pct": -81.32,
+          "max_drawdown_pct": -1883.12,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -380,9 +406,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 1.0618,
           "expectancy": 173.18,
-          "sharpe_trade_annualized": 2.6929,
+          "sharpe_trade_annualized": 1.7738,
           "max_drawdown": -7998.23,
-          "max_drawdown_pct": -69.47,
+          "max_drawdown_pct": -2182.59,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -392,9 +419,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 0.2963,
           "expectancy": -2893.01,
-          "sharpe_trade_annualized": -2.8282,
+          "sharpe_trade_annualized": -2.1131,
           "max_drawdown": -15873.71,
-          "max_drawdown_pct": -50.96,
+          "max_drawdown_pct": -9907.01,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -404,9 +432,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -3066.19,
-          "sharpe_trade_annualized": -17.2727,
+          "sharpe_trade_annualized": -16.4369,
           "max_drawdown": -12264.75,
-          "max_drawdown_pct": -39.21,
+          "max_drawdown_pct": 219549.16,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -416,9 +445,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -3243.2,
-          "sharpe_trade_annualized": -14.9582,
+          "sharpe_trade_annualized": -33.5783,
           "max_drawdown": -12972.79,
-          "max_drawdown_pct": -37.08,
+          "max_drawdown_pct": 172010.13,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -439,9 +469,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 4.3921,
           "expectancy": 6048.45,
-          "sharpe_trade_annualized": 3.8437,
+          "sharpe_trade_annualized": 3.658,
           "max_drawdown": -6614.77,
-          "max_drawdown_pct": -43.31,
+          "max_drawdown_pct": -18065.24,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -451,9 +482,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 2.7466,
           "expectancy": 3788.73,
-          "sharpe_trade_annualized": 2.7249,
+          "sharpe_trade_annualized": 2.6024,
           "max_drawdown": -8676.57,
-          "max_drawdown_pct": -45.62,
+          "max_drawdown_pct": -14360.9,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -463,9 +495,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 2.6018,
           "expectancy": 3465.93,
-          "sharpe_trade_annualized": 2.5278,
+          "sharpe_trade_annualized": 2.5257,
           "max_drawdown": -8655.1,
-          "max_drawdown_pct": -39.31,
+          "max_drawdown_pct": -24015.93,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -475,9 +508,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 2.0033,
           "expectancy": 2388.65,
-          "sharpe_trade_annualized": -4.6409,
+          "sharpe_trade_annualized": 1.018,
           "max_drawdown": -6189.71,
-          "max_drawdown_pct": -201.76,
+          "max_drawdown_pct": -1329.08,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -487,9 +521,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 1.8021,
           "expectancy": 2259.72,
-          "sharpe_trade_annualized": -3.8096,
+          "sharpe_trade_annualized": 0.7688,
           "max_drawdown": -7205.11,
-          "max_drawdown_pct": -115.63,
+          "max_drawdown_pct": -1738.31,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -510,9 +545,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 1.3109,
           "expectancy": 877.97,
-          "sharpe_trade_annualized": 1.8625,
+          "sharpe_trade_annualized": 0.432,
           "max_drawdown": -11294.78,
-          "max_drawdown_pct": -41.28,
+          "max_drawdown_pct": -2916.4,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -522,9 +558,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 1.1547,
           "expectancy": 455.57,
-          "sharpe_trade_annualized": 1.6278,
+          "sharpe_trade_annualized": 0.0954,
           "max_drawdown": -11776.37,
-          "max_drawdown_pct": -47.48,
+          "max_drawdown_pct": -2865.51,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -534,9 +571,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.2428,
           "expectancy": -5557.55,
-          "sharpe_trade_annualized": -5.1648,
+          "sharpe_trade_annualized": -5.0961,
           "max_drawdown": -29357.74,
-          "max_drawdown_pct": -63.0,
+          "max_drawdown_pct": -18835.61,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -546,9 +584,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -5818.16,
-          "sharpe_trade_annualized": -48.252,
+          "sharpe_trade_annualized": -1675.7659,
           "max_drawdown": -23272.65,
-          "max_drawdown_pct": -64.86,
+          "max_drawdown_pct": 581598.06,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -558,9 +597,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -6435.52,
-          "sharpe_trade_annualized": -29.1111,
+          "sharpe_trade_annualized": -46.3768,
           "max_drawdown": -25742.07,
-          "max_drawdown_pct": -75.33,
+          "max_drawdown_pct": 787601.03,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -581,9 +621,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 2.0104,
           "expectancy": 2773.31,
-          "sharpe_trade_annualized": 3.0544,
+          "sharpe_trade_annualized": 1.666,
           "max_drawdown": -10978.71,
-          "max_drawdown_pct": -84.26,
+          "max_drawdown_pct": 0.0,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -593,9 +634,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 1.5622,
           "expectancy": 2691.78,
-          "sharpe_trade_annualized": 3.1626,
+          "sharpe_trade_annualized": 1.3436,
           "max_drawdown": -10993.13,
-          "max_drawdown_pct": -50.51,
+          "max_drawdown_pct": -8051.81,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -605,9 +647,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 1.7366,
           "expectancy": 2467.61,
-          "sharpe_trade_annualized": 2.9387,
+          "sharpe_trade_annualized": 1.4274,
           "max_drawdown": -13399.63,
-          "max_drawdown_pct": -83.41,
+          "max_drawdown_pct": 0.0,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -617,9 +660,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 1.1816,
           "expectancy": 629.36,
-          "sharpe_trade_annualized": 1.8718,
+          "sharpe_trade_annualized": 0.9833,
           "max_drawdown": -10372.32,
-          "max_drawdown_pct": -40.68,
+          "max_drawdown_pct": -2278.41,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -629,9 +673,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 1.0541,
           "expectancy": 224.17,
-          "sharpe_trade_annualized": 2.397,
+          "sharpe_trade_annualized": 0.673,
           "max_drawdown": -12108.56,
-          "max_drawdown_pct": -56.49,
+          "max_drawdown_pct": -3119.16,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -652,9 +697,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 4.5872,
           "expectancy": 4700.3,
-          "sharpe_trade_annualized": 5.0605,
+          "sharpe_trade_annualized": 1.528,
           "max_drawdown": -5241.12,
-          "max_drawdown_pct": -15.71,
+          "max_drawdown_pct": -1925.23,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -664,9 +710,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 3.0914,
           "expectancy": 3725.57,
-          "sharpe_trade_annualized": 4.0663,
+          "sharpe_trade_annualized": 0.163,
           "max_drawdown": -7125.37,
-          "max_drawdown_pct": -19.18,
+          "max_drawdown_pct": -2627.7,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -676,9 +723,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.1613,
           "expectancy": -4873.79,
-          "sharpe_trade_annualized": -5.4377,
+          "sharpe_trade_annualized": -6.5194,
           "max_drawdown": -19495.16,
-          "max_drawdown_pct": -69.61,
+          "max_drawdown_pct": -21512.14,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -688,9 +736,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -8785.29,
-          "sharpe_trade_annualized": 1.9713,
+          "sharpe_trade_annualized": -1294.7757,
           "max_drawdown": -35141.15,
-          "max_drawdown_pct": -145.68,
+          "max_drawdown_pct": 2273691.51,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -700,9 +749,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -9574.09,
-          "sharpe_trade_annualized": 2.6931,
+          "sharpe_trade_annualized": -1668.5753,
           "max_drawdown": -38296.36,
-          "max_drawdown_pct": -147.66,
+          "max_drawdown_pct": 2432101.42,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -723,9 +773,10 @@
           "win_rate_pct": 75.0,
           "profit_factor": 26.9913,
           "expectancy": 7947.57,
-          "sharpe_trade_annualized": 2.3258,
+          "sharpe_trade_annualized": 6.4921,
           "max_drawdown": -1223.11,
-          "max_drawdown_pct": 0.0,
+          "max_drawdown_pct": -1709.47,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -735,9 +786,10 @@
           "win_rate_pct": 75.0,
           "profit_factor": 12.0158,
           "expectancy": 6780.59,
-          "sharpe_trade_annualized": 2.8366,
+          "sharpe_trade_annualized": 5.075,
           "max_drawdown": -2462.14,
-          "max_drawdown_pct": 0.0,
+          "max_drawdown_pct": -7999.16,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -747,9 +799,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 1.2494,
           "expectancy": 723.63,
-          "sharpe_trade_annualized": 2.7507,
+          "sharpe_trade_annualized": 0.2518,
           "max_drawdown": -6073.18,
-          "max_drawdown_pct": -64.99,
+          "max_drawdown_pct": -15717.78,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -759,9 +812,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -6243.06,
-          "sharpe_trade_annualized": -10.4303,
+          "sharpe_trade_annualized": -1115.6429,
           "max_drawdown": -24972.24,
-          "max_drawdown_pct": -83.16,
+          "max_drawdown_pct": 152310.66,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -771,9 +825,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -7223.94,
-          "sharpe_trade_annualized": -8.89,
+          "sharpe_trade_annualized": -1559.1476,
           "max_drawdown": -28895.75,
-          "max_drawdown_pct": -102.73,
+          "max_drawdown_pct": 250600.35,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -794,9 +849,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.1604,
           "expectancy": -2223.24,
-          "sharpe_trade_annualized": -5.3435,
+          "sharpe_trade_annualized": -6.4786,
           "max_drawdown": -10591.38,
-          "max_drawdown_pct": -50.13,
+          "max_drawdown_pct": -9228.03,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -806,9 +862,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.0593,
           "expectancy": -2460.53,
-          "sharpe_trade_annualized": -7.8931,
+          "sharpe_trade_annualized": -8.7405,
           "max_drawdown": -10462.57,
-          "max_drawdown_pct": -62.56,
+          "max_drawdown_pct": -9882.75,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -818,9 +875,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -5631.06,
-          "sharpe_trade_annualized": -0.0809,
+          "sharpe_trade_annualized": -64.0521,
           "max_drawdown": -22524.22,
-          "max_drawdown_pct": -445.55,
+          "max_drawdown_pct": 1199346.78,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -830,9 +888,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -6144.62,
-          "sharpe_trade_annualized": 3.9557,
+          "sharpe_trade_annualized": -25.8451,
           "max_drawdown": -24578.49,
-          "max_drawdown_pct": 1355.96,
+          "max_drawdown_pct": 1452044.63,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -842,9 +901,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -8367.87,
-          "sharpe_trade_annualized": -2.7209,
+          "sharpe_trade_annualized": -19.6523,
           "max_drawdown": -33471.47,
-          "max_drawdown_pct": -293.48,
+          "max_drawdown_pct": -55698.52,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -865,9 +925,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 0.3628,
           "expectancy": -1151.51,
-          "sharpe_trade_annualized": 3.1334,
+          "sharpe_trade_annualized": -2.9348,
           "max_drawdown": -4606.03,
-          "max_drawdown_pct": 4.32,
+          "max_drawdown_pct": -11118.0,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -877,9 +938,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.0667,
           "expectancy": -1725.9,
-          "sharpe_trade_annualized": 5.034,
+          "sharpe_trade_annualized": -5.5027,
           "max_drawdown": -6903.59,
-          "max_drawdown_pct": 23.86,
+          "max_drawdown_pct": -58238.48,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -889,9 +951,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -3222.65,
-          "sharpe_trade_annualized": 1.6549,
+          "sharpe_trade_annualized": -2146.659,
           "max_drawdown": -12890.61,
-          "max_drawdown_pct": -205.87,
+          "max_drawdown_pct": 183072.1,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -901,9 +964,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -4004.07,
-          "sharpe_trade_annualized": -2.063,
+          "sharpe_trade_annualized": -201.6927,
           "max_drawdown": -16016.27,
-          "max_drawdown_pct": -152.01,
+          "max_drawdown_pct": 274780.76,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -913,9 +977,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -5155.57,
-          "sharpe_trade_annualized": 9.8744,
+          "sharpe_trade_annualized": -13.0926,
           "max_drawdown": -20622.3,
-          "max_drawdown_pct": 37.3,
+          "max_drawdown_pct": -115163.34,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -936,9 +1001,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 0.6765,
           "expectancy": -542.79,
-          "sharpe_trade_annualized": 2.4675,
+          "sharpe_trade_annualized": -1.924,
           "max_drawdown": -3488.51,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -3299.7,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -948,9 +1014,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 0.4273,
           "expectancy": -761.64,
-          "sharpe_trade_annualized": 3.0867,
+          "sharpe_trade_annualized": -3.147,
           "max_drawdown": -3046.55,
-          "max_drawdown_pct": 4.0,
+          "max_drawdown_pct": -11648.43,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -960,9 +1027,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 0.4773,
           "expectancy": -902.3,
-          "sharpe_trade_annualized": 2.1928,
+          "sharpe_trade_annualized": -2.1928,
           "max_drawdown": -6904.98,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -3667.85,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -972,9 +1040,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 0.5809,
           "expectancy": -912.79,
-          "sharpe_trade_annualized": 1.8222,
+          "sharpe_trade_annualized": -1.9118,
           "max_drawdown": -8711.68,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -4677.69,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -984,9 +1053,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.1182,
           "expectancy": -1455.58,
-          "sharpe_trade_annualized": 5.9412,
+          "sharpe_trade_annualized": -5.9047,
           "max_drawdown": -6603.12,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -6001.69,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -1007,9 +1077,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 1.5739,
           "expectancy": 1118.31,
-          "sharpe_trade_annualized": 1.8896,
+          "sharpe_trade_annualized": 1.5975,
           "max_drawdown": -7794.49,
-          "max_drawdown_pct": -300.72,
+          "max_drawdown_pct": -1058.61,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1019,9 +1090,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 1.3617,
           "expectancy": 898.14,
-          "sharpe_trade_annualized": 0.1203,
+          "sharpe_trade_annualized": 1.2313,
           "max_drawdown": -9932.3,
-          "max_drawdown_pct": -169.09,
+          "max_drawdown_pct": -1604.6,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1031,9 +1103,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.8378,
           "expectancy": -449.58,
-          "sharpe_trade_annualized": 0.8745,
+          "sharpe_trade_annualized": -0.2725,
           "max_drawdown": -11088.37,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -4673.43,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1043,9 +1116,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.2276,
           "expectancy": -1347.72,
-          "sharpe_trade_annualized": 4.2125,
+          "sharpe_trade_annualized": -4.4179,
           "max_drawdown": -6979.42,
-          "max_drawdown_pct": 12.6,
+          "max_drawdown_pct": 242126.36,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1055,9 +1129,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.0809,
           "expectancy": -1834.05,
-          "sharpe_trade_annualized": 7.9115,
+          "sharpe_trade_annualized": -8.1542,
           "max_drawdown": -7981.86,
-          "max_drawdown_pct": 11.28,
+          "max_drawdown_pct": 134485.73,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -1078,9 +1153,10 @@
           "win_rate_pct": 75.0,
           "profit_factor": 5.7392,
           "expectancy": 5286.44,
-          "sharpe_trade_annualized": -5.0394,
+          "sharpe_trade_annualized": 5.2852,
           "max_drawdown": -4461.88,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": 0.0,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1090,9 +1166,10 @@
           "win_rate_pct": 75.0,
           "profit_factor": 6.7055,
           "expectancy": 4791.86,
-          "sharpe_trade_annualized": -5.153,
+          "sharpe_trade_annualized": 5.3454,
           "max_drawdown": -3359.46,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": 0.0,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1102,9 +1179,10 @@
           "win_rate_pct": 100.0,
           "profit_factor": NaN,
           "expectancy": 4656.09,
-          "sharpe_trade_annualized": -7.8077,
+          "sharpe_trade_annualized": 7.9283,
           "max_drawdown": 0.0,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": 0.0,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1114,9 +1192,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.8143,
           "expectancy": -381.63,
-          "sharpe_trade_annualized": -1.4059,
+          "sharpe_trade_annualized": 0.1868,
           "max_drawdown": -8220.65,
-          "max_drawdown_pct": -551.14,
+          "max_drawdown_pct": -1909.23,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1126,9 +1205,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.7611,
           "expectancy": -630.35,
-          "sharpe_trade_annualized": 3.5711,
+          "sharpe_trade_annualized": -0.0635,
           "max_drawdown": -10553.54,
-          "max_drawdown_pct": -265.58,
+          "max_drawdown_pct": -2643.28,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -1149,9 +1229,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.9579,
           "expectancy": -84.45,
-          "sharpe_trade_annualized": 2.8045,
+          "sharpe_trade_annualized": -0.4246,
           "max_drawdown": -4270.26,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -2342.63,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1161,9 +1242,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.7916,
           "expectancy": -423.17,
-          "sharpe_trade_annualized": 2.8818,
+          "sharpe_trade_annualized": -0.9695,
           "max_drawdown": -5070.35,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -2740.18,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1173,9 +1255,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -4279.8,
-          "sharpe_trade_annualized": 24.737,
+          "sharpe_trade_annualized": -57.3534,
           "max_drawdown": -17119.19,
-          "max_drawdown_pct": 22.57,
+          "max_drawdown_pct": -76513.77,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1185,9 +1268,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -4776.85,
-          "sharpe_trade_annualized": 19.7366,
+          "sharpe_trade_annualized": -23.0246,
           "max_drawdown": -19107.41,
-          "max_drawdown_pct": 14.79,
+          "max_drawdown_pct": -35696.1,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1197,9 +1281,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.0714,
           "expectancy": -4861.31,
-          "sharpe_trade_annualized": 8.3052,
+          "sharpe_trade_annualized": -8.1313,
           "max_drawdown": -19445.22,
-          "max_drawdown_pct": 15.43,
+          "max_drawdown_pct": -42001.04,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -1220,9 +1305,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 3.2199,
           "expectancy": 1371.99,
-          "sharpe_trade_annualized": -3.0017,
+          "sharpe_trade_annualized": 3.0007,
           "max_drawdown": -2472.21,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -1148.89,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1232,9 +1318,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 1.2287,
           "expectancy": 268.8,
-          "sharpe_trade_annualized": -0.3545,
+          "sharpe_trade_annualized": 0.3734,
           "max_drawdown": -4702.11,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -2255.07,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1244,9 +1331,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -3117.9,
-          "sharpe_trade_annualized": 8.0072,
+          "sharpe_trade_annualized": -8.1532,
           "max_drawdown": -12471.61,
-          "max_drawdown_pct": 1.97,
+          "max_drawdown_pct": -13946.45,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1256,9 +1344,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -3572.29,
-          "sharpe_trade_annualized": 11.8942,
+          "sharpe_trade_annualized": -1811.791,
           "max_drawdown": -14289.14,
-          "max_drawdown_pct": 54.25,
+          "max_drawdown_pct": 281684.34,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1268,9 +1357,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -4489.89,
-          "sharpe_trade_annualized": 10.0882,
+          "sharpe_trade_annualized": -2614.0813,
           "max_drawdown": -17959.55,
-          "max_drawdown_pct": 80.83,
+          "max_drawdown_pct": 426817.56,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -1291,9 +1381,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 2.4819,
           "expectancy": 1896.55,
-          "sharpe_trade_annualized": -1.6949,
+          "sharpe_trade_annualized": 1.5827,
           "max_drawdown": -5119.13,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -8559.85,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1303,9 +1394,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 1.7394,
           "expectancy": 1244.17,
-          "sharpe_trade_annualized": -0.9289,
+          "sharpe_trade_annualized": 1.0379,
           "max_drawdown": -6730.7,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -66766.19,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1315,9 +1407,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.5803,
           "expectancy": -1801.54,
-          "sharpe_trade_annualized": 2.1879,
+          "sharpe_trade_annualized": -1.2533,
           "max_drawdown": -17169.24,
-          "max_drawdown_pct": 8.38,
+          "max_drawdown_pct": -58814.88,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1327,9 +1420,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -2771.23,
-          "sharpe_trade_annualized": 27.7562,
+          "sharpe_trade_annualized": -1258.6635,
           "max_drawdown": -11084.92,
-          "max_drawdown_pct": 9.14,
+          "max_drawdown_pct": 116803.89,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1339,9 +1433,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -3698.08,
-          "sharpe_trade_annualized": 28.1042,
+          "sharpe_trade_annualized": -1917.6387,
           "max_drawdown": -14792.34,
-          "max_drawdown_pct": 12.09,
+          "max_drawdown_pct": 195509.76,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -1362,9 +1457,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 0.5332,
           "expectancy": -1189.98,
-          "sharpe_trade_annualized": 2.5451,
+          "sharpe_trade_annualized": -1.5903,
           "max_drawdown": -10196.25,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -8586.03,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1374,9 +1470,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.389,
           "expectancy": -1384.8,
-          "sharpe_trade_annualized": 3.4295,
+          "sharpe_trade_annualized": -2.7403,
           "max_drawdown": -9066.03,
-          "max_drawdown_pct": 2.85,
+          "max_drawdown_pct": -11091.17,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1386,9 +1483,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.0696,
           "expectancy": -2469.22,
-          "sharpe_trade_annualized": 7.3199,
+          "sharpe_trade_annualized": -7.2836,
           "max_drawdown": -9876.89,
-          "max_drawdown_pct": 7.35,
+          "max_drawdown_pct": -82417.31,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1398,9 +1496,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.1462,
           "expectancy": -2492.7,
-          "sharpe_trade_annualized": 5.2395,
+          "sharpe_trade_annualized": -5.3687,
           "max_drawdown": -9970.82,
-          "max_drawdown_pct": 7.04,
+          "max_drawdown_pct": -39173.46,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1410,9 +1509,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -3682.68,
-          "sharpe_trade_annualized": 13.4091,
+          "sharpe_trade_annualized": -12.9958,
           "max_drawdown": -14730.71,
-          "max_drawdown_pct": 6.06,
+          "max_drawdown_pct": -29859.75,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -1433,9 +1533,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 1.7302,
           "expectancy": 2845.25,
-          "sharpe_trade_annualized": -4.3506,
+          "sharpe_trade_annualized": 3.3071,
           "max_drawdown": -15585.1,
-          "max_drawdown_pct": -317.08,
+          "max_drawdown_pct": -1888.26,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1445,9 +1546,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 1.6352,
           "expectancy": 2371.06,
-          "sharpe_trade_annualized": -1.1774,
+          "sharpe_trade_annualized": 3.28,
           "max_drawdown": -14932.06,
-          "max_drawdown_pct": -1306.55,
+          "max_drawdown_pct": -1598.95,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1457,9 +1559,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 1.2609,
           "expectancy": 927.92,
-          "sharpe_trade_annualized": -0.1635,
+          "sharpe_trade_annualized": 1.625,
           "max_drawdown": -14227.62,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -4446.34,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1469,9 +1572,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.4822,
           "expectancy": -1487.04,
-          "sharpe_trade_annualized": 2.7382,
+          "sharpe_trade_annualized": -5.9332,
           "max_drawdown": -11486.9,
-          "max_drawdown_pct": 6.68,
+          "max_drawdown_pct": 170466.89,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1481,9 +1585,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.4693,
           "expectancy": -1917.33,
-          "sharpe_trade_annualized": 2.9144,
+          "sharpe_trade_annualized": -5.4825,
           "max_drawdown": -14450.05,
-          "max_drawdown_pct": 8.11,
+          "max_drawdown_pct": 280672.0,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -1504,9 +1609,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 2.6704,
           "expectancy": 7923.18,
-          "sharpe_trade_annualized": -4.0153,
+          "sharpe_trade_annualized": 2.6439,
           "max_drawdown": -18972.62,
-          "max_drawdown_pct": -47.44,
+          "max_drawdown_pct": -2395.47,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1516,9 +1622,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 2.8196,
           "expectancy": 7788.66,
-          "sharpe_trade_annualized": -4.5273,
+          "sharpe_trade_annualized": 2.7112,
           "max_drawdown": -17121.91,
-          "max_drawdown_pct": -49.65,
+          "max_drawdown_pct": -2010.37,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1528,9 +1635,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 2.4307,
           "expectancy": 5755.09,
-          "sharpe_trade_annualized": -0.8099,
+          "sharpe_trade_annualized": 2.3673,
           "max_drawdown": -14932.69,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -3959.89,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1540,9 +1648,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.6008,
           "expectancy": -2168.09,
-          "sharpe_trade_annualized": 2.0798,
+          "sharpe_trade_annualized": -2.2186,
           "max_drawdown": -15554.31,
-          "max_drawdown_pct": 3.92,
+          "max_drawdown_pct": -34664.44,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1552,9 +1661,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.5719,
           "expectancy": -2251.66,
-          "sharpe_trade_annualized": 2.2465,
+          "sharpe_trade_annualized": -2.4302,
           "max_drawdown": -13874.66,
-          "max_drawdown_pct": 3.12,
+          "max_drawdown_pct": -34647.59,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -1575,9 +1685,10 @@
           "win_rate_pct": 75.0,
           "profit_factor": 6.0694,
           "expectancy": 5630.52,
-          "sharpe_trade_annualized": 5.7218,
+          "sharpe_trade_annualized": 5.7108,
           "max_drawdown": -4442.73,
-          "max_drawdown_pct": -13.96,
+          "max_drawdown_pct": -1952.81,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1587,9 +1698,10 @@
           "win_rate_pct": 75.0,
           "profit_factor": 4.2291,
           "expectancy": 4490.6,
-          "sharpe_trade_annualized": 4.9642,
+          "sharpe_trade_annualized": 4.4843,
           "max_drawdown": -5562.69,
-          "max_drawdown_pct": -20.56,
+          "max_drawdown_pct": -2431.43,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1599,9 +1711,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 0.5238,
           "expectancy": -1410.6,
-          "sharpe_trade_annualized": 1.7069,
+          "sharpe_trade_annualized": -1.6961,
           "max_drawdown": -11177.48,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -9461.54,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1611,9 +1724,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -6103.25,
-          "sharpe_trade_annualized": 37.3247,
+          "sharpe_trade_annualized": -7048.5835,
           "max_drawdown": -24413.02,
-          "max_drawdown_pct": 10.12,
+          "max_drawdown_pct": 637043.44,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1623,9 +1737,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -7041.12,
-          "sharpe_trade_annualized": 37.4535,
+          "sharpe_trade_annualized": -8147.7718,
           "max_drawdown": -28164.47,
-          "max_drawdown_pct": 10.83,
+          "max_drawdown_pct": 835976.6,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -1646,9 +1761,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.3868,
           "expectancy": -2740.28,
-          "sharpe_trade_annualized": 3.2262,
+          "sharpe_trade_annualized": -3.6695,
           "max_drawdown": -10961.11,
-          "max_drawdown_pct": 0.43,
+          "max_drawdown_pct": -11130.52,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1658,9 +1774,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.3739,
           "expectancy": -3273.35,
-          "sharpe_trade_annualized": 3.3587,
+          "sharpe_trade_annualized": -3.7433,
           "max_drawdown": -13093.39,
-          "max_drawdown_pct": 0.57,
+          "max_drawdown_pct": -13581.37,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1670,9 +1787,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -3684.58,
-          "sharpe_trade_annualized": -16.5863,
+          "sharpe_trade_annualized": -17.6351,
           "max_drawdown": -14738.31,
-          "max_drawdown_pct": -33.85,
+          "max_drawdown_pct": -25809.14,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1682,9 +1800,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -4377.74,
-          "sharpe_trade_annualized": -29.192,
+          "sharpe_trade_annualized": -62.6591,
           "max_drawdown": -17510.96,
-          "max_drawdown_pct": -49.57,
+          "max_drawdown_pct": -77441.0,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1694,9 +1813,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.0539,
           "expectancy": -6957.93,
-          "sharpe_trade_annualized": 8.4006,
+          "sharpe_trade_annualized": -9.0262,
           "max_drawdown": -27831.71,
-          "max_drawdown_pct": 14.08,
+          "max_drawdown_pct": -84749.42,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -1717,9 +1837,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -3907.25,
-          "sharpe_trade_annualized": -15.6256,
+          "sharpe_trade_annualized": -48.3844,
           "max_drawdown": -15628.99,
-          "max_drawdown_pct": -87.72,
+          "max_drawdown_pct": 255154.34,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1729,9 +1850,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -4165.22,
-          "sharpe_trade_annualized": 9.9666,
+          "sharpe_trade_annualized": -11.8034,
           "max_drawdown": -16660.86,
-          "max_drawdown_pct": 6.31,
+          "max_drawdown_pct": -123798.93,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1741,9 +1863,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -4254.25,
-          "sharpe_trade_annualized": -19.0103,
+          "sharpe_trade_annualized": -21.3696,
           "max_drawdown": -17017.0,
-          "max_drawdown_pct": -59.07,
+          "max_drawdown_pct": 350008.24,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1753,9 +1876,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -4535.36,
-          "sharpe_trade_annualized": 12.2625,
+          "sharpe_trade_annualized": -20.9098,
           "max_drawdown": -18141.46,
-          "max_drawdown_pct": 7.26,
+          "max_drawdown_pct": 766365.95,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1765,9 +1889,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -8419.46,
-          "sharpe_trade_annualized": 16.1136,
+          "sharpe_trade_annualized": -36.6284,
           "max_drawdown": -33677.84,
-          "max_drawdown_pct": 13.31,
+          "max_drawdown_pct": -429838.42,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -1788,9 +1913,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.6677,
           "expectancy": -789.53,
-          "sharpe_trade_annualized": 1.2367,
+          "sharpe_trade_annualized": -1.9733,
           "max_drawdown": -9503.52,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -4446.78,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1800,9 +1926,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.5958,
           "expectancy": -919.34,
-          "sharpe_trade_annualized": 1.6283,
+          "sharpe_trade_annualized": -2.2312,
           "max_drawdown": -9098.9,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -4125.38,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1812,9 +1939,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.0862,
           "expectancy": -3415.66,
-          "sharpe_trade_annualized": 2.736,
+          "sharpe_trade_annualized": -7.7995,
           "max_drawdown": -14952.24,
-          "max_drawdown_pct": -683.41,
+          "max_drawdown_pct": 148787.09,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1824,9 +1952,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.1251,
           "expectancy": -3830.02,
-          "sharpe_trade_annualized": -3.8002,
+          "sharpe_trade_annualized": -6.887,
           "max_drawdown": -17511.62,
-          "max_drawdown_pct": -148.53,
+          "max_drawdown_pct": 227535.48,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1836,9 +1965,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.1081,
           "expectancy": -4619.55,
-          "sharpe_trade_annualized": 5.7149,
+          "sharpe_trade_annualized": -5.4811,
           "max_drawdown": -20718.85,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -16802.11,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -1859,9 +1989,10 @@
           "win_rate_pct": 75.0,
           "profit_factor": 3.3763,
           "expectancy": 1659.24,
-          "sharpe_trade_annualized": -2.6899,
+          "sharpe_trade_annualized": 2.4511,
           "max_drawdown": -2793.01,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -2093.77,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1871,9 +2002,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 1.6946,
           "expectancy": 713.41,
-          "sharpe_trade_annualized": -1.1316,
+          "sharpe_trade_annualized": 0.8608,
           "max_drawdown": -3928.14,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -4753.66,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1883,9 +2015,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.281,
           "expectancy": -3017.72,
-          "sharpe_trade_annualized": 4.4137,
+          "sharpe_trade_annualized": -3.4064,
           "max_drawdown": -16789.25,
-          "max_drawdown_pct": 3.2,
+          "max_drawdown_pct": -34841.14,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1895,9 +2028,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -3811.63,
-          "sharpe_trade_annualized": 12.9492,
+          "sharpe_trade_annualized": -925.6609,
           "max_drawdown": -15246.51,
-          "max_drawdown_pct": 36.33,
+          "max_drawdown_pct": 234727.48,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1907,9 +2041,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -4676.96,
-          "sharpe_trade_annualized": 8.1783,
+          "sharpe_trade_annualized": -1300.4421,
           "max_drawdown": -18707.83,
-          "max_drawdown_pct": 142.96,
+          "max_drawdown_pct": 343340.14,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -1930,9 +2065,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 1.2672,
           "expectancy": 667.51,
-          "sharpe_trade_annualized": 0.7263,
+          "sharpe_trade_annualized": 2.1609,
           "max_drawdown": -9994.16,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -1616.33,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1942,9 +2078,10 @@
           "win_rate_pct": 50.0,
           "profit_factor": 1.2088,
           "expectancy": 438.68,
-          "sharpe_trade_annualized": 0.2705,
+          "sharpe_trade_annualized": 2.2292,
           "max_drawdown": -8405.56,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -1281.05,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1954,9 +2091,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 0.1839,
           "expectancy": -3855.9,
-          "sharpe_trade_annualized": 4.0749,
+          "sharpe_trade_annualized": -3.5675,
           "max_drawdown": -18898.85,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -13039.53,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1966,9 +2104,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -4214.3,
-          "sharpe_trade_annualized": 28.0022,
+          "sharpe_trade_annualized": -770.1233,
           "max_drawdown": -16857.2,
-          "max_drawdown_pct": 4.0,
+          "max_drawdown_pct": 323582.56,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -1978,9 +2117,10 @@
           "win_rate_pct": 0.0,
           "profit_factor": 0.0,
           "expectancy": -4523.41,
-          "sharpe_trade_annualized": 23.2315,
+          "sharpe_trade_annualized": -34.5751,
           "max_drawdown": -18093.66,
-          "max_drawdown_pct": 4.55,
+          "max_drawdown_pct": 448902.87,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -2001,9 +2141,10 @@
           "win_rate_pct": 100.0,
           "profit_factor": NaN,
           "expectancy": 11955.59,
-          "sharpe_trade_annualized": -10.3549,
+          "sharpe_trade_annualized": 10.5565,
           "max_drawdown": 0.0,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": 0.0,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -2013,9 +2154,10 @@
           "win_rate_pct": 75.0,
           "profit_factor": 6.6783,
           "expectancy": 8840.5,
-          "sharpe_trade_annualized": 3.7838,
+          "sharpe_trade_annualized": 5.4412,
           "max_drawdown": -6227.55,
-          "max_drawdown_pct": -28.28,
+          "max_drawdown_pct": -585.04,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -2025,9 +2167,10 @@
           "win_rate_pct": 75.0,
           "profit_factor": 7.3065,
           "expectancy": 8269.62,
-          "sharpe_trade_annualized": -3.85,
+          "sharpe_trade_annualized": 5.4084,
           "max_drawdown": -5245.18,
-          "max_drawdown_pct": -39.27,
+          "max_drawdown_pct": -428.79,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -2037,9 +2180,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 2.306,
           "expectancy": 3473.15,
-          "sharpe_trade_annualized": -1.7046,
+          "sharpe_trade_annualized": 1.7233,
           "max_drawdown": -10637.58,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": 0.0,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
@@ -2049,9 +2193,10 @@
           "win_rate_pct": 25.0,
           "profit_factor": 1.9305,
           "expectancy": 3115.09,
-          "sharpe_trade_annualized": -1.3734,
+          "sharpe_trade_annualized": 1.4751,
           "max_drawdown": -13391.64,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": 0.0,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]
@@ -2061,207 +2206,72 @@
       "test_expiries": [
         "2026-10-22",
         "2026-10-29",
-        "2026-11-05",
-        "2026-11-12"
+        "2026-11-05"
       ],
       "metrics": [
         {
           "strategy": "ATM_CALL",
-          "trades": 4,
-          "net_pnl": 41094.24,
-          "win_rate_pct": 50.0,
-          "profit_factor": 10.9067,
-          "expectancy": 10273.56,
-          "sharpe_trade_annualized": -4.3038,
+          "trades": 3,
+          "net_pnl": 41218.64,
+          "win_rate_pct": 66.67,
+          "profit_factor": 11.2439,
+          "expectancy": 13739.55,
+          "sharpe_trade_annualized": 4.435,
           "max_drawdown": -4023.71,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": 0.0,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
           "strategy": "OTM_CALL_1",
-          "trades": 4,
-          "net_pnl": 39795.34,
-          "win_rate_pct": 50.0,
-          "profit_factor": 12.491,
-          "expectancy": 9948.83,
-          "sharpe_trade_annualized": -4.3476,
+          "trades": 3,
+          "net_pnl": 39918.07,
+          "win_rate_pct": 66.67,
+          "profit_factor": 12.9499,
+          "expectancy": 13306.02,
+          "sharpe_trade_annualized": 4.5363,
           "max_drawdown": -3340.45,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": 0.0,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
           "strategy": "ATM_STRADDLE",
-          "trades": 4,
-          "net_pnl": 30321.03,
-          "win_rate_pct": 50.0,
-          "profit_factor": 9.7618,
-          "expectancy": 7580.26,
-          "sharpe_trade_annualized": -3.9015,
+          "trades": 3,
+          "net_pnl": 30569.43,
+          "win_rate_pct": 66.67,
+          "profit_factor": 10.5167,
+          "expectancy": 10189.81,
+          "sharpe_trade_annualized": 4.6292,
           "max_drawdown": -3212.19,
-          "max_drawdown_pct": -0.0,
+          "max_drawdown_pct": -4380.22,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
           "strategy": "OTM_PUT_1",
-          "trades": 4,
-          "net_pnl": -9744.1,
-          "win_rate_pct": 25.0,
+          "trades": 3,
+          "net_pnl": -9622.36,
+          "win_rate_pct": 33.33,
           "profit_factor": 0.0019,
-          "expectancy": -2436.03,
-          "sharpe_trade_annualized": -4.9291,
-          "max_drawdown": -9762.77,
-          "max_drawdown_pct": -120.07,
-          "sample_warning": "Small samples are not statistically reliable"
-        },
-        {
-          "strategy": "ATM_PUT",
-          "trades": 4,
-          "net_pnl": -10773.21,
-          "win_rate_pct": 25.0,
-          "profit_factor": 0.0701,
-          "expectancy": -2693.3,
-          "sharpe_trade_annualized": -5.4829,
-          "max_drawdown": -11584.73,
-          "max_drawdown_pct": -69.77,
-          "sample_warning": "Small samples are not statistically reliable"
-        }
-      ]
-    },
-    {
-      "train_expiries_before_test": 124,
-      "test_expiries": [
-        "2026-11-19",
-        "2026-11-26",
-        "2026-12-03",
-        "2026-12-10"
-      ],
-      "metrics": [
-        {
-          "strategy": "OTM_CALL_1",
-          "trades": 3,
-          "net_pnl": -375.19,
-          "win_rate_pct": 0.0,
-          "profit_factor": 0.0,
-          "expectancy": -125.06,
-          "sharpe_trade_annualized": 82.9127,
-          "max_drawdown": -375.19,
-          "max_drawdown_pct": 0.13,
-          "sample_warning": "Small samples are not statistically reliable"
-        },
-        {
-          "strategy": "OTM_PUT_1",
-          "trades": 3,
-          "net_pnl": -379.55,
-          "win_rate_pct": 0.0,
-          "profit_factor": 0.0,
-          "expectancy": -126.52,
-          "sharpe_trade_annualized": 48.3517,
-          "max_drawdown": -379.55,
-          "max_drawdown_pct": 8.03,
+          "expectancy": -3207.45,
+          "sharpe_trade_annualized": -8.2935,
+          "max_drawdown": -9641.03,
+          "max_drawdown_pct": -9615.07,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         },
         {
           "strategy": "ATM_PUT",
           "trades": 3,
-          "net_pnl": -417.67,
-          "win_rate_pct": 0.0,
-          "profit_factor": 0.0,
-          "expectancy": -139.22,
-          "sharpe_trade_annualized": -94.6759,
-          "max_drawdown": -417.67,
-          "max_drawdown_pct": -8.32,
-          "sample_warning": "Small samples are not statistically reliable"
-        },
-        {
-          "strategy": "ATM_CALL",
-          "trades": 4,
-          "net_pnl": -544.32,
-          "win_rate_pct": 0.0,
-          "profit_factor": 0.0,
-          "expectancy": -136.08,
-          "sharpe_trade_annualized": 97.7695,
-          "max_drawdown": -544.32,
-          "max_drawdown_pct": 0.15,
-          "sample_warning": "Small samples are not statistically reliable"
-        },
-        {
-          "strategy": "ATM_STRADDLE",
-          "trades": 3,
-          "net_pnl": -838.89,
-          "win_rate_pct": 0.0,
-          "profit_factor": 0.0,
-          "expectancy": -279.63,
-          "sharpe_trade_annualized": 169.3181,
-          "max_drawdown": -838.89,
-          "max_drawdown_pct": 0.29,
-          "sample_warning": "Small samples are not statistically reliable"
-        }
-      ]
-    },
-    {
-      "train_expiries_before_test": 128,
-      "test_expiries": [
-        "2026-12-17",
-        "2026-12-24",
-        "2026-12-31",
-        "2027-01-28"
-      ],
-      "metrics": [
-        {
-          "strategy": "ATM_CALL",
-          "trades": 1,
-          "net_pnl": -109.98,
-          "win_rate_pct": 0.0,
-          "profit_factor": 0.0,
-          "expectancy": -109.98,
-          "sharpe_trade_annualized": NaN,
-          "max_drawdown": -109.98,
-          "max_drawdown_pct": 0.12,
-          "sample_warning": "Small samples are not statistically reliable"
-        },
-        {
-          "strategy": "OTM_PUT_1",
-          "trades": 1,
-          "net_pnl": -138.91,
-          "win_rate_pct": 0.0,
-          "profit_factor": 0.0,
-          "expectancy": -138.91,
-          "sharpe_trade_annualized": NaN,
-          "max_drawdown": -138.91,
-          "max_drawdown_pct": 6.91,
-          "sample_warning": "Small samples are not statistically reliable"
-        },
-        {
-          "strategy": "ATM_PUT",
-          "trades": 3,
-          "net_pnl": -437.34,
-          "win_rate_pct": 0.0,
-          "profit_factor": 0.0,
-          "expectancy": -145.78,
-          "sharpe_trade_annualized": -19.9988,
-          "max_drawdown": -437.34,
-          "max_drawdown_pct": -9.5,
-          "sample_warning": "Small samples are not statistically reliable"
-        }
-      ]
-    },
-    {
-      "train_expiries_before_test": 132,
-      "test_expiries": [
-        "2027-03-25",
-        "2027-12-30"
-      ],
-      "metrics": [
-        {
-          "strategy": "ATM_CALL",
-          "trades": 2,
-          "net_pnl": -1023.87,
-          "win_rate_pct": 0.0,
-          "profit_factor": 0.0,
-          "expectancy": -511.93,
-          "sharpe_trade_annualized": 52.7558,
-          "max_drawdown": -1023.87,
-          "max_drawdown_pct": 0.5,
+          "net_pnl": -10649.21,
+          "win_rate_pct": 33.33,
+          "profit_factor": 0.0708,
+          "expectancy": -3549.74,
+          "sharpe_trade_annualized": -7.2019,
+          "max_drawdown": -11460.73,
+          "max_drawdown_pct": -10416.48,
+          "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
           "sample_warning": "Small samples are not statistically reliable"
         }
       ]

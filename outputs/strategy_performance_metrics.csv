@@ -1,6 +1,6 @@
-strategy,trades,net_pnl,win_rate_pct,profit_factor,expectancy,sharpe_trade_annualized,max_drawdown,max_drawdown_pct,sample_warning
-ATM_PUT,129,-5834.39,28.68,0.9836,-45.23,0.4229,-65783.21,-209.64,
-OTM_PUT_1,127,-12150.64,28.35,0.9626,-95.67,-0.4636,-62049.09,-218.69,
-OTM_CALL_1,126,-95994.78,25.4,0.7299,-761.86,0.7603,-187098.07,-503.59,
-ATM_CALL,131,-103230.01,25.95,0.7368,-788.02,0.9215,-193641.95,-551.0,
-ATM_STRADDLE,126,-104626.87,37.3,0.7679,-830.37,0.4974,-218527.52,-468.98,
+strategy,trades,net_pnl,win_rate_pct,profit_factor,expectancy,sharpe_trade_annualized,max_drawdown,max_drawdown_pct,drawdown_basis,sample_warning
+ATM_PUT,122,-4855.38,30.33,0.9864,-39.8,0.2615,-65783.21,-8632.3,₹ one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100),
+OTM_PUT_1,122,-11510.44,29.51,0.9645,-94.35,0.2692,-62049.09,-7787.02,₹ one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100),
+OTM_CALL_1,122,-95496.86,26.23,0.7309,-782.76,-0.5451,-187098.07,-14750.22,₹ one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100),
+ATM_CALL,123,-101427.44,27.64,0.7402,-824.61,-0.5838,-193641.95,-21021.49,₹ one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100),
+ATM_STRADDLE,122,-103539.58,38.52,0.7697,-848.69,-0.3907,-218527.52,-32003.59,₹ one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100),

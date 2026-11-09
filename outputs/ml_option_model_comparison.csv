@@ -1,0 +1,4 @@
+model,validation_n,validation_positive_rate_pct,validation_accuracy_at_0_5,validation_precision_at_0_5,validation_recall_at_0_5,validation_brier_score,validation_roc_auc,validation_pr_auc,validation_selected_trades,validation_selected_expectancy_return_pct,validation_selected_profit_factor,validation_threshold,validation_selection_status
+HIST_GRADIENT_BOOSTING,648,38.426,0.5988,0.4444,0.1767,0.25601,0.4909,0.3865,21,22.5783,1.2178,0.55,eligible
+LOGISTIC_REGRESSION,648,38.426,0.5463,0.4,0.3614,0.25877,0.523,0.3903,21,-3.1047,1.1551,0.6,eligible
+RANDOM_FOREST,648,38.426,0.4769,0.3539,0.4378,0.25124,0.4569,0.3523,73,-11.6141,0.5661,0.5,eligible
