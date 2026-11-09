@@ -1592,6 +1592,14 @@ def page_ml_strategy_lab():
             "ml_option_holdout_predictions.csv",
             "text/csv",
         )
+        model_artifact = DEFAULT_PATHS.outputs / "ml_option_classifier.joblib"
+        if model_artifact.exists():
+            st.download_button(
+                "Download fitted classifier (.joblib)",
+                model_artifact.read_bytes(),
+                "ml_option_classifier.joblib",
+                "application/octet-stream",
+            )
         st.dataframe(
             predictions[[c for c in [
                 "entry_date", "option_side", "moneyness", "predicted_win_probability",
