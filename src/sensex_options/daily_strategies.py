@@ -231,7 +231,7 @@ def run_daily_strategy_suite(
             .set_index("entry_date")["return_pct"].astype(float) / 100.0
         )
         daily_returns = trade_returns.reindex(all_entry_dates, fill_value=0.0)
-        return_index = 100.0 + daily_returns.cumsum() * 100.0
+        return_index = 100.0 * (1.0 + daily_returns.clip(lower=-1.0)).cumprod()
         return_peak = return_index.cummax().clip(lower=100.0)
         return_dd_pct = (return_index / return_peak.replace(0, np.nan) - 1.0) * 100.0
         return_std = float(daily_returns.std(ddof=1)) if len(daily_returns) > 1 else np.nan
@@ -271,7 +271,7 @@ def run_daily_strategy_suite(
         "expiry_selection": "nearest available expiry not earlier than exit session",
         "position_sizing": "one historical lot per eligible session; fixed unit-lot research, not compounded sizing",
         "capital": "No affordability filter in default research mode; when supplied, capital is used only as a one-lot affordability filter. Each strategy has its own cumulative unit-lot P&L curve",
-        "return_basis": "one-lot option-premium returns, additive index base 100; not a capital-weighted account return",
+        "return_basis": "one-lot option-premium returns, compounded index base 100; not a capital-weighted account return",
         "execution": "EOD close marks with configurable estimated costs; not guaranteed fills",
         "initial_capital_per_strategy": capital,
         "cost_assumptions": cost.__dict__,
