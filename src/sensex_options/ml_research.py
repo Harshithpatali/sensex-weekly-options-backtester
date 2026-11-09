@@ -273,7 +273,8 @@ def build_ml_option_dataset(
     feature_cols = (
         index_feature_cols
         + option_feature_cols
-        + ["option_type_call", "dte_calendar_days", "moneyness_distance_pct",\n           "lagged_iv", "lagged_delta", "lagged_gamma", "lagged_theta_per_day", "lagged_vega_per_1pct"]
+        + ["option_type_call", "dte_calendar_days", "moneyness_distance_pct",
+           "lagged_iv", "lagged_delta", "lagged_gamma", "lagged_theta_per_day", "lagged_vega_per_1pct"]
         + list(dummies.columns)
     )
     feature_cols = list(dict.fromkeys(c for c in feature_cols if c in dataset.columns))
