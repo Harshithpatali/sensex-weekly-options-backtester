@@ -25,6 +25,7 @@ from sensex_options.risk_managed_research import run_risk_managed_research
 from sensex_options.entry_signal_research import run_entry_signal_research
 from sensex_options.regime_research import run_regime_research
 from sensex_options.capital_controls import apply_capital_controls, evaluate_capital_control_holdout
+from sensex_options.ml_research import run_ml_option_research
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("daily_pipeline")
@@ -295,6 +296,27 @@ def run() -> dict:
             "rolling_selector_summary": signal_report.get("rolling_selector_summary", []),
         }
 
+    # Supervised ML research uses paired observed CE/PE outcomes and strictly lagged predictors.
+    # It is separate from account sizing and does not use the final holdout for model selection.
+    ml_research_status = {"status": "not_run"}
+    try:
+        ml_comparison, ml_importance, ml_report = run_ml_option_research(
+            index, options, output_dir=output_dir
+        )
+        ml_research_status = {
+            "status": ml_report.get("status"),
+            "rows": ml_report.get("dataset", {}).get("rows", 0),
+            "entry_sessions": ml_report.get("dataset", {}).get("entry_sessions", 0),
+            "selected_model": ml_report.get("selected_model"),
+            "holdout_classification": ml_report.get("holdout_classification"),
+            "holdout_strategy": ml_report.get("holdout_strategy"),
+            "model_candidates": int(len(ml_comparison)),
+            "feature_importance_rows": int(len(ml_importance)),
+        }
+    except Exception as exc:
+        log.exception("ML option research failed")
+        ml_research_status = {"status": "error", "error": str(exc)}
+
     # Intraday SENSEX context is collected by the scheduled workflow, never by Streamlit.
     # Yahoo's recent-window limit means this is a rolling 60-calendar-day dataset.
     intraday_status = {"status": "not_run"}
@@ -363,6 +385,7 @@ def run() -> dict:
         "risk_managed_research": risk_research_status,
         "regime_research": regime_research_status,
         "entry_signal_research": entry_signal_status,
+        "ml_research": ml_research_status,
         "intraday_research": intraday_status,
         "pnl_semantics": "realized P&L grouped by trade exit date; not daily mark-to-market",
         "validation_report": str(validation_path),
