@@ -16,3 +16,5 @@ Run full option-flow, moneyness, volatility-regime and debit/credit spread signa
 Apply liquidity-aware option selection and strict ₹10,000 cash/risk feasibility controls. Rebuild all strategy results, regime filters, risk-managed variants, and validation artifacts from the accumulated BSE options archive. Do not report signal-level unit-lot P&L as account-level returns.
 
 Re-run against the latest main commit: persist the independent chronological ₹10,000 capital-controlled holdout and the liquidity-filtered daily strategy ledger; update dashboard artifacts.
+
+research mode: capital-independent one-lot strategy outcomes; optional capital sizing remains a separate report
