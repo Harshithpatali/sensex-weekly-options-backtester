@@ -511,39 +511,55 @@ def run_ml_option_research(
         if row["validation_selection_status"] == "eligible"
         and row.get("validation_selected_expectancy_return_pct") is not None
     ]
-    if not eligible_models:
-        return pd.DataFrame(comparison_rows), pd.DataFrame(), {
-            "status": "no_model_selected",
-            "dataset": dataset_report,
-            "split_dates": {
-                "train_start": str(train["entry_date"].min().date()),
-                "train_end": str(train["entry_date"].max().date()),
-                "validation_start": validation_start.date().isoformat(),
-                "validation_end": str(validation["entry_date"].max().date()),
-                "holdout_start": holdout_start.date().isoformat(),
-                "holdout_end": str(holdout["entry_date"].max().date()),
-            },
-            "minimum_validation_trades": minimum_validation_trades,
-            "note": "No classifier generated enough validation trades at the predeclared probability thresholds; no holdout strategy was forced.",
-        }
-
-    eligible_models.sort(
-        key=lambda row: (
-            float(row["validation_selected_expectancy_return_pct"]),
-            float(row.get("validation_pr_auc") or 0.0),
-        ),
-        reverse=True,
-    )
-    selected_name = str(eligible_models[0]["model"])
-    selected_threshold = float(eligible_models[0]["validation_threshold"])
+    strategy_selected = bool(eligible_models)
+    if eligible_models:
+        eligible_models.sort(
+            key=lambda row: (
+                float(row["validation_selected_expectancy_return_pct"]),
+                float(row.get("validation_pr_auc") or 0.0),
+            ),
+            reverse=True,
+        )
+        selected_name = str(eligible_models[0]["model"])
+        selected_threshold = float(eligible_models[0]["validation_threshold"])
+    else:
+        # Still evaluate the best validation classifier on the untouched holdout,
+        # but do not invent a trading threshold or force a strategy.
+        comparison_rows.sort(
+            key=lambda row: (
+                row.get("validation_pr_auc") is not None,
+                float(row.get("validation_pr_auc") or -1.0),
+            ),
+            reverse=True,
+        )
+        selected_name = str(comparison_rows[0]["model"])
+        selected_threshold = None
 
     development = pd.concat([train, validation], ignore_index=True)
     final_model = candidates[selected_name]
     final_model.fit(development[feature_cols].apply(pd.to_numeric, errors="coerce"), development["target_win"].astype(int))
     holdout_probability = final_model.predict_proba(x_holdout)[:, 1]
     holdout_classification = _classifier_metrics(y_holdout, holdout_probability)
-    holdout_trading = _selected_trade_metrics(holdout, holdout_probability, selected_threshold)
-    selected_predictions = holdout_trading.pop("selected_predictions")
+    if selected_threshold is not None:
+        holdout_trading = _selected_trade_metrics(holdout, holdout_probability, selected_threshold)
+        selected_predictions = holdout_trading.pop("selected_predictions")
+    else:
+        selected_predictions = holdout.iloc[0:0].copy()
+        holdout_trading = {
+            "status": "classifier_only_no_validation_threshold",
+            "threshold": None,
+            "trades": 0,
+            "sessions": 0,
+            "net_pnl": 0.0,
+            "profit_factor": None,
+            "expectancy_pnl": None,
+            "expectancy_return_pct": None,
+            "win_rate_pct": None,
+            "median_return_pct": None,
+            "max_drawdown_pnl": 0.0,
+            "max_drawdown_return_pct": None,
+            "sharpe_annualized": None,
+        }
     prediction_output = holdout.copy()
     prediction_output["predicted_win_probability"] = holdout_probability
     selected_keys = set(
@@ -595,7 +611,7 @@ def run_ml_option_research(
         na_position="last",
     ).reset_index(drop=True)
     report = {
-        "status": "holdout_evaluated",
+        "status": "holdout_evaluated" if strategy_selected else "holdout_classifier_only",
         "dataset": dataset_report,
         "model_candidates": list(candidates),
         "selected_model": selected_name,
@@ -604,6 +620,9 @@ def run_ml_option_research(
             "Choose the classifier with the highest validation one-trade-per-session expectancy return, "
             "subject to at least the configured number of validation trades. The threshold is selected "
             "from the predeclared grid. The final holdout is not used for model or threshold selection."
+            if strategy_selected else
+            "No validation threshold met the minimum trade count. The classifier with the highest validation PR-AUC "
+            "is evaluated on holdout for classification diagnostics only; no trading threshold or strategy is forced."
         ),
         "minimum_validation_trades": minimum_validation_trades,
         "split_dates": {
@@ -617,7 +636,7 @@ def run_ml_option_research(
         "split_rows": {"train": int(len(train)), "validation": int(len(validation)), "holdout": int(len(holdout))},
         "holdout_classification": holdout_classification,
         "holdout_strategy": holdout_trading,
-        "holdout_selection": "At most one highest-probability candidate per entry session; one-session holding period; no overlapping positions.",
+        "holdout_selection": ("At most one highest-probability candidate per entry session; one-session holding period; no overlapping positions." if strategy_selected else "Classifier-only holdout; no strategy threshold met validation requirements."),
         "feature_importance_window": "validation",
         "model_artifact": str(model_path),
         "execution_caveat": (
