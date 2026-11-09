@@ -14,7 +14,7 @@ permissions:
 
 concurrency:
   group: sensex-data-pipeline
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   collect-train-test-rank:
@@ -39,8 +39,15 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f data/processed/sensex_index.csv data/processed/sensex_options.csv.gz outputs/ data/reports/data_validation.json
+          # Stage every generated dataset/report so the rebase starts clean.
+          git add -f -A data/processed outputs data/reports
+          git add -u
           git diff --cached --quiet || git commit -m "chore: daily SENSEX data and strategy refresh"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Working tree is not clean after staging generated research outputs:"
+            git status --short
+            exit 1
+          fi
           # Retry if main advances between fetch/rebase and push. Never force-push:
           # each attempt first integrates the latest remote commit.
           for attempt in 1 2 3 4 5; do
