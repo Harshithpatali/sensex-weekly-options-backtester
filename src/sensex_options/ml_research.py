@@ -191,9 +191,16 @@ def build_ml_option_dataset(
     outcomes["exit_date"] = pd.to_datetime(outcomes["exit_date"], errors="coerce").dt.normalize()
     outcomes["expiry_date"] = pd.to_datetime(outcomes["expiry_date"], errors="coerce").dt.normalize()
 
+    normalized_ema_features = {
+        "ema_5_20", "ema_10_30", "ema_20_50",
+        "ema_5_20_z", "ema_10_30_z", "ema_20_50_z",
+    }
     index_feature_cols = [
         c for c in lagged.columns
-        if c not in {"date", "open", "high", "low", "close", "volume"}
+        if c not in {"date", "open", "high", "low", "close", "volume", "atr_14"}
+        and not (c.startswith("ema_") and c not in normalized_ema_features)
+        and not c.startswith("donchian_high_")
+        and not c.startswith("donchian_low_")
         and pd.api.types.is_numeric_dtype(lagged[c])
     ]
     lagged_lookup = lagged[["date", "close"] + index_feature_cols].rename(
@@ -214,7 +221,10 @@ def build_ml_option_dataset(
         ).dt.normalize()
         option_feature_cols = [
             c for c in chain_features.columns
-            if c not in {"signal_date", "expiry_date"}
+            if c not in {
+                "signal_date", "expiry_date", "near_atm_call_oi", "near_atm_put_oi",
+                "near_atm_call_volume", "near_atm_put_volume",
+            }
             and pd.api.types.is_numeric_dtype(chain_features[c])
         ]
         paired = paired.merge(
