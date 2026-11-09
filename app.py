@@ -1537,12 +1537,14 @@ def page_ml_strategy_lab():
     metric_cols[1].metric("ROC-AUC", classification.get("roc_auc", "—"))
     metric_cols[2].metric("PR-AUC", classification.get("pr_auc", "—"))
     metric_cols[3].metric("Probability threshold", report.get("selected_probability_threshold", "—"))
-    trade_cols = st.columns(5)
+    trade_cols = st.columns(7)
     trade_cols[0].metric("Selected trades", trading.get("trades", 0))
     trade_cols[1].metric("Profit factor", trading.get("profit_factor", "—"))
     trade_cols[2].metric("Win rate", f"{trading.get('win_rate_pct', 0):.1f}%" if trading.get("win_rate_pct") is not None else "—")
     trade_cols[3].metric("Net one-lot P&L", f"₹{trading.get('net_pnl', 0):,.2f}")
     trade_cols[4].metric("Expectancy / trade", f"{trading.get('expectancy_pnl', 0):,.2f}" if trading.get("expectancy_pnl") is not None else "—")
+    trade_cols[5].metric("Trade Sharpe (ann.)", trading.get("sharpe_trade_annualized", "—"))
+    trade_cols[6].metric("Max DD (return index)", f"{trading.get('max_drawdown_return_pct', 0):.1f}%" if trading.get("max_drawdown_return_pct") is not None else "—")
     st.caption(
         f"Train: {split.get('train_start')} to {split.get('train_end')} · "
         f"Validation: {split.get('validation_start')} to {split.get('validation_end')} · "
