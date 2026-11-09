@@ -1,5 +1,5 @@
 {
-  "run_time_utc": "2026-11-09T11:01:25.511496+00:00",
+  "run_time_utc": "2026-11-09T11:18:05.647836+00:00",
   "target_data_date": "2026-11-08",
   "downloaded_option_dates": [
     "2026-11-05",
@@ -4154,7 +4154,6 @@
   },
   "strategy_run": {
     "initial_capital_per_strategy": null,
-    "illustrative_equity_baseline": 10000.0,
     "sizing": "one historical lot per expiry trade; no account affordability filter or compounding sizing",
     "cost_assumptions": {
       "brokerage_per_lot": 20.0,
@@ -4182,8 +4181,8 @@
       "expectancy": -39.8,
       "sharpe_trade_annualized": 0.2615,
       "max_drawdown": -65783.21,
-      "max_drawdown_pct": -8632.3,
-      "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
+      "max_drawdown_pct": -65783.21,
+      "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from compounded premium-return index (base 100; loss floored at -100%)",
       "sample_warning": ""
     },
     {
@@ -4195,8 +4194,8 @@
       "expectancy": -94.35,
       "sharpe_trade_annualized": 0.2692,
       "max_drawdown": -62049.09,
-      "max_drawdown_pct": -7787.02,
-      "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
+      "max_drawdown_pct": -62049.09,
+      "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from compounded premium-return index (base 100; loss floored at -100%)",
       "sample_warning": ""
     },
     {
@@ -4208,8 +4207,8 @@
       "expectancy": -782.76,
       "sharpe_trade_annualized": -0.5451,
       "max_drawdown": -187098.07,
-      "max_drawdown_pct": -14750.22,
-      "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
+      "max_drawdown_pct": -83835.44,
+      "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from compounded premium-return index (base 100; loss floored at -100%)",
       "sample_warning": ""
     },
     {
@@ -4221,8 +4220,8 @@
       "expectancy": -824.61,
       "sharpe_trade_annualized": -0.5838,
       "max_drawdown": -193641.95,
-      "max_drawdown_pct": -21021.49,
-      "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
+      "max_drawdown_pct": -89423.01,
+      "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from compounded premium-return index (base 100; loss floored at -100%)",
       "sample_warning": ""
     },
     {
@@ -4234,8 +4233,8 @@
       "expectancy": -848.69,
       "sharpe_trade_annualized": -0.3907,
       "max_drawdown": -218527.52,
-      "max_drawdown_pct": -32003.59,
-      "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
+      "max_drawdown_pct": -13203.63,
+      "drawdown_basis": "\u20b9 one-lot cumulative P&L; percentage drawdown from compounded premium-return index (base 100; loss floored at -100%)",
       "sample_warning": ""
     }
   ],
@@ -4355,33 +4354,35 @@
     "status": "holdout_evaluated",
     "rows": 4305,
     "entry_sessions": 728,
-    "selected_model": "HIST_GRADIENT_BOOSTING",
+    "selected_model": "LOGISTIC_REGRESSION",
     "holdout_classification": {
       "n": 660,
       "positive_rate_pct": 39.091,
-      "accuracy_at_0_5": 0.5712,
-      "precision_at_0_5": 0.2951,
-      "recall_at_0_5": 0.0698,
-      "brier_score": 0.2537,
-      "roc_auc": 0.4811,
-      "pr_auc": 0.3726
+      "accuracy_at_0_5": 0.5182,
+      "precision_at_0_5": 0.38,
+      "recall_at_0_5": 0.3682,
+      "brier_score": 0.25145,
+      "roc_auc": 0.502,
+      "pr_auc": 0.4134,
+      "pr_auc_baseline": 0.3909,
+      "pr_auc_lift_vs_prevalence": 1.0576
     },
     "holdout_strategy": {
       "threshold": 0.55,
-      "trades": 9,
-      "sessions": 9,
-      "net_pnl": -11977.53,
-      "profit_factor": 0.4439,
-      "expectancy_pnl": -1330.84,
-      "expectancy_return_pct": -38.2876,
-      "win_rate_pct": 22.22,
-      "median_return_pct": -36.4903,
-      "max_drawdown_pnl": -17095.75,
-      "max_drawdown_return_pct": -364.456,
-      "sharpe_trade_annualized": -13.348
+      "trades": 32,
+      "sessions": 32,
+      "net_pnl": 46565.87,
+      "profit_factor": 1.4895,
+      "expectancy_pnl": 1455.18,
+      "expectancy_return_pct": 12.4209,
+      "win_rate_pct": 43.75,
+      "median_return_pct": -7.1785,
+      "max_drawdown_pnl": -59096.71,
+      "max_drawdown_return_pct": -100.0,
+      "sharpe_annualized": 1.1946
     },
     "model_candidates": 3,
-    "feature_importance_rows": 71
+    "feature_importance_rows": 56
   },
   "intraday_research": {
     "status": "ok",
