@@ -897,7 +897,7 @@ def _option_credit_vertical_outcomes(
             if not len(eligible):
                 continue
             expiry = pd.Timestamp(min(eligible))
-            expiry_sessions = sessions.loc[sessions["date"] <= expiry, "date"]
+            expiry_sessions = idx.loc[idx["date"] <= expiry, "date"]
             if expiry_sessions.empty:
                 continue
             last_expiry_session = pd.Timestamp(expiry_sessions.max())
