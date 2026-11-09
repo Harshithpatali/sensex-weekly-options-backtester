@@ -100,3 +100,27 @@ def test_default_daily_research_does_not_apply_ten_thousand_affordability_gate()
     )
     assert not research.empty
     assert constrained.empty
+
+
+def test_zero_premium_is_kept_as_observed_expiry_loss():
+    dates = pd.date_range("2024-01-02", periods=4, freq="B")
+    index = pd.DataFrame({"date": dates, "close": [100.0, 100.0, 100.0, 100.0]})
+    rows = []
+    for side in ("CE", "PE"):
+        rows.extend([
+            {
+                "trade_date": dates[2], "expiry_date": dates[3], "symbol": f"SENSEX_{side}",
+                "strike": 100.0, "option_type": side, "close": 10.0,
+                "lot_size": 10, "volume": 100, "open_interest": 500,
+            },
+            {
+                "trade_date": dates[3], "expiry_date": dates[3], "symbol": f"SENSEX_{side}",
+                "strike": 100.0, "option_type": side, "close": 0.0,
+                "lot_size": 10, "volume": 0, "open_interest": 0,
+            },
+        ])
+    ledger, _, _ = run_daily_strategy_suite(index, pd.DataFrame(rows), cost=CostConfig())
+    call = ledger[ledger["strategy"] == "DAILY_ATM_CALL"]
+    assert len(call) == 1
+    assert call.iloc[0]["exit_premium"] == 0.0
+    assert call.iloc[0]["net_pnl"] < 0
