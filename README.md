@@ -63,6 +63,7 @@ sensex-weekly-options-backtester/
 │   ├── daily_pipeline.py
 │   ├── strategies.py
 │   ├── analytics.py
+│   ├── ml_research.py       # paired option outcomes, lagged Greeks and supervised models
 │   ├── validation.py
 │   ├── backtest.py
 │   ├── costs.py
@@ -259,7 +260,7 @@ The comparative option research applies the same minimum liquidity checks to ent
 
 - Daily traded volume must be at least **25 contracts**.
 - Open interest must be at least **50 contracts**.
-- A missing liquidity field, zero premium, or inactive candle is rejected rather than treated as an executable mark.
+- Missing liquidity is rejected for entry and positive-premium exits. A zero premium on the actual expiry session is retained as an observed payoff, not treated as an executable pre-expiry fill.
 - Long-option maximum loss is the full premium debit plus conservative round-trip costs.
 - Debit and credit spread risk uses theoretical maximum loss plus full estimated round-trip costs.
 - **Primary signal research does not apply an account affordability or fixed ₹200 loss gate.** It records one historical lot per candidate.
