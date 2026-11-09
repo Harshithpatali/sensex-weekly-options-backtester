@@ -333,9 +333,16 @@ def _classifier_metrics(y_true: pd.Series, probability: np.ndarray) -> dict[str,
     if len(np.unique(y)) == 2:
         result["roc_auc"] = round(float(roc_auc_score(y, p)), 4)
         result["pr_auc"] = round(float(average_precision_score(y, p)), 4)
+        prevalence = float(y.mean())
+        result["pr_auc_baseline"] = round(prevalence, 4)
+        result["pr_auc_lift_vs_prevalence"] = round(
+            float(average_precision_score(y, p) / prevalence), 4
+        ) if prevalence > 0 else None
     else:
         result["roc_auc"] = None
         result["pr_auc"] = None
+        result["pr_auc_baseline"] = float(y.mean())
+        result["pr_auc_lift_vs_prevalence"] = None
     return result
 
 
