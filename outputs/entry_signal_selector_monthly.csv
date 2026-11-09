@@ -1,5 +1,9 @@
 strategy,month,selected_rule,selection_prior_months,prior_trades,prior_pf,trades,gross_profit,gross_loss,net_pnl,profit_factor,target_pf,target_testable,target_met
 ROLLING_3M_SELECTOR,2023-05,CASH,3,0,,0,0.0,0.0,0.0,,1.2,False,
 ROLLING_3M_SELECTOR,2023-11,CASH,3,0,,0,0.0,0.0,0.0,,1.2,False,
+ROLLING_3M_SELECTOR,2024-08,CASH,3,0,,0,0.0,0.0,0.0,,1.2,False,
+ROLLING_3M_SELECTOR,2024-10,CASH,3,0,,0,0.0,0.0,0.0,,1.2,False,
 ROLLING_6M_SELECTOR,2023-05,CASH,6,0,,0,0.0,0.0,0.0,,1.2,False,
 ROLLING_6M_SELECTOR,2023-11,CASH,6,0,,0,0.0,0.0,0.0,,1.2,False,
+ROLLING_6M_SELECTOR,2024-08,CASH,6,0,,0,0.0,0.0,0.0,,1.2,False,
+ROLLING_6M_SELECTOR,2024-10,CASH,6,0,,0,0.0,0.0,0.0,,1.2,False,

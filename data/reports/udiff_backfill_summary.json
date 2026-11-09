@@ -1,0 +1,16 @@
+{
+  "requested_start": "2024-07-08",
+  "requested_end": "2026-11-06",
+  "udiff_rows": 306509,
+  "udiff_sessions": 578,
+  "udiff_start": "2024-07-08",
+  "udiff_end": "2026-11-06",
+  "lot_sizes": [
+    10,
+    20,
+    25,
+    60,
+    75
+  ],
+  "liquid_rows_volume_25_oi_50": 219658
+}

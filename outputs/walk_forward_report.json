@@ -1,6 +1,6 @@
 {
   "status": "insufficient_data",
   "note": "Not enough distinct expiry cycles for chronological evaluation.",
-  "distinct_expiries": 1,
+  "distinct_expiries": 7,
   "required_expiries": 9
 }

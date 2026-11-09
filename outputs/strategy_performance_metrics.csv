@@ -1,5 +1,6 @@
 strategy,trades,net_pnl,win_rate_pct,profit_factor,expectancy,sharpe_trade_annualized,max_drawdown,max_drawdown_pct,sample_warning
-ATM_CALL,1,33681.07,100.0,,33681.07,,0.0,0.0,Small samples are not statistically reliable
-OTM_CALL_1,1,32605.13,100.0,,32605.13,,0.0,0.0,Small samples are not statistically reliable
-OTM_PUT_1,1,-5142.14,0.0,0.0,-5142.14,,-5142.14,-51.42,Small samples are not statistically reliable
-ATM_PUT,1,-6166.53,0.0,0.0,-6166.53,,-6166.53,-61.67,Small samples are not statistically reliable
+ATM_STRADDLE,7,-7514.94,85.71,0.9377,-1073.56,3.5271,-120649.44,-97.98,Small samples are not statistically reliable
+ATM_PUT,1,-8241.86,0.0,0.0,-8241.86,,-8241.86,-82.42,Small samples are not statistically reliable
+ATM_CALL,2,-8696.7,50.0,0.5323,-4348.35,0.1462,-18593.18,-93.45,Small samples are not statistically reliable
+OTM_CALL_1,2,-9429.8,50.0,0.5455,-4714.9,0.3844,-20749.35,-97.33,Small samples are not statistically reliable
+OTM_PUT_1,1,-10000.0,0.0,0.0,-10000.0,,-10000.0,-100.0,Small samples are not statistically reliable
