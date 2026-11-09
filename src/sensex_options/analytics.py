@@ -255,13 +255,16 @@ def strategy_performance_metrics(trades: pd.DataFrame, initial_capital: float = 
     for strategy, group in frame.groupby("strategy"):
         group = group.sort_values("exit_date") if "exit_date" in group else group
         pnl = group["net_pnl"].dropna()
-        returns = group["trade_return"].replace([np.inf, -np.inf], np.nan).dropna()
+        if "return_pct" in group:
+            returns = pd.to_numeric(group["return_pct"], errors="coerce").replace([np.inf, -np.inf], np.nan).dropna() / 100.0
+        else:
+            returns = group["trade_return"].replace([np.inf, -np.inf], np.nan).dropna()
         gains, losses = float(pnl[pnl > 0].sum()), float(-pnl[pnl < 0].sum())
-        # For a holdout/fold, begin drawdown measurement at that slice's
-        # actual starting capital, not at the full-history initial balance.
-        baseline = float(group["starting_capital"].iloc[0]) if "starting_capital" in group and pd.notna(group["starting_capital"].iloc[0]) else float(initial_capital)
-        equity = baseline + pnl.cumsum().reset_index(drop=True)
-        peak = pd.concat([pd.Series([baseline]), equity], ignore_index=True).cummax().iloc[1:].reset_index(drop=True)
+        # Unit-lot research is not a cash account. Drawdown is measured on an
+        # additive premium-return index (base 100), separately from ₹ P&L.
+        returns = returns.reset_index(drop=True)
+        equity = 100.0 + returns.cumsum() * 100.0
+        peak = equity.cummax()
         dd = equity - peak
         std = float(returns.std(ddof=1)) if len(returns) > 1 else np.nan
         sharpe = float(returns.mean() / std * np.sqrt(52)) if pd.notna(std) and std > 0 else None
@@ -271,7 +274,7 @@ def strategy_performance_metrics(trades: pd.DataFrame, initial_capital: float = 
             "profit_factor": round(gains / losses, 4) if losses > 0 else None,
             "expectancy": round(float(pnl.mean()), 2),
             "sharpe_trade_annualized": round(sharpe, 4) if sharpe is not None else None,
-            "max_drawdown": round(float(dd.min()), 2) if len(dd) else 0.0,
+            "max_drawdown": round(float(dd.min()), 2) if len(dd) else 0.0,\n            "drawdown_basis": "additive one-lot premium-return index (base 100)",
             "max_drawdown_pct": round(float((dd / peak.replace(0, np.nan) * 100).min()), 2) if len(dd) else 0.0,
             "sample_warning": "Small samples are not statistically reliable" if len(pnl) < 30 else "",
         })
