@@ -223,11 +223,21 @@ def run_daily_strategy_suite(
     for name, group in ledger.groupby("strategy"):
         pnl = group["net_pnl"].astype(float)
         gains, losses = float(pnl[pnl > 0].sum()), float(-pnl[pnl < 0].sum())
-        equity = group.sort_values("exit_date")["ending_capital"].astype(float)
-        start_capital = float(group.sort_values("exit_date").iloc[0]["starting_capital"])
-        curve = pd.concat([pd.Series([start_capital]), equity.reset_index(drop=True)], ignore_index=True)
-        peak = curve.cummax()
-        drawdown = curve - peak
+        ordered = group.sort_values("exit_date").copy()
+        unit_pnl_curve = pnl.reset_index(drop=True).cumsum()
+        pnl_peak = unit_pnl_curve.cummax().clip(lower=0)
+        drawdown = unit_pnl_curve - pnl_peak
+        all_entry_dates = pd.Index(sorted(pd.to_datetime(ledger["entry_date"]).dropna().unique()))
+        trade_returns = (
+            ordered.assign(entry_date=pd.to_datetime(ordered["entry_date"]))
+            .set_index("entry_date")["return_pct"].astype(float) / 100.0
+        )
+        daily_returns = trade_returns.reindex(all_entry_dates, fill_value=0.0)
+        return_index = 100.0 + daily_returns.cumsum() * 100.0
+        return_peak = return_index.cummax()
+        return_dd_pct = (return_index / return_peak.replace(0, np.nan) - 1.0) * 100.0
+        return_std = float(daily_returns.std(ddof=1)) if len(daily_returns) > 1 else np.nan
+        sharpe = float(daily_returns.mean() / return_std * np.sqrt(252)) if pd.notna(return_std) and return_std > 0 else None
         positive = pnl[pnl > 0]
         negative = pnl[pnl < 0]
         rows.append({
@@ -244,7 +254,9 @@ def run_daily_strategy_suite(
             "top3_wins_share_of_net_pct": round(float(positive.nlargest(3).sum() / pnl.sum() * 100), 2) if pnl.sum() > 0 and len(positive) else None,
             "avg_return_pct": round(float(group["return_pct"].mean()), 4),
             "max_drawdown": round(float(drawdown.min()), 2),
-            "max_drawdown_pct": round(float((drawdown / peak.replace(0, pd.NA) * 100).min()), 2),
+            "max_drawdown_pct": round(float(return_dd_pct.min()), 2) if len(return_dd_pct.dropna()) else None,
+            "sharpe_trade_annualized": round(sharpe, 4) if sharpe is not None else None,
+            "drawdown_basis": "unit-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
             "sample_warning": "Small sample: fewer than 30 daily trades" if len(group) < 30 else "",
         })
     ranking = pd.DataFrame(rows).sort_values("net_pnl", ascending=False).reset_index(drop=True)
@@ -261,6 +273,7 @@ def run_daily_strategy_suite(
         "expiry_selection": "nearest available expiry not earlier than exit session",
         "position_sizing": "one historical lot per eligible session; fixed unit-lot research, not compounded sizing",
         "capital": "No affordability filter in default research mode; when supplied, capital is used only as a one-lot affordability filter. Each strategy has its own cumulative unit-lot P&L curve",
+        "return_basis": "one-lot option-premium returns, additive index base 100; not a capital-weighted account return",
         "execution": "EOD close marks with configurable estimated costs; not guaranteed fills",
         "initial_capital_per_strategy": capital,
         "cost_assumptions": cost.__dict__,
@@ -292,6 +305,20 @@ def daily_holdout_evaluation(ledger: pd.DataFrame) -> dict:
         gains, losses = float(pnl[pnl > 0].sum()), float(-pnl[pnl < 0].sum())
         positive = pnl[pnl > 0]
         negative = pnl[pnl < 0]
+        ordered = group.sort_values("entry_date").copy()
+        all_dates = pd.Index(sorted(pd.to_datetime(test["entry_date"]).dropna().unique()))
+        trade_returns = (
+            ordered.assign(entry_date=pd.to_datetime(ordered["entry_date"]))
+            .set_index("entry_date")["return_pct"].astype(float) / 100.0
+        )
+        daily_returns = trade_returns.reindex(all_dates, fill_value=0.0)
+        return_index = 100.0 + daily_returns.cumsum() * 100.0
+        return_peak = return_index.cummax()
+        return_dd_pct = (return_index / return_peak.replace(0, np.nan) - 1.0) * 100.0
+        return_std = float(daily_returns.std(ddof=1)) if len(daily_returns) > 1 else np.nan
+        sharpe = float(daily_returns.mean() / return_std * np.sqrt(252)) if pd.notna(return_std) and return_std > 0 else None
+        pnl_curve = pnl.cumsum()
+        pnl_drawdown = pnl_curve - pnl_curve.cummax().clip(lower=0)
         metrics.append({
             "strategy": strategy, "trades": int(len(pnl)),
             "net_pnl": round(float(pnl.sum()), 2),
@@ -301,6 +328,9 @@ def daily_holdout_evaluation(ledger: pd.DataFrame) -> dict:
             "median_trade_pnl": round(float(pnl.median()), 2) if len(pnl) else None,
             "best_trade": round(float(pnl.max()), 2) if len(pnl) else None,
             "worst_trade": round(float(pnl.min()), 2) if len(pnl) else None,
+            "max_drawdown_pnl": round(float(pnl_drawdown.min()), 2) if len(pnl_drawdown) else 0.0,
+            "max_drawdown_return_pct": round(float(return_dd_pct.min()), 2) if len(return_dd_pct.dropna()) else None,
+            "sharpe_trade_annualized": round(sharpe, 4) if sharpe is not None else None,
             "top3_wins_share_of_net_pct": round(float(positive.nlargest(3).sum() / pnl.sum() * 100), 2) if pnl.sum() > 0 and len(positive) else None,
         })
     return {
