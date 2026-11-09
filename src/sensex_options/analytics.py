@@ -263,7 +263,7 @@ def strategy_performance_metrics(trades: pd.DataFrame, initial_capital: float = 
         # Unit-lot research is not a cash account. Drawdown is measured on an
         # additive premium-return index (base 100), separately from ₹ P&L.
         returns = returns.reset_index(drop=True)
-        equity = 100.0 + returns.cumsum() * 100.0
+        equity = 100.0 * (1.0 + returns.clip(lower=-1.0)).cumprod()
         peak = equity.cummax().clip(lower=100.0)
         return_dd = equity / peak.replace(0, np.nan) - 1.0
         pnl_curve = pnl.reset_index(drop=True).cumsum()
@@ -279,7 +279,7 @@ def strategy_performance_metrics(trades: pd.DataFrame, initial_capital: float = 
             "sharpe_trade_annualized": round(sharpe, 4) if sharpe is not None else None,
             "max_drawdown": round(float(dd.min()), 2) if len(dd) else 0.0,
             "max_drawdown_pct": round(float(return_dd.min() * 100), 2) if len(return_dd.dropna()) else 0.0,
-            "drawdown_basis": "₹ one-lot cumulative P&L; percentage drawdown from additive premium-return index (base 100)",
+            "drawdown_basis": "₹ one-lot cumulative P&L; percentage drawdown from compounded premium-return index (base 100; loss floored at -100%)",
             "max_drawdown_pct": round(float((dd / peak.replace(0, np.nan) * 100).min()), 2) if len(dd) else 0.0,
             "sample_warning": "Small samples are not statistically reliable" if len(pnl) < 30 else "",
         })
