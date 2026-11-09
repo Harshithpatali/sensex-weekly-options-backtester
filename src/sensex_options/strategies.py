@@ -158,11 +158,12 @@ def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: floa
     for key,grp in trades_df.groupby("strategy"):
         pnl=grp.net_pnl
         gains=float(pnl[pnl>0].sum()); losses=float(-pnl[pnl<0].sum())
-        eq=initial_equity_baseline+pnl.cumsum()
-        peak=pd.Series([initial_equity_baseline]+eq.tolist()).cummax().iloc[1:].to_numpy()
-        dd=eq.to_numpy()-peak
-        dd_pct=(dd/peak*100) if len(peak) else []
-        summary.append({"strategy":key,"description":STRATEGIES[key],"trades":len(grp),"net_pnl":round(float(pnl.sum()),2),"win_rate_pct":round(float((pnl>0).mean()*100),2),"profit_factor":round(gains/losses,3) if losses else None,"max_drawdown":round(float(dd.min()),2) if len(dd) else 0.0,"max_drawdown_pct":round(float(min(dd_pct)),2) if len(dd_pct) else 0.0,"avg_trade_pnl":round(float(pnl.mean()),2),"max_loss":round(float(pnl.min()),2)})
+        trade_returns=pd.to_numeric(grp["return_pct"],errors="coerce").fillna(0.0)/100.0
+        return_index=100.0+trade_returns.cumsum()
+        return_peak=return_index.cummax()
+        dd=(return_index-return_peak).to_numpy()
+        dd_pct=((return_index/return_peak.replace(0,np.nan)-1.0)*100.0).to_numpy()
+        summary.append({"strategy":key,"description":STRATEGIES[key],"trades":len(grp),"net_pnl":round(float(pnl.sum()),2),"win_rate_pct":round(float((pnl>0).mean()*100),2),"profit_factor":round(gains/losses,3) if losses else None,"max_drawdown":round(float(dd.min()),2) if len(dd) else 0.0,"max_drawdown_pct":round(float(np.nanmin(dd_pct)),2) if len(dd_pct) and np.isfinite(dd_pct).any() else 0.0,"drawdown_basis":"additive one-lot premium-return index (base 100)","avg_trade_pnl":round(float(pnl.mean()),2),"max_loss":round(float(pnl.min()),2)})
     rank=pd.DataFrame(summary).sort_values(["net_pnl","profit_factor"],ascending=[False,False],na_position="last")
     return trades_df,rank,{"initial_capital_per_strategy":capital, "illustrative_equity_baseline": initial_equity_baseline,"sizing": ("one historical lot per expiry trade; no account affordability filter or compounding sizing" if capital is None else "sequential compounding per strategy; strategies have isolated capital and are not combined into one portfolio"),"cost_assumptions":cost.__dict__,"note":"EOD close-to-close simulations. In default research mode, each expiry trade is one historical lot and does not obey an account balance. Pass capital explicitly for an optional sequential cash-sizing simulation. Configured costs are estimates; BSE EOD bars do not contain executable bid/ask quotes."}
 
