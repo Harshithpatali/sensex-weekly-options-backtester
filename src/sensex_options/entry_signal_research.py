@@ -167,7 +167,7 @@ def _filter_liquid_option_rows(
     for column in required:
         out[column] = pd.to_numeric(out[column], errors="coerce")
     return out[
-        (out["close"] > 0)
+        (out["close"] >= 0)
         & (out["volume"] >= float(min_volume))
         & (out["open_interest"] >= float(min_open_interest))
     ].copy()
@@ -215,8 +215,8 @@ def _option_horizon_outcomes(
         & (opt["close"] >= 0)
         & (opt["option_type"].isin(["CE", "PE"]))
     ].copy()
-    # Filter entry and exit dates: stale or inactive EOD marks are not fills.
-    opt = _filter_liquid_option_rows(opt)
+    # Preserve observed zero-premium expiry payoffs. Entry liquidity and
+    # non-expiry exit liquidity are validated independently below.
     opt = opt.sort_values(["trade_date", "expiry_date", "strike", "symbol"])
     by_day = {day: frame for day, frame in opt.groupby("trade_date", sort=False)}
     sessions = idx.reset_index(drop=True)
@@ -281,6 +281,13 @@ def _option_horizon_outcomes(
                         continue
                     selected = entry_candidates.iloc[0]
                     entry_premium = float(selected["close"])
+                    entry_volume = selected.get("volume")
+                    entry_oi = selected.get("open_interest")
+                    if (
+                        not _finite(entry_volume) or float(entry_volume) < 25
+                        or not _finite(entry_oi) or float(entry_oi) < 50
+                    ):
+                        continue
                     lot_value = selected.get("lot_size")
                     symbol = str(selected.get("symbol", "SENSEX")).strip().upper()
                     if not _finite(entry_premium) or entry_premium <= 0 or not _finite(lot_value) or float(lot_value) <= 0:
@@ -314,8 +321,19 @@ def _option_horizon_outcomes(
                     ]
                     if exit_candidates.empty:
                         continue
-                    exit_premium = float(exit_candidates.iloc[-1]["close"])
+                    exit_row = exit_candidates.iloc[-1]
+                    exit_premium = float(exit_row["close"])
                     if not _finite(exit_premium) or exit_premium < 0:
+                        continue
+                    if exit_premium > 0:
+                        exit_volume = exit_row.get("volume")
+                        exit_oi = exit_row.get("open_interest")
+                        if (
+                            not _finite(exit_volume) or float(exit_volume) < 25
+                            or not _finite(exit_oi) or float(exit_oi) < 50
+                        ):
+                            continue
+                    elif exit_day != expiry:
                         continue
                     quantity = lot_size
                     gross = (exit_premium - entry_premium) * quantity
