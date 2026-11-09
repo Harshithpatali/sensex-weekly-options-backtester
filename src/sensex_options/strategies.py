@@ -170,7 +170,7 @@ def run_strategy_suite(index: pd.DataFrame, options: pd.DataFrame, capital: floa
         gains=float(pnl[pnl>0].sum()); losses=float(-pnl[pnl<0].sum())
         trade_returns=pd.to_numeric(grp["return_pct"],errors="coerce").fillna(0.0)/100.0
         return_index=100.0+trade_returns.cumsum()
-        return_peak=return_index.cummax()
+        return_peak=return_index.cummax().clip(lower=100.0)
         dd_pct=((return_index/return_peak.replace(0,np.nan)-1.0)*100.0).to_numpy()
         pnl_curve=pnl.cumsum()
         pnl_peak=pnl_curve.cummax().clip(lower=0)
