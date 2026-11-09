@@ -452,8 +452,12 @@ def download_bse_options_range(
     if not options.empty:
         keys = ["trade_date", "expiry_date", "symbol", "strike", "option_type"]
         options = options.drop_duplicates(subset=keys, keep="last").sort_values(keys).reset_index(drop=True)
-        options.to_csv(out_path, index=False)
-    logger.info("Merged %d SENSEX Call/Put option rows into %s", len(options), out_path)
+        # Keep the processed option history compressed: the full BSE
+        # archive can exceed GitHub's 100 MB per-file limit uncompressed.
+        options.to_csv(compressed_path, index=False, compression="gzip")
+        if out_path.exists():
+            out_path.unlink()
+    logger.info("Merged %d SENSEX Call/Put option rows into %s", len(options), compressed_path)
     return options
 
 
