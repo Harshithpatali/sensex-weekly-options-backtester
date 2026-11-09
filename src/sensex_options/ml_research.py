@@ -301,7 +301,8 @@ def build_ml_option_dataset(
         "moneyness_variants": sorted(dataset["moneyness"].unique().tolist()),
         "side_counts": dataset["option_side"].value_counts().to_dict(),
         "target": "net option P&L after estimated costs > 0",
-        "signal_timing": "all index, option-chain and model-derived Greek predictors are from the prior completed SENSEX session",\n        "greeks": "Black-Scholes approximations from prior-session option close and index close; 6.5% risk-free rate, no dividend yield; missing/invalid IV remains null",
+        "signal_timing": "all index, option-chain and model-derived Greek predictors are from the prior completed SENSEX session",
+        "greeks": "Black-Scholes approximations from prior-session option close and index close; 6.5% risk-free rate, no dividend yield; missing/invalid IV remains null",
     }
     return dataset, feature_cols, report
 
