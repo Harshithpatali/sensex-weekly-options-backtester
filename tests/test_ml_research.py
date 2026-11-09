@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from sensex_options.ml_research import build_ml_option_dataset, _selected_trade_metrics
+from sensex_options.ml_research import (\n    build_ml_option_dataset, _selected_trade_metrics, _black_scholes_price,\n    _implied_volatility, _black_scholes_greeks, RISK_FREE_RATE,\n)
 
 
 def ml_fixture(periods=100):
@@ -69,3 +69,20 @@ def test_ml_strategy_selection_uses_at_most_one_candidate_per_entry_session():
     assert result["trades"] == 2
     assert result["sessions"] == 2
     assert selected["option_side"].tolist() == ["PE", "CE"]
+
+
+def test_lagged_black_scholes_greeks_recover_known_volatility():
+    spot, strike, years, volatility = 72000.0, 72000.0, 30 / 365.25, 0.25
+    premium = _black_scholes_price(spot, strike, years, RISK_FREE_RATE, volatility, "CE")
+    implied = _implied_volatility(
+        premium, spot, strike, years, RISK_FREE_RATE, "CE"
+    )
+    assert implied is not None
+    assert abs(implied - volatility) < 1e-5
+    greeks = _black_scholes_greeks(
+        spot, strike, years, RISK_FREE_RATE, implied, "CE"
+    )
+    assert 0 < greeks["lagged_delta"] < 1
+    assert greeks["lagged_gamma"] > 0
+    assert greeks["lagged_vega_per_1pct"] > 0
+    assert "lagged_theta_per_day" in greeks
