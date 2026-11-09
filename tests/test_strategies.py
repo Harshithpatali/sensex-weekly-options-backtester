@@ -141,3 +141,23 @@ def test_default_expiry_research_keeps_one_lot_after_unit_lot_loss_exceeds_ten_t
         index, pd.DataFrame(rows), capital=10000, brokerage_per_order=0, slippage_points=0
     )
     assert len(constrained[constrained.strategy == "ATM_CALL"]) == 1
+
+
+def test_expiry_suite_does_not_close_unexpired_contracts_at_last_data_day():
+    index = pd.DataFrame({
+        "date": pd.to_datetime(["2024-01-04", "2024-01-05"]),
+        "close": [72000.0, 72100.0],
+    })
+    options = pd.DataFrame([
+        {
+            "trade_date": pd.Timestamp("2024-01-05"),
+            "expiry_date": pd.Timestamp("2024-01-12"),
+            "symbol": "SENSEX", "strike": 72100.0,
+            "option_type": side, "close": 100.0, "lot_size": 10,
+        }
+        for side in ("CE", "PE")
+    ])
+    trades, ranking, meta = run_strategy_suite(index, options)
+    assert trades.empty
+    assert ranking.empty
+    assert "No matured option expiries" in meta["error"]
