@@ -22,7 +22,7 @@ DAILY_STRATEGIES = {
 def run_daily_strategy_suite(
     index: pd.DataFrame,
     options: pd.DataFrame,
-    capital: float = 10000.0,
+    capital: float | None = None,
     cost: CostConfig | None = None,
     min_volume: float = 25.0,
     min_open_interest: float = 50.0,
@@ -181,7 +181,7 @@ def run_daily_strategy_suite(
                     + (cost.brokerage_pct + cost.exchange_charges_pct) * entry_turnover)
                 + cost.stamp_duty_pct * entry_turnover
             )
-            if entry_turnover + entry_fees > capital:
+            if capital is not None and entry_turnover + entry_fees > float(capital):
                 continue
             n_lots = 1
             qty = lot_size
@@ -190,9 +190,10 @@ def run_daily_strategy_suite(
                 entry_premium, exit_premium, lot_size, n_lots, cost
             )
             net = gross - charges["total_cost"]
-            starting_equity = capital + cumulative_pnl[strategy]
+            equity_baseline = float(capital) if capital is not None else 10000.0
+            starting_equity = equity_baseline + cumulative_pnl[strategy]
             cumulative_pnl[strategy] += net
-            ending = capital + cumulative_pnl[strategy]
+            ending = equity_baseline + cumulative_pnl[strategy]
             trades.append({
                 "strategy": strategy, "strategy_description": DAILY_STRATEGIES[strategy],
                 "entry_date": entry_day, "exit_date": exit_day, "expiry_date": expiry,
@@ -259,7 +260,7 @@ def run_daily_strategy_suite(
         },
         "expiry_selection": "nearest available expiry not earlier than exit session",
         "position_sizing": "one historical lot per eligible session; fixed unit-lot research, not compounded sizing",
-        "capital": "capital is used only as a one-lot affordability filter; each strategy has its own cumulative unit-lot P&L curve",
+        "capital": "No affordability filter in default research mode; when supplied, capital is used only as a one-lot affordability filter. Each strategy has its own cumulative unit-lot P&L curve",
         "execution": "EOD close marks with configurable estimated costs; not guaranteed fills",
         "initial_capital_per_strategy": capital,
         "cost_assumptions": cost.__dict__,
