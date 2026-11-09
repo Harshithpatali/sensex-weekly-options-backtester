@@ -71,10 +71,7 @@ def run_daily_strategy_suite(
     opt = opt[(opt["close"] >= 0) & (opt["strike"] > 0) & opt["option_type"].isin(["CE", "PE"])]
     opt = opt.sort_values(["trade_date", "expiry_date", "strike", "symbol"])
     by_day = {day: frame for day, frame in opt.groupby("trade_date", sort=False)}
-    # Unit-lot research sizing: one lot per eligible session, not compounded.
-    # This keeps the full historical sample visible instead of stopping a
-    # strategy permanently after an early sequence of losses.
-    cumulative_pnl = {name: 0.0 for name in DAILY_STRATEGIES}
+    # Unit-lot research sizing: one lot per eligible session, independent of account equity.
     trades: list[dict] = []
     sessions = idx.reset_index(drop=True)
 
@@ -194,10 +191,6 @@ def run_daily_strategy_suite(
                 entry_premium, exit_premium, lot_size, n_lots, cost
             )
             net = gross - charges["total_cost"]
-            equity_baseline = float(capital) if capital is not None else 10000.0
-            starting_equity = equity_baseline + cumulative_pnl[strategy]
-            cumulative_pnl[strategy] += net
-            ending = equity_baseline + cumulative_pnl[strategy]
             trades.append({
                 "strategy": strategy, "strategy_description": DAILY_STRATEGIES[strategy],
                 "entry_date": entry_day, "exit_date": exit_day, "expiry_date": expiry,
@@ -209,8 +202,8 @@ def run_daily_strategy_suite(
                 "entry_open_interest": float(selected["open_interest"]),
                 "atm_distance_pct": float(selected["atm_distance_pct"]),
                 "exit_premium": exit_premium, "lot_size": lot_size, "lots": n_lots,
-                "quantity": qty, "starting_capital": round(starting_equity, 2),
-                "ending_capital": round(ending, 2), "gross_pnl": round(gross, 2),
+                "quantity": qty, "starting_capital": None,
+                "ending_capital": None, "gross_pnl": round(gross, 2),
                 "estimated_costs": charges["total_cost"], "brokerage": charges["brokerage"],
                 "stt": charges["stt"], "exchange_charges": charges["exchange"],
                 "gst": charges["gst"], "stamp_duty": charges["stamp_duty"],
