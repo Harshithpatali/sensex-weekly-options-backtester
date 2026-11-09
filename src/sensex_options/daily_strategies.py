@@ -168,8 +168,9 @@ def run_daily_strategy_suite(
                     or pd.isna(exit_mark["open_interest"]) or float(exit_mark["open_interest"]) < min_open_interest
                 ):
                     continue
-            elif exit_day != expiry:
-                # Zero is a valid expiry payoff, not a tradable pre-expiry mark.
+            elif exit_day != pd.to_datetime(idx.loc[idx["date"] <= expiry, "date"]).max():
+                # Zero is a valid final-session expiry payoff, including a
+                # holiday-adjusted expiry, not a tradable pre-expiry mark.
                 continue
             entry_adjustment = cost.entry_slippage + cost.spread_points / 2 + cost.market_impact_points
             adjusted_entry = entry_premium + entry_adjustment
