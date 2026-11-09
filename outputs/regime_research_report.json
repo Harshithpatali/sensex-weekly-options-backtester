@@ -1,8 +1,8 @@
 {
   "status": "screen_complete",
   "method": "Predeclared 5 signal families x 6 regime gates; features lagged one completed session; split by entry date with exit-date purging at the boundary; observed option ledger only.",
-  "train_end": "2025-11-30",
-  "validation_start": "2025-12-01",
+  "train_end": "2025-12-14",
+  "validation_start": "2025-12-15",
   "purged_overlap_trades": 2,
   "last_entry_date": "2026-11-05",
   "minimum_train_trades": 30,

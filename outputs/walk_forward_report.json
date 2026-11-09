@@ -1,6 +1,2271 @@
 {
-  "status": "insufficient_data",
-  "note": "Not enough distinct expiry cycles for chronological evaluation.",
-  "distinct_expiries": 7,
-  "required_expiries": 9
+  "status": "ok",
+  "distinct_expiries": 134,
+  "train_expiries": 93,
+  "holdout_expiries": 41,
+  "holdout_start": "2026-04-16",
+  "holdout_end": "2027-12-30",
+  "holdout_metrics": [
+    {
+      "strategy": "OTM_CALL_1",
+      "trades": 34,
+      "net_pnl": -10990.96,
+      "win_rate_pct": 20.59,
+      "profit_factor": 0.8879,
+      "expectancy": -323.26,
+      "sharpe_trade_annualized": 0.6903,
+      "max_drawdown": -74941.29,
+      "max_drawdown_pct": 7.76,
+      "sample_warning": ""
+    },
+    {
+      "strategy": "ATM_CALL",
+      "trades": 38,
+      "net_pnl": -12798.95,
+      "win_rate_pct": 21.05,
+      "profit_factor": 0.8809,
+      "expectancy": -336.81,
+      "sharpe_trade_annualized": 0.6818,
+      "max_drawdown": -78067.01,
+      "max_drawdown_pct": 8.37,
+      "sample_warning": ""
+    },
+    {
+      "strategy": "ATM_PUT",
+      "trades": 37,
+      "net_pnl": -27664.6,
+      "win_rate_pct": 24.32,
+      "profit_factor": 0.7263,
+      "expectancy": -747.69,
+      "sharpe_trade_annualized": -1.0268,
+      "max_drawdown": -65783.21,
+      "max_drawdown_pct": -151.07,
+      "sample_warning": ""
+    },
+    {
+      "strategy": "OTM_PUT_1",
+      "trades": 35,
+      "net_pnl": -29209.51,
+      "win_rate_pct": 25.71,
+      "profit_factor": 0.6854,
+      "expectancy": -834.56,
+      "sharpe_trade_annualized": -1.193,
+      "max_drawdown": -62049.09,
+      "max_drawdown_pct": -175.64,
+      "sample_warning": ""
+    },
+    {
+      "strategy": "ATM_STRADDLE",
+      "trades": 34,
+      "net_pnl": -38769.26,
+      "win_rate_pct": 32.35,
+      "profit_factor": 0.7142,
+      "expectancy": -1140.27,
+      "sharpe_trade_annualized": 1.6476,
+      "max_drawdown": -116073.75,
+      "max_drawdown_pct": 14.18,
+      "sample_warning": ""
+    }
+  ],
+  "walk_forward_folds": [
+    {
+      "train_expiries_before_test": 8,
+      "test_expiries": [
+        "2024-09-06",
+        "2024-09-13",
+        "2024-09-20",
+        "2024-09-27"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": 4768.92,
+          "win_rate_pct": 50.0,
+          "profit_factor": 1.5409,
+          "expectancy": 1192.23,
+          "sharpe_trade_annualized": 1.9525,
+          "max_drawdown": -4897.11,
+          "max_drawdown_pct": -15.86,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": 3030.75,
+          "win_rate_pct": 25.0,
+          "profit_factor": 1.4695,
+          "expectancy": 757.69,
+          "sharpe_trade_annualized": 1.3221,
+          "max_drawdown": -3965.37,
+          "max_drawdown_pct": -13.69,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": 2668.81,
+          "win_rate_pct": 25.0,
+          "profit_factor": 1.4786,
+          "expectancy": 667.2,
+          "sharpe_trade_annualized": 2.2641,
+          "max_drawdown": -5576.5,
+          "max_drawdown_pct": -41.55,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": 2100.1,
+          "win_rate_pct": 25.0,
+          "profit_factor": 1.2697,
+          "expectancy": 525.03,
+          "sharpe_trade_annualized": 1.0593,
+          "max_drawdown": -4882.22,
+          "max_drawdown_pct": -16.2,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": 1275.47,
+          "win_rate_pct": 25.0,
+          "profit_factor": 1.2008,
+          "expectancy": 318.87,
+          "sharpe_trade_annualized": 1.7071,
+          "max_drawdown": -6350.82,
+          "max_drawdown_pct": -45.48,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 12,
+      "test_expiries": [
+        "2024-10-04",
+        "2024-10-11",
+        "2024-10-18",
+        "2024-10-25"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": 7418.18,
+          "win_rate_pct": 50.0,
+          "profit_factor": 3.4779,
+          "expectancy": 1854.55,
+          "sharpe_trade_annualized": 4.025,
+          "max_drawdown": -2993.78,
+          "max_drawdown_pct": -22.29,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": 5898.35,
+          "win_rate_pct": 50.0,
+          "profit_factor": 2.8562,
+          "expectancy": 1474.59,
+          "sharpe_trade_annualized": 3.6774,
+          "max_drawdown": -3177.63,
+          "max_drawdown_pct": -25.48,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": -3400.55,
+          "win_rate_pct": 50.0,
+          "profit_factor": 0.5149,
+          "expectancy": -850.14,
+          "sharpe_trade_annualized": -1.6554,
+          "max_drawdown": -7010.06,
+          "max_drawdown_pct": -22.22,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": -9722.09,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -2430.52,
+          "sharpe_trade_annualized": -23.8796,
+          "max_drawdown": -9722.09,
+          "max_drawdown_pct": -30.38,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": -10818.72,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -2704.68,
+          "sharpe_trade_annualized": -16.1954,
+          "max_drawdown": -10818.72,
+          "max_drawdown_pct": -33.56,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 16,
+      "test_expiries": [
+        "2024-10-31",
+        "2024-11-08",
+        "2024-11-14",
+        "2024-11-22"
+      ],
+      "metrics": [
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": 7778.22,
+          "win_rate_pct": 25.0,
+          "profit_factor": 1.9163,
+          "expectancy": 1944.55,
+          "sharpe_trade_annualized": 2.0015,
+          "max_drawdown": -8488.78,
+          "max_drawdown_pct": -38.11,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": 6991.05,
+          "win_rate_pct": 25.0,
+          "profit_factor": 1.7008,
+          "expectancy": 1747.76,
+          "sharpe_trade_annualized": 1.9808,
+          "max_drawdown": -9976.35,
+          "max_drawdown_pct": -46.58,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": 2722.06,
+          "win_rate_pct": 25.0,
+          "profit_factor": 1.2512,
+          "expectancy": 680.51,
+          "sharpe_trade_annualized": 1.3834,
+          "max_drawdown": -10835.35,
+          "max_drawdown_pct": -40.61,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": -4268.97,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.4189,
+          "expectancy": -1067.24,
+          "sharpe_trade_annualized": -2.5263,
+          "max_drawdown": -7346.14,
+          "max_drawdown_pct": -40.06,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": -4721.96,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.3419,
+          "expectancy": -1180.49,
+          "sharpe_trade_annualized": -3.4134,
+          "max_drawdown": -7175.1,
+          "max_drawdown_pct": -44.95,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 20,
+      "test_expiries": [
+        "2024-11-28",
+        "2024-11-29",
+        "2024-12-06",
+        "2024-12-13"
+      ],
+      "metrics": [
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 3,
+          "net_pnl": 4935.89,
+          "win_rate_pct": 66.67,
+          "profit_factor": 2.336,
+          "expectancy": 1645.3,
+          "sharpe_trade_annualized": 2.9074,
+          "max_drawdown": -3694.59,
+          "max_drawdown_pct": -10.91,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": 2871.52,
+          "win_rate_pct": 50.0,
+          "profit_factor": 1.4243,
+          "expectancy": 717.88,
+          "sharpe_trade_annualized": 1.4622,
+          "max_drawdown": -4025.22,
+          "max_drawdown_pct": -13.41,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 3,
+          "net_pnl": -2557.02,
+          "win_rate_pct": 66.67,
+          "profit_factor": 0.6403,
+          "expectancy": -852.34,
+          "sharpe_trade_annualized": -0.6472,
+          "max_drawdown": -7109.66,
+          "max_drawdown_pct": -23.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 3,
+          "net_pnl": -7941.07,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -2647.02,
+          "sharpe_trade_annualized": -17.4871,
+          "max_drawdown": -7941.07,
+          "max_drawdown_pct": -90.35,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_PUT",
+          "trades": 3,
+          "net_pnl": -8171.75,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -2723.92,
+          "sharpe_trade_annualized": -27.6391,
+          "max_drawdown": -8171.75,
+          "max_drawdown_pct": -74.33,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 24,
+      "test_expiries": [
+        "2024-12-20",
+        "2024-12-27",
+        "2025-01-03",
+        "2025-01-07"
+      ],
+      "metrics": [
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": 804.18,
+          "win_rate_pct": 50.0,
+          "profit_factor": 1.0805,
+          "expectancy": 201.05,
+          "sharpe_trade_annualized": 3.2884,
+          "max_drawdown": -7193.93,
+          "max_drawdown_pct": -81.32,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": 692.71,
+          "win_rate_pct": 50.0,
+          "profit_factor": 1.0618,
+          "expectancy": 173.18,
+          "sharpe_trade_annualized": 2.6929,
+          "max_drawdown": -7998.23,
+          "max_drawdown_pct": -69.47,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": -11572.03,
+          "win_rate_pct": 50.0,
+          "profit_factor": 0.2963,
+          "expectancy": -2893.01,
+          "sharpe_trade_annualized": -2.8282,
+          "max_drawdown": -15873.71,
+          "max_drawdown_pct": -50.96,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": -12264.75,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -3066.19,
+          "sharpe_trade_annualized": -17.2727,
+          "max_drawdown": -12264.75,
+          "max_drawdown_pct": -39.21,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": -12972.79,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -3243.2,
+          "sharpe_trade_annualized": -14.9582,
+          "max_drawdown": -12972.79,
+          "max_drawdown_pct": -37.08,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 28,
+      "test_expiries": [
+        "2025-01-14",
+        "2025-01-21",
+        "2025-01-28",
+        "2025-02-04"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": 24193.81,
+          "win_rate_pct": 50.0,
+          "profit_factor": 4.3921,
+          "expectancy": 6048.45,
+          "sharpe_trade_annualized": 3.8437,
+          "max_drawdown": -6614.77,
+          "max_drawdown_pct": -43.31,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": 15154.93,
+          "win_rate_pct": 50.0,
+          "profit_factor": 2.7466,
+          "expectancy": 3788.73,
+          "sharpe_trade_annualized": 2.7249,
+          "max_drawdown": -8676.57,
+          "max_drawdown_pct": -45.62,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": 13863.71,
+          "win_rate_pct": 50.0,
+          "profit_factor": 2.6018,
+          "expectancy": 3465.93,
+          "sharpe_trade_annualized": 2.5278,
+          "max_drawdown": -8655.1,
+          "max_drawdown_pct": -39.31,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": 9554.6,
+          "win_rate_pct": 25.0,
+          "profit_factor": 2.0033,
+          "expectancy": 2388.65,
+          "sharpe_trade_annualized": -4.6409,
+          "max_drawdown": -6189.71,
+          "max_drawdown_pct": -201.76,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": 9038.86,
+          "win_rate_pct": 25.0,
+          "profit_factor": 1.8021,
+          "expectancy": 2259.72,
+          "sharpe_trade_annualized": -3.8096,
+          "max_drawdown": -7205.11,
+          "max_drawdown_pct": -115.63,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 32,
+      "test_expiries": [
+        "2025-02-11",
+        "2025-02-18",
+        "2025-02-25",
+        "2025-03-04"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": 3511.89,
+          "win_rate_pct": 25.0,
+          "profit_factor": 1.3109,
+          "expectancy": 877.97,
+          "sharpe_trade_annualized": 1.8625,
+          "max_drawdown": -11294.78,
+          "max_drawdown_pct": -41.28,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": 1822.29,
+          "win_rate_pct": 25.0,
+          "profit_factor": 1.1547,
+          "expectancy": 455.57,
+          "sharpe_trade_annualized": 1.6278,
+          "max_drawdown": -11776.37,
+          "max_drawdown_pct": -47.48,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": -22230.19,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.2428,
+          "expectancy": -5557.55,
+          "sharpe_trade_annualized": -5.1648,
+          "max_drawdown": -29357.74,
+          "max_drawdown_pct": -63.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": -23272.65,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -5818.16,
+          "sharpe_trade_annualized": -48.252,
+          "max_drawdown": -23272.65,
+          "max_drawdown_pct": -64.86,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": -25742.07,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -6435.52,
+          "sharpe_trade_annualized": -29.1111,
+          "max_drawdown": -25742.07,
+          "max_drawdown_pct": -75.33,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 36,
+      "test_expiries": [
+        "2025-03-11",
+        "2025-03-18",
+        "2025-03-25",
+        "2025-04-01"
+      ],
+      "metrics": [
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": 11093.23,
+          "win_rate_pct": 25.0,
+          "profit_factor": 2.0104,
+          "expectancy": 2773.31,
+          "sharpe_trade_annualized": 3.0544,
+          "max_drawdown": -10978.71,
+          "max_drawdown_pct": -84.26,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": 10767.14,
+          "win_rate_pct": 50.0,
+          "profit_factor": 1.5622,
+          "expectancy": 2691.78,
+          "sharpe_trade_annualized": 3.1626,
+          "max_drawdown": -10993.13,
+          "max_drawdown_pct": -50.51,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": 9870.45,
+          "win_rate_pct": 25.0,
+          "profit_factor": 1.7366,
+          "expectancy": 2467.61,
+          "sharpe_trade_annualized": 2.9387,
+          "max_drawdown": -13399.63,
+          "max_drawdown_pct": -83.41,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": 2517.45,
+          "win_rate_pct": 25.0,
+          "profit_factor": 1.1816,
+          "expectancy": 629.36,
+          "sharpe_trade_annualized": 1.8718,
+          "max_drawdown": -10372.32,
+          "max_drawdown_pct": -40.68,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": 896.7,
+          "win_rate_pct": 25.0,
+          "profit_factor": 1.0541,
+          "expectancy": 224.17,
+          "sharpe_trade_annualized": 2.397,
+          "max_drawdown": -12108.56,
+          "max_drawdown_pct": -56.49,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 40,
+      "test_expiries": [
+        "2025-04-08",
+        "2025-04-15",
+        "2025-04-22",
+        "2025-04-29"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": 18801.2,
+          "win_rate_pct": 50.0,
+          "profit_factor": 4.5872,
+          "expectancy": 4700.3,
+          "sharpe_trade_annualized": 5.0605,
+          "max_drawdown": -5241.12,
+          "max_drawdown_pct": -15.71,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": 14902.27,
+          "win_rate_pct": 50.0,
+          "profit_factor": 3.0914,
+          "expectancy": 3725.57,
+          "sharpe_trade_annualized": 4.0663,
+          "max_drawdown": -7125.37,
+          "max_drawdown_pct": -19.18,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": -19495.16,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.1613,
+          "expectancy": -4873.79,
+          "sharpe_trade_annualized": -5.4377,
+          "max_drawdown": -19495.16,
+          "max_drawdown_pct": -69.61,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": -35141.15,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -8785.29,
+          "sharpe_trade_annualized": 1.9713,
+          "max_drawdown": -35141.15,
+          "max_drawdown_pct": -145.68,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": -38296.36,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -9574.09,
+          "sharpe_trade_annualized": 2.6931,
+          "max_drawdown": -38296.36,
+          "max_drawdown_pct": -147.66,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 44,
+      "test_expiries": [
+        "2025-05-06",
+        "2025-05-13",
+        "2025-05-20",
+        "2025-05-27"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": 31790.27,
+          "win_rate_pct": 75.0,
+          "profit_factor": 26.9913,
+          "expectancy": 7947.57,
+          "sharpe_trade_annualized": 2.3258,
+          "max_drawdown": -1223.11,
+          "max_drawdown_pct": 0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": 27122.36,
+          "win_rate_pct": 75.0,
+          "profit_factor": 12.0158,
+          "expectancy": 6780.59,
+          "sharpe_trade_annualized": 2.8366,
+          "max_drawdown": -2462.14,
+          "max_drawdown_pct": 0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": 2894.51,
+          "win_rate_pct": 50.0,
+          "profit_factor": 1.2494,
+          "expectancy": 723.63,
+          "sharpe_trade_annualized": 2.7507,
+          "max_drawdown": -6073.18,
+          "max_drawdown_pct": -64.99,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": -24972.24,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -6243.06,
+          "sharpe_trade_annualized": -10.4303,
+          "max_drawdown": -24972.24,
+          "max_drawdown_pct": -83.16,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": -28895.75,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -7223.94,
+          "sharpe_trade_annualized": -8.89,
+          "max_drawdown": -28895.75,
+          "max_drawdown_pct": -102.73,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 48,
+      "test_expiries": [
+        "2025-06-03",
+        "2025-06-10",
+        "2025-06-17",
+        "2025-06-24"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": -8892.98,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.1604,
+          "expectancy": -2223.24,
+          "sharpe_trade_annualized": -5.3435,
+          "max_drawdown": -10591.38,
+          "max_drawdown_pct": -50.13,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": -9842.11,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.0593,
+          "expectancy": -2460.53,
+          "sharpe_trade_annualized": -7.8931,
+          "max_drawdown": -10462.57,
+          "max_drawdown_pct": -62.56,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": -22524.22,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -5631.06,
+          "sharpe_trade_annualized": -0.0809,
+          "max_drawdown": -22524.22,
+          "max_drawdown_pct": -445.55,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": -24578.49,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -6144.62,
+          "sharpe_trade_annualized": 3.9557,
+          "max_drawdown": -24578.49,
+          "max_drawdown_pct": 1355.96,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": -33471.47,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -8367.87,
+          "sharpe_trade_annualized": -2.7209,
+          "max_drawdown": -33471.47,
+          "max_drawdown_pct": -293.48,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 52,
+      "test_expiries": [
+        "2025-07-01",
+        "2025-07-08",
+        "2025-07-15",
+        "2025-07-22"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": -4606.03,
+          "win_rate_pct": 50.0,
+          "profit_factor": 0.3628,
+          "expectancy": -1151.51,
+          "sharpe_trade_annualized": 3.1334,
+          "max_drawdown": -4606.03,
+          "max_drawdown_pct": 4.32,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": -6903.59,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.0667,
+          "expectancy": -1725.9,
+          "sharpe_trade_annualized": 5.034,
+          "max_drawdown": -6903.59,
+          "max_drawdown_pct": 23.86,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": -12890.61,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -3222.65,
+          "sharpe_trade_annualized": 1.6549,
+          "max_drawdown": -12890.61,
+          "max_drawdown_pct": -205.87,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": -16016.27,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -4004.07,
+          "sharpe_trade_annualized": -2.063,
+          "max_drawdown": -16016.27,
+          "max_drawdown_pct": -152.01,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": -20622.3,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -5155.57,
+          "sharpe_trade_annualized": 9.8744,
+          "max_drawdown": -20622.3,
+          "max_drawdown_pct": 37.3,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 56,
+      "test_expiries": [
+        "2025-07-29",
+        "2025-08-05",
+        "2025-08-12",
+        "2025-08-19"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": -2171.16,
+          "win_rate_pct": 50.0,
+          "profit_factor": 0.6765,
+          "expectancy": -542.79,
+          "sharpe_trade_annualized": 2.4675,
+          "max_drawdown": -3488.51,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": -3046.55,
+          "win_rate_pct": 50.0,
+          "profit_factor": 0.4273,
+          "expectancy": -761.64,
+          "sharpe_trade_annualized": 3.0867,
+          "max_drawdown": -3046.55,
+          "max_drawdown_pct": 4.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": -3609.21,
+          "win_rate_pct": 50.0,
+          "profit_factor": 0.4773,
+          "expectancy": -902.3,
+          "sharpe_trade_annualized": 2.1928,
+          "max_drawdown": -6904.98,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": -3651.17,
+          "win_rate_pct": 50.0,
+          "profit_factor": 0.5809,
+          "expectancy": -912.79,
+          "sharpe_trade_annualized": 1.8222,
+          "max_drawdown": -8711.68,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": -5822.32,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.1182,
+          "expectancy": -1455.58,
+          "sharpe_trade_annualized": 5.9412,
+          "max_drawdown": -6603.12,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 60,
+      "test_expiries": [
+        "2025-08-26",
+        "2025-09-04",
+        "2025-09-11",
+        "2025-09-18"
+      ],
+      "metrics": [
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": 4473.23,
+          "win_rate_pct": 25.0,
+          "profit_factor": 1.5739,
+          "expectancy": 1118.31,
+          "sharpe_trade_annualized": 1.8896,
+          "max_drawdown": -7794.49,
+          "max_drawdown_pct": -300.72,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": 3592.54,
+          "win_rate_pct": 25.0,
+          "profit_factor": 1.3617,
+          "expectancy": 898.14,
+          "sharpe_trade_annualized": 0.1203,
+          "max_drawdown": -9932.3,
+          "max_drawdown_pct": -169.09,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": -1798.32,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.8378,
+          "expectancy": -449.58,
+          "sharpe_trade_annualized": 0.8745,
+          "max_drawdown": -11088.37,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": -5390.86,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.2276,
+          "expectancy": -1347.72,
+          "sharpe_trade_annualized": 4.2125,
+          "max_drawdown": -6979.42,
+          "max_drawdown_pct": 12.6,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": -7336.18,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.0809,
+          "expectancy": -1834.05,
+          "sharpe_trade_annualized": 7.9115,
+          "max_drawdown": -7981.86,
+          "max_drawdown_pct": 11.28,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 64,
+      "test_expiries": [
+        "2025-09-25",
+        "2025-10-01",
+        "2025-10-09",
+        "2025-10-16"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": 21145.78,
+          "win_rate_pct": 75.0,
+          "profit_factor": 5.7392,
+          "expectancy": 5286.44,
+          "sharpe_trade_annualized": -5.0394,
+          "max_drawdown": -4461.88,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": 19167.44,
+          "win_rate_pct": 75.0,
+          "profit_factor": 6.7055,
+          "expectancy": 4791.86,
+          "sharpe_trade_annualized": -5.153,
+          "max_drawdown": -3359.46,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": 18624.37,
+          "win_rate_pct": 100.0,
+          "profit_factor": NaN,
+          "expectancy": 4656.09,
+          "sharpe_trade_annualized": -7.8077,
+          "max_drawdown": 0.0,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": -1526.54,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.8143,
+          "expectancy": -381.63,
+          "sharpe_trade_annualized": -1.4059,
+          "max_drawdown": -8220.65,
+          "max_drawdown_pct": -551.14,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": -2521.39,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.7611,
+          "expectancy": -630.35,
+          "sharpe_trade_annualized": 3.5711,
+          "max_drawdown": -10553.54,
+          "max_drawdown_pct": -265.58,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 68,
+      "test_expiries": [
+        "2025-10-23",
+        "2025-10-30",
+        "2025-11-06",
+        "2025-11-13"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": -337.81,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.9579,
+          "expectancy": -84.45,
+          "sharpe_trade_annualized": 2.8045,
+          "max_drawdown": -4270.26,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": -1692.67,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.7916,
+          "expectancy": -423.17,
+          "sharpe_trade_annualized": 2.8818,
+          "max_drawdown": -5070.35,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": -17119.19,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -4279.8,
+          "sharpe_trade_annualized": 24.737,
+          "max_drawdown": -17119.19,
+          "max_drawdown_pct": 22.57,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": -19107.41,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -4776.85,
+          "sharpe_trade_annualized": 19.7366,
+          "max_drawdown": -19107.41,
+          "max_drawdown_pct": 14.79,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": -19445.22,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.0714,
+          "expectancy": -4861.31,
+          "sharpe_trade_annualized": 8.3052,
+          "max_drawdown": -19445.22,
+          "max_drawdown_pct": 15.43,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 72,
+      "test_expiries": [
+        "2025-11-20",
+        "2025-11-27",
+        "2025-12-04",
+        "2025-12-11"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": 5487.94,
+          "win_rate_pct": 50.0,
+          "profit_factor": 3.2199,
+          "expectancy": 1371.99,
+          "sharpe_trade_annualized": -3.0017,
+          "max_drawdown": -2472.21,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": 1075.2,
+          "win_rate_pct": 50.0,
+          "profit_factor": 1.2287,
+          "expectancy": 268.8,
+          "sharpe_trade_annualized": -0.3545,
+          "max_drawdown": -4702.11,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": -12471.61,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -3117.9,
+          "sharpe_trade_annualized": 8.0072,
+          "max_drawdown": -12471.61,
+          "max_drawdown_pct": 1.97,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": -14289.14,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -3572.29,
+          "sharpe_trade_annualized": 11.8942,
+          "max_drawdown": -14289.14,
+          "max_drawdown_pct": 54.25,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": -17959.55,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -4489.89,
+          "sharpe_trade_annualized": 10.0882,
+          "max_drawdown": -17959.55,
+          "max_drawdown_pct": 80.83,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 76,
+      "test_expiries": [
+        "2025-12-18",
+        "2025-12-24",
+        "2026-01-01",
+        "2026-01-08"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": 7586.18,
+          "win_rate_pct": 25.0,
+          "profit_factor": 2.4819,
+          "expectancy": 1896.55,
+          "sharpe_trade_annualized": -1.6949,
+          "max_drawdown": -5119.13,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": 4976.68,
+          "win_rate_pct": 25.0,
+          "profit_factor": 1.7394,
+          "expectancy": 1244.17,
+          "sharpe_trade_annualized": -0.9289,
+          "max_drawdown": -6730.7,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": -7206.15,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.5803,
+          "expectancy": -1801.54,
+          "sharpe_trade_annualized": 2.1879,
+          "max_drawdown": -17169.24,
+          "max_drawdown_pct": 8.38,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": -11084.92,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -2771.23,
+          "sharpe_trade_annualized": 27.7562,
+          "max_drawdown": -11084.92,
+          "max_drawdown_pct": 9.14,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": -14792.34,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -3698.08,
+          "sharpe_trade_annualized": 28.1042,
+          "max_drawdown": -14792.34,
+          "max_drawdown_pct": 12.09,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 80,
+      "test_expiries": [
+        "2026-01-14",
+        "2026-01-22",
+        "2026-01-29",
+        "2026-02-05"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": -4759.9,
+          "win_rate_pct": 50.0,
+          "profit_factor": 0.5332,
+          "expectancy": -1189.98,
+          "sharpe_trade_annualized": 2.5451,
+          "max_drawdown": -10196.25,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": -5539.22,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.389,
+          "expectancy": -1384.8,
+          "sharpe_trade_annualized": 3.4295,
+          "max_drawdown": -9066.03,
+          "max_drawdown_pct": 2.85,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": -9876.89,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.0696,
+          "expectancy": -2469.22,
+          "sharpe_trade_annualized": 7.3199,
+          "max_drawdown": -9876.89,
+          "max_drawdown_pct": 7.35,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": -9970.82,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.1462,
+          "expectancy": -2492.7,
+          "sharpe_trade_annualized": 5.2395,
+          "max_drawdown": -9970.82,
+          "max_drawdown_pct": 7.04,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": -14730.71,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -3682.68,
+          "sharpe_trade_annualized": 13.4091,
+          "max_drawdown": -14730.71,
+          "max_drawdown_pct": 6.06,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 84,
+      "test_expiries": [
+        "2026-02-12",
+        "2026-02-19",
+        "2026-02-26",
+        "2026-03-05"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": 11381.01,
+          "win_rate_pct": 50.0,
+          "profit_factor": 1.7302,
+          "expectancy": 2845.25,
+          "sharpe_trade_annualized": -4.3506,
+          "max_drawdown": -15585.1,
+          "max_drawdown_pct": -317.08,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": 9484.23,
+          "win_rate_pct": 50.0,
+          "profit_factor": 1.6352,
+          "expectancy": 2371.06,
+          "sharpe_trade_annualized": -1.1774,
+          "max_drawdown": -14932.06,
+          "max_drawdown_pct": -1306.55,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": 3711.7,
+          "win_rate_pct": 50.0,
+          "profit_factor": 1.2609,
+          "expectancy": 927.92,
+          "sharpe_trade_annualized": -0.1635,
+          "max_drawdown": -14227.62,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": -5948.16,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.4822,
+          "expectancy": -1487.04,
+          "sharpe_trade_annualized": 2.7382,
+          "max_drawdown": -11486.9,
+          "max_drawdown_pct": 6.68,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": -7669.33,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.4693,
+          "expectancy": -1917.33,
+          "sharpe_trade_annualized": 2.9144,
+          "max_drawdown": -14450.05,
+          "max_drawdown_pct": 8.11,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 88,
+      "test_expiries": [
+        "2026-03-12",
+        "2026-03-19",
+        "2026-03-25",
+        "2026-04-02"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": 31692.71,
+          "win_rate_pct": 50.0,
+          "profit_factor": 2.6704,
+          "expectancy": 7923.18,
+          "sharpe_trade_annualized": -4.0153,
+          "max_drawdown": -18972.62,
+          "max_drawdown_pct": -47.44,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": 31154.66,
+          "win_rate_pct": 50.0,
+          "profit_factor": 2.8196,
+          "expectancy": 7788.66,
+          "sharpe_trade_annualized": -4.5273,
+          "max_drawdown": -17121.91,
+          "max_drawdown_pct": -49.65,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": 23020.38,
+          "win_rate_pct": 50.0,
+          "profit_factor": 2.4307,
+          "expectancy": 5755.09,
+          "sharpe_trade_annualized": -0.8099,
+          "max_drawdown": -14932.69,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": -8672.35,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.6008,
+          "expectancy": -2168.09,
+          "sharpe_trade_annualized": 2.0798,
+          "max_drawdown": -15554.31,
+          "max_drawdown_pct": 3.92,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": -9006.64,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.5719,
+          "expectancy": -2251.66,
+          "sharpe_trade_annualized": 2.2465,
+          "max_drawdown": -13874.66,
+          "max_drawdown_pct": 3.12,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 92,
+      "test_expiries": [
+        "2026-04-09",
+        "2026-04-16",
+        "2026-04-23",
+        "2026-04-30"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": 22522.07,
+          "win_rate_pct": 75.0,
+          "profit_factor": 6.0694,
+          "expectancy": 5630.52,
+          "sharpe_trade_annualized": 5.7218,
+          "max_drawdown": -4442.73,
+          "max_drawdown_pct": -13.96,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": 17962.4,
+          "win_rate_pct": 75.0,
+          "profit_factor": 4.2291,
+          "expectancy": 4490.6,
+          "sharpe_trade_annualized": 4.9642,
+          "max_drawdown": -5562.69,
+          "max_drawdown_pct": -20.56,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": -5642.39,
+          "win_rate_pct": 50.0,
+          "profit_factor": 0.5238,
+          "expectancy": -1410.6,
+          "sharpe_trade_annualized": 1.7069,
+          "max_drawdown": -11177.48,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": -24413.02,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -6103.25,
+          "sharpe_trade_annualized": 37.3247,
+          "max_drawdown": -24413.02,
+          "max_drawdown_pct": 10.12,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": -28164.47,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -7041.12,
+          "sharpe_trade_annualized": 37.4535,
+          "max_drawdown": -28164.47,
+          "max_drawdown_pct": 10.83,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 96,
+      "test_expiries": [
+        "2026-05-07",
+        "2026-05-14",
+        "2026-05-21",
+        "2026-05-27"
+      ],
+      "metrics": [
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": -10961.11,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.3868,
+          "expectancy": -2740.28,
+          "sharpe_trade_annualized": 3.2262,
+          "max_drawdown": -10961.11,
+          "max_drawdown_pct": 0.43,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": -13093.39,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.3739,
+          "expectancy": -3273.35,
+          "sharpe_trade_annualized": 3.3587,
+          "max_drawdown": -13093.39,
+          "max_drawdown_pct": 0.57,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": -14738.31,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -3684.58,
+          "sharpe_trade_annualized": -16.5863,
+          "max_drawdown": -14738.31,
+          "max_drawdown_pct": -33.85,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": -17510.96,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -4377.74,
+          "sharpe_trade_annualized": -29.192,
+          "max_drawdown": -17510.96,
+          "max_drawdown_pct": -49.57,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": -27831.71,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.0539,
+          "expectancy": -6957.93,
+          "sharpe_trade_annualized": 8.4006,
+          "max_drawdown": -27831.71,
+          "max_drawdown_pct": 14.08,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 100,
+      "test_expiries": [
+        "2026-06-04",
+        "2026-06-11",
+        "2026-06-18",
+        "2026-06-25"
+      ],
+      "metrics": [
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": -15628.99,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -3907.25,
+          "sharpe_trade_annualized": -15.6256,
+          "max_drawdown": -15628.99,
+          "max_drawdown_pct": -87.72,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": -16660.86,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -4165.22,
+          "sharpe_trade_annualized": 9.9666,
+          "max_drawdown": -16660.86,
+          "max_drawdown_pct": 6.31,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": -17017.0,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -4254.25,
+          "sharpe_trade_annualized": -19.0103,
+          "max_drawdown": -17017.0,
+          "max_drawdown_pct": -59.07,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": -18141.46,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -4535.36,
+          "sharpe_trade_annualized": 12.2625,
+          "max_drawdown": -18141.46,
+          "max_drawdown_pct": 7.26,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": -33677.84,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -8419.46,
+          "sharpe_trade_annualized": 16.1136,
+          "max_drawdown": -33677.84,
+          "max_drawdown_pct": 13.31,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 104,
+      "test_expiries": [
+        "2026-07-02",
+        "2026-07-09",
+        "2026-07-16",
+        "2026-07-23"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": -3158.12,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.6677,
+          "expectancy": -789.53,
+          "sharpe_trade_annualized": 1.2367,
+          "max_drawdown": -9503.52,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": -3677.37,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.5958,
+          "expectancy": -919.34,
+          "sharpe_trade_annualized": 1.6283,
+          "max_drawdown": -9098.9,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": -13662.63,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.0862,
+          "expectancy": -3415.66,
+          "sharpe_trade_annualized": 2.736,
+          "max_drawdown": -14952.24,
+          "max_drawdown_pct": -683.41,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": -15320.07,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.1251,
+          "expectancy": -3830.02,
+          "sharpe_trade_annualized": -3.8002,
+          "max_drawdown": -17511.62,
+          "max_drawdown_pct": -148.53,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": -18478.19,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.1081,
+          "expectancy": -4619.55,
+          "sharpe_trade_annualized": 5.7149,
+          "max_drawdown": -20718.85,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 108,
+      "test_expiries": [
+        "2026-07-30",
+        "2026-08-06",
+        "2026-08-13",
+        "2026-08-20"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": 6636.95,
+          "win_rate_pct": 75.0,
+          "profit_factor": 3.3763,
+          "expectancy": 1659.24,
+          "sharpe_trade_annualized": -2.6899,
+          "max_drawdown": -2793.01,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": 2853.64,
+          "win_rate_pct": 50.0,
+          "profit_factor": 1.6946,
+          "expectancy": 713.41,
+          "sharpe_trade_annualized": -1.1316,
+          "max_drawdown": -3928.14,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": -12070.89,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.281,
+          "expectancy": -3017.72,
+          "sharpe_trade_annualized": 4.4137,
+          "max_drawdown": -16789.25,
+          "max_drawdown_pct": 3.2,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": -15246.51,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -3811.63,
+          "sharpe_trade_annualized": 12.9492,
+          "max_drawdown": -15246.51,
+          "max_drawdown_pct": 36.33,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": -18707.83,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -4676.96,
+          "sharpe_trade_annualized": 8.1783,
+          "max_drawdown": -18707.83,
+          "max_drawdown_pct": 142.96,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 112,
+      "test_expiries": [
+        "2026-08-27",
+        "2026-09-03",
+        "2026-09-10",
+        "2026-09-17"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": 2670.06,
+          "win_rate_pct": 50.0,
+          "profit_factor": 1.2672,
+          "expectancy": 667.51,
+          "sharpe_trade_annualized": 0.7263,
+          "max_drawdown": -9994.16,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": 1754.71,
+          "win_rate_pct": 50.0,
+          "profit_factor": 1.2088,
+          "expectancy": 438.68,
+          "sharpe_trade_annualized": 0.2705,
+          "max_drawdown": -8405.56,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": -15423.6,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.1839,
+          "expectancy": -3855.9,
+          "sharpe_trade_annualized": 4.0749,
+          "max_drawdown": -18898.85,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": -16857.2,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -4214.3,
+          "sharpe_trade_annualized": 28.0022,
+          "max_drawdown": -16857.2,
+          "max_drawdown_pct": 4.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": -18093.66,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -4523.41,
+          "sharpe_trade_annualized": 23.2315,
+          "max_drawdown": -18093.66,
+          "max_drawdown_pct": 4.55,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 116,
+      "test_expiries": [
+        "2026-09-24",
+        "2026-10-01",
+        "2026-10-08",
+        "2026-10-15"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": 47822.35,
+          "win_rate_pct": 100.0,
+          "profit_factor": NaN,
+          "expectancy": 11955.59,
+          "sharpe_trade_annualized": -10.3549,
+          "max_drawdown": 0.0,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": 35362.01,
+          "win_rate_pct": 75.0,
+          "profit_factor": 6.6783,
+          "expectancy": 8840.5,
+          "sharpe_trade_annualized": 3.7838,
+          "max_drawdown": -6227.55,
+          "max_drawdown_pct": -28.28,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": 33078.5,
+          "win_rate_pct": 75.0,
+          "profit_factor": 7.3065,
+          "expectancy": 8269.62,
+          "sharpe_trade_annualized": -3.85,
+          "max_drawdown": -5245.18,
+          "max_drawdown_pct": -39.27,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": 13892.6,
+          "win_rate_pct": 25.0,
+          "profit_factor": 2.306,
+          "expectancy": 3473.15,
+          "sharpe_trade_annualized": -1.7046,
+          "max_drawdown": -10637.58,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": 12460.35,
+          "win_rate_pct": 25.0,
+          "profit_factor": 1.9305,
+          "expectancy": 3115.09,
+          "sharpe_trade_annualized": -1.3734,
+          "max_drawdown": -13391.64,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 120,
+      "test_expiries": [
+        "2026-10-22",
+        "2026-10-29",
+        "2026-11-05",
+        "2026-11-12"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": 41094.24,
+          "win_rate_pct": 50.0,
+          "profit_factor": 10.9067,
+          "expectancy": 10273.56,
+          "sharpe_trade_annualized": -4.3038,
+          "max_drawdown": -4023.71,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 4,
+          "net_pnl": 39795.34,
+          "win_rate_pct": 50.0,
+          "profit_factor": 12.491,
+          "expectancy": 9948.83,
+          "sharpe_trade_annualized": -4.3476,
+          "max_drawdown": -3340.45,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 4,
+          "net_pnl": 30321.03,
+          "win_rate_pct": 50.0,
+          "profit_factor": 9.7618,
+          "expectancy": 7580.26,
+          "sharpe_trade_annualized": -3.9015,
+          "max_drawdown": -3212.19,
+          "max_drawdown_pct": -0.0,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 4,
+          "net_pnl": -9744.1,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.0019,
+          "expectancy": -2436.03,
+          "sharpe_trade_annualized": -4.9291,
+          "max_drawdown": -9762.77,
+          "max_drawdown_pct": -120.07,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_PUT",
+          "trades": 4,
+          "net_pnl": -10773.21,
+          "win_rate_pct": 25.0,
+          "profit_factor": 0.0701,
+          "expectancy": -2693.3,
+          "sharpe_trade_annualized": -5.4829,
+          "max_drawdown": -11584.73,
+          "max_drawdown_pct": -69.77,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 124,
+      "test_expiries": [
+        "2026-11-19",
+        "2026-11-26",
+        "2026-12-03",
+        "2026-12-10"
+      ],
+      "metrics": [
+        {
+          "strategy": "OTM_CALL_1",
+          "trades": 3,
+          "net_pnl": -375.19,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -125.06,
+          "sharpe_trade_annualized": 82.9127,
+          "max_drawdown": -375.19,
+          "max_drawdown_pct": 0.13,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 3,
+          "net_pnl": -379.55,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -126.52,
+          "sharpe_trade_annualized": 48.3517,
+          "max_drawdown": -379.55,
+          "max_drawdown_pct": 8.03,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_PUT",
+          "trades": 3,
+          "net_pnl": -417.67,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -139.22,
+          "sharpe_trade_annualized": -94.6759,
+          "max_drawdown": -417.67,
+          "max_drawdown_pct": -8.32,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_CALL",
+          "trades": 4,
+          "net_pnl": -544.32,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -136.08,
+          "sharpe_trade_annualized": 97.7695,
+          "max_drawdown": -544.32,
+          "max_drawdown_pct": 0.15,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_STRADDLE",
+          "trades": 3,
+          "net_pnl": -838.89,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -279.63,
+          "sharpe_trade_annualized": 169.3181,
+          "max_drawdown": -838.89,
+          "max_drawdown_pct": 0.29,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 128,
+      "test_expiries": [
+        "2026-12-17",
+        "2026-12-24",
+        "2026-12-31",
+        "2027-01-28"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_CALL",
+          "trades": 1,
+          "net_pnl": -109.98,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -109.98,
+          "sharpe_trade_annualized": NaN,
+          "max_drawdown": -109.98,
+          "max_drawdown_pct": 0.12,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "OTM_PUT_1",
+          "trades": 1,
+          "net_pnl": -138.91,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -138.91,
+          "sharpe_trade_annualized": NaN,
+          "max_drawdown": -138.91,
+          "max_drawdown_pct": 6.91,
+          "sample_warning": "Small samples are not statistically reliable"
+        },
+        {
+          "strategy": "ATM_PUT",
+          "trades": 3,
+          "net_pnl": -437.34,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -145.78,
+          "sharpe_trade_annualized": -19.9988,
+          "max_drawdown": -437.34,
+          "max_drawdown_pct": -9.5,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    },
+    {
+      "train_expiries_before_test": 132,
+      "test_expiries": [
+        "2027-03-25",
+        "2027-12-30"
+      ],
+      "metrics": [
+        {
+          "strategy": "ATM_CALL",
+          "trades": 2,
+          "net_pnl": -1023.87,
+          "win_rate_pct": 0.0,
+          "profit_factor": 0.0,
+          "expectancy": -511.93,
+          "sharpe_trade_annualized": 52.7558,
+          "max_drawdown": -1023.87,
+          "max_drawdown_pct": 0.5,
+          "sample_warning": "Small samples are not statistically reliable"
+        }
+      ]
+    }
+  ],
+  "methodology": "Chronological 70/30 expiry holdout plus rolling context/test windows. These are fixed rules, not fitted ML models. Position sizing follows the chronological replay. Trade Sharpe uses sqrt(52) annualisation and is not daily mark-to-market."
 }

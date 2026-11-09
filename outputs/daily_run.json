@@ -1,5 +1,5 @@
 {
-  "run_time_utc": "2026-11-09T09:31:12.049850+00:00",
+  "run_time_utc": "2026-11-09T10:41:10.176641+00:00",
   "target_data_date": "2026-11-08",
   "downloaded_option_dates": [
     "2026-11-05",
@@ -4153,8 +4153,9 @@
     "status": "warning"
   },
   "strategy_run": {
-    "initial_capital_per_strategy": 10000.0,
-    "sizing": "sequential compounding per strategy; strategies have isolated capital and are not combined into one portfolio",
+    "initial_capital_per_strategy": null,
+    "illustrative_equity_baseline": 10000.0,
+    "sizing": "one historical lot per expiry trade; no account affordability filter or compounding sizing",
     "cost_assumptions": {
       "brokerage_per_lot": 20.0,
       "brokerage_pct": 0.0,
@@ -4168,84 +4169,84 @@
       "spread_points": 1.0,
       "market_impact_points": 0.25
     },
-    "note": "EOD close-to-close simulations. Configured costs are estimates; verify current broker/exchange schedules. No guaranteed execution, order-book spread or market impact."
+    "note": "EOD close-to-close simulations. In default research mode, each expiry trade is one historical lot and does not obey an account balance. Pass capital explicitly for an optional sequential cash-sizing simulation. Configured costs are estimates; BSE EOD bars do not contain executable bid/ask quotes."
   },
   "strategy_count": 5,
   "performance_metrics": [
     {
-      "strategy": "ATM_STRADDLE",
-      "trades": 7,
-      "net_pnl": -7514.94,
-      "win_rate_pct": 85.71,
-      "profit_factor": 0.9377,
-      "expectancy": -1073.56,
-      "sharpe_trade_annualized": 3.5271,
-      "max_drawdown": -120649.44,
-      "max_drawdown_pct": -97.98,
-      "sample_warning": "Small samples are not statistically reliable"
-    },
-    {
       "strategy": "ATM_PUT",
-      "trades": 1,
-      "net_pnl": -8241.86,
-      "win_rate_pct": 0.0,
-      "profit_factor": 0.0,
-      "expectancy": -8241.86,
-      "sharpe_trade_annualized": NaN,
-      "max_drawdown": -8241.86,
-      "max_drawdown_pct": -82.42,
-      "sample_warning": "Small samples are not statistically reliable"
-    },
-    {
-      "strategy": "ATM_CALL",
-      "trades": 2,
-      "net_pnl": -8696.7,
-      "win_rate_pct": 50.0,
-      "profit_factor": 0.5323,
-      "expectancy": -4348.35,
-      "sharpe_trade_annualized": 0.1462,
-      "max_drawdown": -18593.18,
-      "max_drawdown_pct": -93.45,
-      "sample_warning": "Small samples are not statistically reliable"
-    },
-    {
-      "strategy": "OTM_CALL_1",
-      "trades": 2,
-      "net_pnl": -9429.8,
-      "win_rate_pct": 50.0,
-      "profit_factor": 0.5455,
-      "expectancy": -4714.9,
-      "sharpe_trade_annualized": 0.3844,
-      "max_drawdown": -20749.35,
-      "max_drawdown_pct": -97.33,
-      "sample_warning": "Small samples are not statistically reliable"
+      "trades": 129,
+      "net_pnl": -5834.39,
+      "win_rate_pct": 28.68,
+      "profit_factor": 0.9836,
+      "expectancy": -45.23,
+      "sharpe_trade_annualized": 0.4229,
+      "max_drawdown": -65783.21,
+      "max_drawdown_pct": -209.64,
+      "sample_warning": ""
     },
     {
       "strategy": "OTM_PUT_1",
-      "trades": 1,
-      "net_pnl": -10000.0,
-      "win_rate_pct": 0.0,
-      "profit_factor": 0.0,
-      "expectancy": -10000.0,
-      "sharpe_trade_annualized": NaN,
-      "max_drawdown": -10000.0,
-      "max_drawdown_pct": -100.0,
-      "sample_warning": "Small samples are not statistically reliable"
+      "trades": 127,
+      "net_pnl": -12150.64,
+      "win_rate_pct": 28.35,
+      "profit_factor": 0.9626,
+      "expectancy": -95.67,
+      "sharpe_trade_annualized": -0.4636,
+      "max_drawdown": -62049.09,
+      "max_drawdown_pct": -218.69,
+      "sample_warning": ""
+    },
+    {
+      "strategy": "OTM_CALL_1",
+      "trades": 126,
+      "net_pnl": -95994.78,
+      "win_rate_pct": 25.4,
+      "profit_factor": 0.7299,
+      "expectancy": -761.86,
+      "sharpe_trade_annualized": 0.7603,
+      "max_drawdown": -187098.07,
+      "max_drawdown_pct": -503.59,
+      "sample_warning": ""
+    },
+    {
+      "strategy": "ATM_CALL",
+      "trades": 131,
+      "net_pnl": -103230.01,
+      "win_rate_pct": 25.95,
+      "profit_factor": 0.7368,
+      "expectancy": -788.02,
+      "sharpe_trade_annualized": 0.9215,
+      "max_drawdown": -193641.95,
+      "max_drawdown_pct": -551.0,
+      "sample_warning": ""
+    },
+    {
+      "strategy": "ATM_STRADDLE",
+      "trades": 126,
+      "net_pnl": -104626.87,
+      "win_rate_pct": 37.3,
+      "profit_factor": 0.7679,
+      "expectancy": -830.37,
+      "sharpe_trade_annualized": 0.4974,
+      "max_drawdown": -218527.52,
+      "max_drawdown_pct": -468.98,
+      "sample_warning": ""
     }
   ],
-  "walk_forward_status": "insufficient_data",
+  "walk_forward_status": "ok",
   "daily_strategy_count": 7,
-  "daily_strategy_trades": 3348,
+  "daily_strategy_trades": 4515,
   "daily_holdout_status": "ok",
   "capital_controlled_research": {
     "status": "complete",
-    "candidate_trades": 3348,
+    "candidate_trades": 4515,
     "feasible_trades": 0,
-    "rejected_trades": 3348,
+    "rejected_trades": 4515,
     "best_strategy": "DAILY_5D_MOMENTUM",
     "best_strategy_net_pnl": 0.0,
     "holdout_status": "complete",
-    "holdout_start": "2025-12-01",
+    "holdout_start": "2025-12-15",
     "holdout_board_rows": 7
   },
   "risk_managed_research": {
@@ -4255,12 +4256,12 @@
     "approved_candidate_count": 0,
     "top_training_ranked_strategy": {
       "strategy": "DAILY_RSI_REVERSAL__SL40",
-      "train_net_pnl": 32955.09,
-      "train_aggregate_pf": 1.34070685766179,
-      "train_target_hit_pct": 60.0,
-      "holdout_net_pnl": -31638.01,
-      "holdout_aggregate_pf": 0.31846058412377864,
-      "holdout_target_hit_pct": 0.0
+      "train_net_pnl": 15544.76,
+      "train_aggregate_pf": 1.0915676036039585,
+      "train_target_hit_pct": 58.82,
+      "holdout_net_pnl": -71310.36,
+      "holdout_aggregate_pf": 0.5459452841559168,
+      "holdout_target_hit_pct": 28.57
     }
   },
   "regime_research": {
@@ -4270,72 +4271,86 @@
   },
   "entry_signal_research": {
     "status": "no_candidate_met_research_screen",
-    "option_outcome_sessions": 5,
-    "candidate_rules_tested": 38,
+    "option_outcome_sessions": 28720,
+    "candidate_rules_tested": 7392,
     "holding_periods_tested": [
       1,
       2,
+      3,
       5
     ],
     "instrument_families_tested": [
       "CREDIT_SPREADS_W1",
+      "CREDIT_SPREADS_W2",
+      "CREDIT_SPREADS_W3",
+      "DEBIT_SPREADS_W1",
+      "DEBIT_SPREADS_W2",
+      "DEBIT_SPREADS_W3",
+      "LONG_OPTIONS_ATM",
+      "LONG_OPTIONS_ITM1",
+      "LONG_OPTIONS_OTM1",
+      "LONG_OPTIONS_OTM2",
       "LONG_OPTIONS_OTM3",
       "LONG_OPTIONS_OTM5"
     ],
     "moneyness_variants_tested": [
+      "ATM",
+      "ITM1",
+      "OTM1",
+      "OTM2",
       "OTM3",
       "OTM5"
     ],
-    "position_sizing": "One lot per candidate, one open position at a time; maximum theoretical loss including entry fees is capped at 2.00% of \u20b910000 for long options and defined-risk spreads.",
-    "overlapping_candidate_entries_skipped": 0,
+    "position_sizing": "One historical lot per candidate outcome; no account affordability filter or capital-based position sizing.",
+    "overlapping_candidate_entries_skipped": 875366,
     "candidate_pass_count": 0,
-    "training_end": "2023-11-16",
-    "holdout_start": "2024-08-07",
+    "training_end": "2025-10-31",
+    "holdout_start": "2025-11-03",
     "top_training_rule": {
-      "strategy": "LONG_OTM5_H1D_GAP3_FADE",
-      "train_net_pnl": -118.75,
-      "train_aggregate_pf": 0.0,
-      "holdout_net_pnl": 0.0,
-      "holdout_aggregate_pf": NaN
+      "strategy": "LONG_OTM5_H1D_DONCHIAN10_BREAKOUT_CHEAP_STRADDLE90",
+      "train_net_pnl": 22088.94,
+      "train_aggregate_pf": 3.9819374208580935,
+      "holdout_net_pnl": 46168.98,
+      "holdout_aggregate_pf": 6.8614325215761856
     },
     "rolling_selector_summary": [
       {
         "strategy": "ROLLING_3M_SELECTOR",
-        "train_trades": 0,
-        "train_net_pnl": 0.0,
-        "train_aggregate_pf": null,
-        "train_active_months": 0,
-        "train_monthly_target_hit_pct": null,
-        "train_positive_months": 0,
-        "holdout_trades": 0,
-        "holdout_net_pnl": 0.0,
-        "holdout_aggregate_pf": null,
-        "holdout_active_months": 0,
-        "holdout_monthly_target_hit_pct": null,
-        "holdout_positive_months": 0
+        "train_trades": 202,
+        "train_net_pnl": 95786.28,
+        "train_aggregate_pf": 1.3825629662829477,
+        "train_active_months": 26,
+        "train_monthly_target_hit_pct": 38.46,
+        "train_positive_months": 12,
+        "holdout_trades": 82,
+        "holdout_net_pnl": -9374.49,
+        "holdout_aggregate_pf": 0.9104382002859828,
+        "holdout_active_months": 12,
+        "holdout_monthly_target_hit_pct": 33.33,
+        "holdout_positive_months": 4
       },
       {
         "strategy": "ROLLING_6M_SELECTOR",
-        "train_trades": 0,
-        "train_net_pnl": 0.0,
-        "train_aggregate_pf": null,
-        "train_active_months": 0,
-        "train_monthly_target_hit_pct": null,
-        "train_positive_months": 0,
-        "holdout_trades": 0,
-        "holdout_net_pnl": 0.0,
-        "holdout_aggregate_pf": null,
-        "holdout_active_months": 0,
-        "holdout_monthly_target_hit_pct": null,
-        "holdout_positive_months": 0
+        "train_trades": 84,
+        "train_net_pnl": -39962.88,
+        "train_aggregate_pf": 0.5828545100135886,
+        "train_active_months": 18,
+        "train_monthly_target_hit_pct": 22.22,
+        "train_positive_months": 5,
+        "holdout_trades": 53,
+        "holdout_net_pnl": -79341.01,
+        "holdout_aggregate_pf": 0.42674950442713677,
+        "holdout_active_months": 12,
+        "holdout_monthly_target_hit_pct": 41.67,
+        "holdout_positive_months": 6
       }
     ]
   },
   "intraday_research": {
     "status": "ok",
-    "bars": 2913,
-    "matched_sessions": 26,
-    "validation_start": "2026-10-27",
+    "bars": 2921,
+    "matched_sessions": 37,
+    "validation_start": "2026-10-21",
     "validation_end": "2026-11-05",
     "note": null
   },
