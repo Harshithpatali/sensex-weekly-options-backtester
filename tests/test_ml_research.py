@@ -1,7 +1,10 @@
 import numpy as np
 import pandas as pd
 
-from sensex_options.ml_research import (\n    build_ml_option_dataset, _selected_trade_metrics, _black_scholes_price,\n    _implied_volatility, _black_scholes_greeks, RISK_FREE_RATE,\n)
+from sensex_options.ml_research import (
+    build_ml_option_dataset, _selected_trade_metrics, _black_scholes_price,
+    _implied_volatility, _black_scholes_greeks, RISK_FREE_RATE,
+)
 
 
 def ml_fixture(periods=100):
