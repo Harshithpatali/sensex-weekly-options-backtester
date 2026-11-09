@@ -18,3 +18,5 @@ Apply liquidity-aware option selection and strict ₹10,000 cash/risk feasibilit
 Re-run against the latest main commit: persist the independent chronological ₹10,000 capital-controlled holdout and the liquidity-filtered daily strategy ledger; update dashboard artifacts.
 
 research mode: capital-independent one-lot strategy outcomes; optional capital sizing remains a separate report
+
+ML research enabled; matured-expiry filter and zero-premium expiry outcomes validated
