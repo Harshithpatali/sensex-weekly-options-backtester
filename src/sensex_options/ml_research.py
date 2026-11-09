@@ -363,7 +363,7 @@ def _selected_trade_metrics(frame: pd.DataFrame, probability: np.ndarray, thresh
         selected.assign(entry_date=pd.to_datetime(selected["entry_date"]))
         .set_index("entry_date")["target_return_pct"].astype(float) / 100.0
     ).reindex(all_sessions, fill_value=0.0)
-    return_index = 100.0 + daily_returns.cumsum() * 100.0
+    return_index = 100.0 * (1.0 + daily_returns.clip(lower=-1.0)).cumprod()
     return_peak = return_index.cummax().clip(lower=100.0)
     return_drawdown_pct = (return_index / return_peak.replace(0, np.nan) - 1.0) * 100.0
     return_std = float(daily_returns.std(ddof=1)) if len(daily_returns) > 1 else np.nan
