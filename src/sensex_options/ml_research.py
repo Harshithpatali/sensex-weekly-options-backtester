@@ -68,7 +68,9 @@ def build_ml_option_dataset(
         if c not in {"date", "open", "high", "low", "close", "volume"}
         and pd.api.types.is_numeric_dtype(lagged[c])
     ]
-    lagged_lookup = lagged[["date"] + index_feature_cols].rename(columns={"date": "signal_date"})
+    lagged_lookup = lagged[["date", "close"] + index_feature_cols].rename(
+        columns={"date": "signal_date", "close": "signal_spot"}
+    )
     paired = outcomes.merge(
         lagged_lookup, on="signal_date", how="inner", validate="many_to_one"
     )
@@ -110,7 +112,7 @@ def build_ml_option_dataset(
         frame["dte_calendar_days"] = (
             frame["expiry_date"] - frame["entry_date"]
         ).dt.days.astype(float)
-        reference_spot = pd.to_numeric(frame.get("close"), errors="coerce")
+        reference_spot = pd.to_numeric(frame["signal_spot"], errors="coerce")
         frame["moneyness_distance_pct"] = (
             pd.to_numeric(frame[strike_col], errors="coerce") / reference_spot - 1.0
         )
