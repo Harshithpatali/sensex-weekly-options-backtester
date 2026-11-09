@@ -106,3 +106,17 @@ def test_ml_research_fits_models_and_evaluates_separate_holdout(tmp_path):
     assert not importance.empty
     assert (tmp_path / "ml_option_classifier.joblib").exists()
     assert (tmp_path / "ml_option_holdout_predictions.csv.gz").exists()
+
+
+def test_equal_model_probabilities_use_deterministic_not_realized_return_tiebreak():
+    frame = pd.DataFrame({
+        "entry_date": pd.to_datetime(["2024-01-02", "2024-01-02"]),
+        "option_side": ["PE", "CE"],
+        "moneyness": ["ATM", "ATM"],
+        "target_net_pnl": [500.0, -100.0],
+        "target_return_pct": [50.0, -10.0],
+    })
+    result = _selected_trade_metrics(frame, np.array([0.8, 0.8]), 0.7)
+    selected = result["selected_predictions"]
+    assert selected.iloc[0]["option_side"] == "CE"
+    assert selected.iloc[0]["target_net_pnl"] == -100.0
