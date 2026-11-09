@@ -346,6 +346,14 @@ def _selected_trade_metrics(frame: pd.DataFrame, probability: np.ndarray, thresh
     cumulative = pnl.cumsum()
     peak = cumulative.cummax().clip(lower=0)
     drawdown = cumulative - peak
+    return_index = 100.0 + returns.cumsum()
+    return_peak = return_index.cummax()
+    return_drawdown_pct = (return_index / return_peak.replace(0, np.nan) - 1.0) * 100.0
+    return_std = float(returns.std(ddof=1)) if len(returns) > 1 else np.nan
+    sharpe = (
+        float(returns.mean() / return_std * np.sqrt(252))
+        if np.isfinite(return_std) and return_std > 0 else None
+    )
     return {
         "threshold": float(threshold),
         "trades": int(len(selected)),
@@ -357,6 +365,8 @@ def _selected_trade_metrics(frame: pd.DataFrame, probability: np.ndarray, thresh
         "win_rate_pct": round(float((pnl > 0).mean() * 100), 2) if len(pnl) else None,
         "median_return_pct": round(float(returns.median()), 4) if len(returns) else None,
         "max_drawdown_pnl": round(float(drawdown.min()), 2) if len(drawdown) else 0.0,
+        "max_drawdown_return_pct": round(float(return_drawdown_pct.min()), 3) if len(return_drawdown_pct.dropna()) else None,
+        "sharpe_trade_annualized": round(sharpe, 4) if sharpe is not None else None,
         "selected_predictions": selected,
     }
 
