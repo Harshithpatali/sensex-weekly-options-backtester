@@ -256,6 +256,10 @@ def _option_horizon_outcomes(
             if not eligible_expiries:
                 continue
             expiry = pd.Timestamp(eligible_expiries[0])
+            expiry_sessions = sessions.loc[sessions["date"] <= expiry, "date"]
+            if expiry_sessions.empty:
+                continue
+            last_expiry_session = pd.Timestamp(expiry_sessions.max())
             chain = entry_options[entry_options["expiry_date"] == expiry]
             strikes = sorted(pd.to_numeric(chain["strike"], errors="coerce").dropna().unique())
             if not strikes:
@@ -346,7 +350,7 @@ def _option_horizon_outcomes(
                             or not _finite(exit_oi) or float(exit_oi) < 50
                         ):
                             continue
-                    elif exit_day != expiry:
+                    elif exit_day != last_expiry_session:
                         continue
                     quantity = lot_size
                     gross = (exit_premium - entry_premium) * quantity
@@ -605,7 +609,7 @@ def _option_debit_vertical_outcomes(
                     if (
                         (exit_long_premium > 0 and not _is_liquid_option_row(long_exit))
                         or (exit_short_premium > 0 and not _is_liquid_option_row(short_exit))
-                        or ((exit_long_premium == 0 or exit_short_premium == 0) and exit_day != expiry)
+                        or ((exit_long_premium == 0 or exit_short_premium == 0) and exit_day != last_expiry_session)
                     ):
                         continue
                     exit_credit = exit_long_premium - exit_short_premium
