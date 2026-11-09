@@ -61,10 +61,19 @@ def merge_csv(new: pd.DataFrame, path: Path, keys: list[str]) -> pd.DataFrame:
     combined = pd.concat(frames, ignore_index=True)
     for key in ("date", "trade_date", "expiry_date"):
         if key in combined.columns and key in keys:
-            combined[key] = pd.to_datetime(combined[key], errors="coerce").dt.normalize()
+            combined[key] = pd.to_datetime(
+                combined[key], format="mixed", errors="coerce"
+            ).dt.normalize()
     combined = combined.dropna(subset=[key for key in keys if key in combined.columns])
     combined = combined.drop_duplicates(subset=keys, keep="last").sort_values(keys).reset_index(drop=True)
-    combined.to_csv(path, index=False)
+    if path.name == "sensex_options.csv":
+        # Keep the large option history compressed and let load_options()
+        # transparently read the .csv.gz fallback.
+        combined.to_csv(compressed, index=False, compression="gzip")
+        if path.exists():
+            path.unlink()
+    else:
+        combined.to_csv(path, index=False)
     return combined
 
 
