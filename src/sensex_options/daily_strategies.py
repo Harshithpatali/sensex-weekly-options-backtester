@@ -160,16 +160,19 @@ def run_daily_strategy_suite(
                 & (exit_options["option_type"] == option_type)
                 & (exit_options["symbol"] == symbol)
             ]
-            # The exit candle must also show activity and open interest; an
-            # inactive EOD close is not accepted as an executable mark.
-            exit_candidates = exit_candidates[
-                (exit_candidates["close"] > 0)
-                & (exit_candidates["volume"] >= min_volume)
-                & (exit_candidates["open_interest"] >= min_open_interest)
-            ]
             if exit_candidates.empty:
                 continue
-            exit_premium = float(exit_candidates.iloc[-1]["close"])
+            exit_mark = exit_candidates.iloc[-1]
+            exit_premium = float(exit_mark["close"])
+            if exit_premium > 0:
+                if (
+                    pd.isna(exit_mark["volume"]) or float(exit_mark["volume"]) < min_volume
+                    or pd.isna(exit_mark["open_interest"]) or float(exit_mark["open_interest"]) < min_open_interest
+                ):
+                    continue
+            elif exit_day != expiry:
+                # Zero is a valid expiry payoff, not a tradable pre-expiry mark.
+                continue
             entry_adjustment = cost.entry_slippage + cost.spread_points / 2 + cost.market_impact_points
             adjusted_entry = entry_premium + entry_adjustment
             entry_turnover = adjusted_entry * lot_size
