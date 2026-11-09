@@ -168,9 +168,22 @@ def _filter_liquid_option_rows(
         out[column] = pd.to_numeric(out[column], errors="coerce")
     return out[
         (out["close"] >= 0)
-        & (out["volume"] >= float(min_volume))
-        & (out["open_interest"] >= float(min_open_interest))
+        & (
+            ((out["volume"] >= float(min_volume)) & (out["open_interest"] >= float(min_open_interest)))
+            | (out["close"] == 0)
+        )
     ].copy()
+
+
+def _is_liquid_option_row(row, min_volume: float = 25.0, min_open_interest: float = 50.0) -> bool:
+    close = row.get("close")
+    volume = row.get("volume")
+    open_interest = row.get("open_interest")
+    return (
+        _finite(close) and float(close) > 0
+        and _finite(volume) and float(volume) >= min_volume
+        and _finite(open_interest) and float(open_interest) >= min_open_interest
+    )
 
 
 def _option_horizon_outcomes(
@@ -542,6 +555,8 @@ def _option_debit_vertical_outcomes(
                         continue
                     long_entry = long_entry_rows.iloc[0]
                     short_entry = short_entry_rows.iloc[0]
+                    if not _is_liquid_option_row(long_entry) or not _is_liquid_option_row(short_entry):
+                        continue
                     long_symbol = str(long_entry.get("symbol", "SENSEX")).strip().upper()
                     short_symbol = str(short_entry.get("symbol", "SENSEX")).strip().upper()
                     long_lot = long_entry.get("lot_size")
@@ -578,11 +593,19 @@ def _option_debit_vertical_outcomes(
                     ]
                     if long_exit_rows.empty or short_exit_rows.empty:
                         continue
-                    exit_long_premium = float(long_exit_rows.iloc[-1]["close"])
-                    exit_short_premium = float(short_exit_rows.iloc[-1]["close"])
+                    long_exit = long_exit_rows.iloc[-1]
+                    short_exit = short_exit_rows.iloc[-1]
+                    exit_long_premium = float(long_exit["close"])
+                    exit_short_premium = float(short_exit["close"])
                     if (
                         not _finite(exit_long_premium) or not _finite(exit_short_premium)
                         or exit_long_premium < 0 or exit_short_premium < 0
+                    ):
+                        continue
+                    if (
+                        (exit_long_premium > 0 and not _is_liquid_option_row(long_exit))
+                        or (exit_short_premium > 0 and not _is_liquid_option_row(short_exit))
+                        or ((exit_long_premium == 0 or exit_short_premium == 0) and exit_day != expiry)
                     ):
                         continue
                     exit_credit = exit_long_premium - exit_short_premium
@@ -895,6 +918,8 @@ def _option_credit_vertical_outcomes(
                     if short_entries.empty or long_entries.empty:
                         continue
                     short_entry, long_entry = short_entries.iloc[0], long_entries.iloc[0]
+                    if not _is_liquid_option_row(short_entry) or not _is_liquid_option_row(long_entry):
+                        continue
                     short_symbol = str(short_entry.get("symbol", "SENSEX")).strip().upper()
                     long_symbol = str(long_entry.get("symbol", "SENSEX")).strip().upper()
                     short_lot, long_lot = short_entry.get("lot_size"), long_entry.get("lot_size")
@@ -927,11 +952,18 @@ def _option_credit_vertical_outcomes(
                     ]
                     if short_exits.empty or long_exits.empty:
                         continue
-                    short_exit_premium = float(short_exits.iloc[-1]["close"])
-                    long_exit_premium = float(long_exits.iloc[-1]["close"])
+                    short_exit, long_exit = short_exits.iloc[-1], long_exits.iloc[-1]
+                    short_exit_premium = float(short_exit["close"])
+                    long_exit_premium = float(long_exit["close"])
                     if (
                         not _finite(short_exit_premium) or not _finite(long_exit_premium)
                         or short_exit_premium < 0 or long_exit_premium < 0
+                    ):
+                        continue
+                    if (
+                        (short_exit_premium > 0 and not _is_liquid_option_row(short_exit))
+                        or (long_exit_premium > 0 and not _is_liquid_option_row(long_exit))
+                        or ((short_exit_premium == 0 or long_exit_premium == 0) and exit_day != expiry)
                     ):
                         continue
                     exit_debit = short_exit_premium - long_exit_premium
