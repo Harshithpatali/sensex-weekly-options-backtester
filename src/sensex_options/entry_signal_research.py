@@ -531,6 +531,10 @@ def _option_debit_vertical_outcomes(
             if not eligible_expiries:
                 continue
             expiry = pd.Timestamp(eligible_expiries[0])
+            expiry_sessions = sessions.loc[sessions["date"] <= expiry, "date"]
+            if expiry_sessions.empty:
+                continue
+            last_expiry_session = pd.Timestamp(expiry_sessions.max())
             chain = entry_options[entry_options["expiry_date"] == expiry]
             strikes = sorted(pd.to_numeric(chain["strike"], errors="coerce").dropna().unique())
             if len(strikes) < 2:
