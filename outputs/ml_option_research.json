@@ -2,10 +2,10 @@
   "status": "holdout_evaluated",
   "dataset": {
     "status": "ok",
-    "rows": 4305,
-    "entry_sessions": 728,
+    "rows": 4311,
+    "entry_sessions": 729,
     "date_start": "2023-05-17",
-    "date_end": "2026-11-05",
+    "date_end": "2026-11-06",
     "feature_count": 56,
     "features": [
       "ret_1",
@@ -72,8 +72,8 @@
       "OTM1"
     ],
     "side_counts": {
-      "PE": 2158,
-      "CE": 2147
+      "PE": 2161,
+      "CE": 2150
     },
     "target": "net option P&L after estimated costs > 0",
     "signal_timing": "all index, option-chain and model-derived Greek predictors are from the prior completed SENSEX session",
@@ -85,47 +85,47 @@
     "HIST_GRADIENT_BOOSTING"
   ],
   "selected_model": "LOGISTIC_REGRESSION",
-  "selected_probability_threshold": 0.55,
+  "selected_probability_threshold": 0.6,
   "selection_rule": "Choose the classifier with the highest validation one-trade-per-session expectancy return, subject to at least the configured number of validation trades. The threshold is selected from the predeclared grid. The final holdout is not used for model or threshold selection.",
   "minimum_validation_trades": 20,
   "split_dates": {
     "train_start": "2023-05-17",
-    "train_end": "2025-12-11",
-    "validation_start": "2025-12-15",
-    "validation_end": "2026-05-27",
-    "holdout_start": "2026-06-01",
-    "holdout_end": "2026-11-05"
+    "train_end": "2025-12-12",
+    "validation_start": "2025-12-16",
+    "validation_end": "2026-05-29",
+    "holdout_start": "2026-06-02",
+    "holdout_end": "2026-11-06"
   },
   "split_rows": {
-    "train": 2985,
+    "train": 2991,
     "validation": 648,
     "holdout": 660
   },
   "holdout_classification": {
     "n": 660,
-    "positive_rate_pct": 39.091,
+    "positive_rate_pct": 38.636,
     "accuracy_at_0_5": 0.5182,
-    "precision_at_0_5": 0.38,
-    "recall_at_0_5": 0.3682,
-    "brier_score": 0.25145,
-    "roc_auc": 0.502,
-    "pr_auc": 0.4134,
-    "pr_auc_baseline": 0.3909,
-    "pr_auc_lift_vs_prevalence": 1.0576
+    "precision_at_0_5": 0.3784,
+    "recall_at_0_5": 0.3843,
+    "brier_score": 0.25131,
+    "roc_auc": 0.5009,
+    "pr_auc": 0.4099,
+    "pr_auc_baseline": 0.3864,
+    "pr_auc_lift_vs_prevalence": 1.0609
   },
   "holdout_strategy": {
-    "threshold": 0.55,
-    "trades": 32,
-    "sessions": 32,
-    "net_pnl": 46565.87,
-    "profit_factor": 1.4895,
-    "expectancy_pnl": 1455.18,
-    "expectancy_return_pct": 12.4209,
-    "win_rate_pct": 43.75,
-    "median_return_pct": -7.1785,
-    "max_drawdown_pnl": -59096.71,
-    "max_drawdown_return_pct": -100.0,
-    "sharpe_annualized": 1.1946
+    "threshold": 0.6,
+    "trades": 13,
+    "sessions": 13,
+    "net_pnl": 38344.33,
+    "profit_factor": 2.0695,
+    "expectancy_pnl": 2949.56,
+    "expectancy_return_pct": 31.4905,
+    "win_rate_pct": 53.85,
+    "median_return_pct": 9.223,
+    "max_drawdown_pnl": -28384.83,
+    "max_drawdown_return_pct": -96.317,
+    "sharpe_annualized": 1.6039
   },
   "holdout_selection": "At most one highest-probability candidate per entry session; one-session holding period; no overlapping positions.",
   "drawdown_basis": "compounded premium-return index, base 100; per-trade loss floored at -100%; not a cash-account return",
