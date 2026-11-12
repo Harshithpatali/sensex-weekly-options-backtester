@@ -16,13 +16,13 @@
   "train_start": "2023-05-17",
   "train_end": "2025-12-15",
   "holdout_start": "2025-12-16",
-  "holdout_end": "2026-11-06",
-  "distinct_entry_sessions": 729,
+  "holdout_end": "2026-11-09",
+  "distinct_entry_sessions": 730,
   "base_strategies_tested": 7,
   "risk_rules_per_base_strategy": 41,
   "total_variants_including_baselines": 294,
   "monthly_rows": 12348,
-  "base_trade_count": 4522,
+  "base_trade_count": 4529,
   "option_ohlc_coverage_pct": 100.0,
   "approved_candidate_count": 0,
   "top_training_ranked_strategy": {
@@ -30,13 +30,13 @@
     "train_net_pnl": 15544.76,
     "train_aggregate_pf": 1.0915676036039585,
     "train_target_hit_pct": 58.82,
-    "holdout_net_pnl": -73235.81,
-    "holdout_aggregate_pf": 0.5393330938894141,
+    "holdout_net_pnl": -79008.61,
+    "holdout_aggregate_pf": 0.5204350534465307,
     "holdout_target_hit_pct": 28.57
   },
   "approved_candidates": [],
   "exit_reason_counts_top_ranked": {
-    "STOP_GAP": 6,
+    "STOP_GAP": 7,
     "STOP_LOSS": 94,
     "EOD": 87
   },

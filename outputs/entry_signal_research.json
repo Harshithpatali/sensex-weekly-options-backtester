@@ -18,10 +18,10 @@
     "net_pnl_must_be_positive": true
   },
   "method": "Chronological training/holdout split is aligned to realized exit months so a multi-session position cannot spill across the validation boundary. Predeclared lagged index indicator and regime signals choose between same-date, same-expiry, Call/Put outcomes at ATM, one-strike ITM and one-strike OTM moneyness, plus bounded-risk ATM debit and credit vertical spread outcomes at one-, two- and three-available-strike widths for one-, two-, three- and five-session holds. Long-option candidates include ATM, one-step ITM, and one-, two-, three- and five-step OTM contracts. Both spread types require liquid observed legs at entry and exit, reject impossible marks beyond their strike width. Default research evaluates one historical lot without an account-level affordability or risk-budget gate; an optional risk_per_trade_pct can enable that separate filter. Option-chain PCR, OI build-up and ATM straddle/realised-volatility proxies are aligned to the prior completed signal session. Option outcomes are rebuilt from observed BSE daily candles, with the exact same contract held through the selected exit session. A missing side is not fabricated; that direction is skipped when its observed quote is unavailable. Signals use only the last completed index session before entry. Candidate rules are ranked using training only; holdout is separate. Rolling selectors use only prior complete calendar months. Gap-fade variants are gated by lagged volatility, ADX, RSI, MACD, EMA and completed-candle rejection conditions.",
-  "option_outcome_sessions": 28479,
+  "option_outcome_sessions": 28527,
   "sample_start": "2023-05-16",
-  "sample_end": "2026-11-06",
-  "distinct_entry_sessions": 850,
+  "sample_end": "2026-11-09",
+  "distinct_entry_sessions": 851,
   "holding_periods_tested": [
     1,
     2,
@@ -67,11 +67,11 @@
   "credit_spread_risk_budget": "No \u20b910,000 affordability or 2% risk cap is applied in signal research; each observed strategy outcome uses one historical lot.",
   "candidate_rules_tested": 7392,
   "position_sizing": "One historical lot per candidate outcome; no account affordability filter or capital-based position sizing.",
-  "overlapping_candidate_entries_skipped": 861853,
+  "overlapping_candidate_entries_skipped": 863522,
   "training_start": "2023-05-16",
   "training_end": "2025-10-31",
   "holdout_start": "2025-11-03",
-  "holdout_end": "2026-11-09",
+  "holdout_end": "2026-11-11",
   "candidate_pass_count": 0,
   "top_training_rule": {
     "training_rank": 1,

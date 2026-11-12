@@ -1,7 +1,7 @@
 rule,trades,net_pnl,win_rate_pct,profit_factor,expectancy,median_trade_pnl,max_drawdown,best_trade,worst_trade,top3_wins_share_pct
-Baseline — every ATM Put,12,-33350.7,16.67,0.1288,-2779.22,-2592.28,-37383.82,4033.12,-9559.83,
-Bearish session,3,-12244.16,33.33,0.2478,-4081.39,-6717.45,-16277.28,4033.12,-9559.83,
-Close below intraday mean,2,-2549.86,50.0,0.6127,-1274.93,-1274.93,-6582.98,4033.12,-6582.98,
-Bearish + below intraday mean,1,4033.12,100.0,,4033.12,4033.12,0.0,4033.12,4033.12,100.0
-Bearish + lower volatility,1,4033.12,100.0,,4033.12,4033.12,0.0,4033.12,4033.12,100.0
-Bearish + below intraday mean + lower volatility,1,4033.12,100.0,,4033.12,4033.12,0.0,4033.12,4033.12,100.0
+Baseline — every ATM Put,12,-45757.1,8.33,0.0192,-3813.09,-2721.27,-45757.1,897.75,-9559.83,
+Bearish session,3,-24650.56,0.0,0.0,-8216.85,-8373.28,-24650.56,-6717.45,-9559.83,
+Close below intraday mean,1,-6582.98,0.0,0.0,-6582.98,-6582.98,-6582.98,-6582.98,-6582.98,
+Bearish + below intraday mean,0,0.0,,,,,,,,
+Bearish + lower volatility,1,-8373.28,0.0,0.0,-8373.28,-8373.28,-8373.28,-8373.28,-8373.28,
+Bearish + below intraday mean + lower volatility,0,0.0,,,,,,,,
