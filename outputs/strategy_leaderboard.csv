@@ -1,6 +1,6 @@
 strategy,description,trades,net_pnl,win_rate_pct,profit_factor,max_drawdown,max_drawdown_pct,drawdown_basis,avg_trade_pnl,max_loss
-ATM_PUT,Buy nearest-ATM put,122,-4855.38,30.33,0.986,-65783.21,-100.0,compounded one-lot premium-return index (base 100; per-trade loss floored at -100%),-39.8,-13668.41
-OTM_PUT_1,Buy one strike-step OTM put,122,-11510.44,29.51,0.965,-62049.09,-100.0,compounded one-lot premium-return index (base 100; per-trade loss floored at -100%),-94.35,-13119.2
-OTM_CALL_1,Buy one strike-step OTM call,122,-95496.86,26.23,0.731,-187098.07,-100.0,compounded one-lot premium-return index (base 100; per-trade loss floored at -100%),-782.76,-9510.82
-ATM_CALL,Buy nearest-ATM call,123,-101427.44,27.64,0.74,-193641.95,-100.0,compounded one-lot premium-return index (base 100; per-trade loss floored at -100%),-824.61,-10411.16
-ATM_STRADDLE,Buy ATM call + ATM put,122,-103539.58,38.52,0.77,-218527.52,-100.0,compounded one-lot premium-return index (base 100; per-trade loss floored at -100%),-848.69,-14932.69
+ATM_PUT,Buy nearest-ATM put,123,-16516.02,30.08,0.955,-65783.21,-100.0,compounded one-lot premium-return index (base 100; per-trade loss floored at -100%),-134.28,-13668.41
+OTM_PUT_1,Buy one strike-step OTM put,123,-21908.6,29.27,0.935,-62049.09,-100.0,compounded one-lot premium-return index (base 100; per-trade loss floored at -100%),-178.12,-13119.2
+OTM_CALL_1,Buy one strike-step OTM call,123,-101100.18,26.02,0.72,-187098.07,-100.0,compounded one-lot premium-return index (base 100; per-trade loss floored at -100%),-821.95,-9510.82
+ATM_CALL,Buy nearest-ATM call,124,-107573.34,27.42,0.729,-193641.95,-100.0,compounded one-lot premium-return index (base 100; per-trade loss floored at -100%),-867.53,-10411.16
+ATM_STRADDLE,Buy ATM call + ATM put,123,-121346.12,38.21,0.74,-218527.52,-100.0,compounded one-lot premium-return index (base 100; per-trade loss floored at -100%),-986.55,-17806.54

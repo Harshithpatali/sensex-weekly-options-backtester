@@ -1,6 +1,6 @@
 strategy,trades,net_pnl,win_rate_pct,profit_factor,expectancy,sharpe_trade_annualized,max_drawdown,max_drawdown_pct,drawdown_basis,sample_warning
-ATM_PUT,122,-4855.38,30.33,0.9864,-39.8,0.2615,-65783.21,-65783.21,₹ one-lot cumulative P&L; percentage drawdown from compounded premium-return index (base 100; loss floored at -100%),
-OTM_PUT_1,122,-11510.44,29.51,0.9645,-94.35,0.2692,-62049.09,-62049.09,₹ one-lot cumulative P&L; percentage drawdown from compounded premium-return index (base 100; loss floored at -100%),
-OTM_CALL_1,122,-95496.86,26.23,0.7309,-782.76,-0.5451,-187098.07,-83835.44,₹ one-lot cumulative P&L; percentage drawdown from compounded premium-return index (base 100; loss floored at -100%),
-ATM_CALL,123,-101427.44,27.64,0.7402,-824.61,-0.5838,-193641.95,-89423.01,₹ one-lot cumulative P&L; percentage drawdown from compounded premium-return index (base 100; loss floored at -100%),
-ATM_STRADDLE,122,-103539.58,38.52,0.7697,-848.69,-0.3907,-218527.52,-13203.63,₹ one-lot cumulative P&L; percentage drawdown from compounded premium-return index (base 100; loss floored at -100%),
+ATM_PUT,123,-16516.02,30.08,0.955,-134.28,0.2267,-65783.21,-65783.21,₹ one-lot cumulative P&L; percentage drawdown from compounded premium-return index (base 100; loss floored at -100%),
+OTM_PUT_1,123,-21908.6,29.27,0.9346,-178.12,0.2381,-62049.09,-62049.09,₹ one-lot cumulative P&L; percentage drawdown from compounded premium-return index (base 100; loss floored at -100%),
+OTM_CALL_1,123,-101100.18,26.02,0.7195,-821.95,-0.5763,-187098.07,-83835.44,₹ one-lot cumulative P&L; percentage drawdown from compounded premium-return index (base 100; loss floored at -100%),
+ATM_CALL,124,-107573.34,27.42,0.7287,-867.53,-0.6176,-193641.95,-89423.01,₹ one-lot cumulative P&L; percentage drawdown from compounded premium-return index (base 100; loss floored at -100%),
+ATM_STRADDLE,123,-121346.12,38.21,0.7404,-986.55,-0.454,-218527.52,-13203.63,₹ one-lot cumulative P&L; percentage drawdown from compounded premium-return index (base 100; loss floored at -100%),
