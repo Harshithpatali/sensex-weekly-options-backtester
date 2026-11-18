@@ -2,10 +2,10 @@
   "status": "holdout_evaluated",
   "dataset": {
     "status": "ok",
-    "rows": 4335,
-    "entry_sessions": 733,
+    "rows": 4341,
+    "entry_sessions": 734,
     "date_start": "2023-05-17",
-    "date_end": "2026-11-13",
+    "date_end": "2026-11-16",
     "feature_count": 56,
     "features": [
       "ret_1",
@@ -72,8 +72,8 @@
       "OTM1"
     ],
     "side_counts": {
-      "PE": 2173,
-      "CE": 2162
+      "PE": 2176,
+      "CE": 2165
     },
     "target": "net option P&L after estimated costs > 0",
     "signal_timing": "all index, option-chain and model-derived Greek predictors are from the prior completed SENSEX session",
@@ -94,24 +94,24 @@
     "validation_start": "2025-12-19",
     "validation_end": "2026-06-04",
     "holdout_start": "2026-06-08",
-    "holdout_end": "2026-11-13"
+    "holdout_end": "2026-11-16"
   },
   "split_rows": {
     "train": 3009,
     "validation": 654,
-    "holdout": 660
+    "holdout": 666
   },
   "holdout_classification": {
-    "n": 660,
-    "positive_rate_pct": 39.091,
-    "accuracy_at_0_5": 0.5061,
-    "precision_at_0_5": 0.3859,
-    "recall_at_0_5": 0.4457,
-    "brier_score": 0.25283,
-    "roc_auc": 0.5058,
-    "pr_auc": 0.4105,
-    "pr_auc_baseline": 0.3909,
-    "pr_auc_lift_vs_prevalence": 1.05
+    "n": 666,
+    "positive_rate_pct": 39.189,
+    "accuracy_at_0_5": 0.506,
+    "precision_at_0_5": 0.3882,
+    "recall_at_0_5": 0.4521,
+    "brier_score": 0.25272,
+    "roc_auc": 0.5082,
+    "pr_auc": 0.4135,
+    "pr_auc_baseline": 0.3919,
+    "pr_auc_lift_vs_prevalence": 1.0551
   },
   "holdout_strategy": {
     "threshold": 0.6,
@@ -125,7 +125,7 @@
     "median_return_pct": -4.2112,
     "max_drawdown_pnl": -32371.22,
     "max_drawdown_return_pct": -97.163,
-    "sharpe_annualized": 1.3126
+    "sharpe_annualized": 1.3067
   },
   "holdout_selection": "At most one highest-probability candidate per entry session; one-session holding period; no overlapping positions.",
   "drawdown_basis": "compounded premium-return index, base 100; per-trade loss floored at -100%; not a cash-account return",
