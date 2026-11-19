@@ -2,10 +2,10 @@
   "status": "holdout_evaluated",
   "dataset": {
     "status": "ok",
-    "rows": 4341,
-    "entry_sessions": 734,
+    "rows": 4347,
+    "entry_sessions": 735,
     "date_start": "2023-05-17",
-    "date_end": "2026-11-16",
+    "date_end": "2026-11-17",
     "feature_count": 56,
     "features": [
       "ret_1",
@@ -72,8 +72,8 @@
       "OTM1"
     ],
     "side_counts": {
-      "PE": 2176,
-      "CE": 2165
+      "PE": 2179,
+      "CE": 2168
     },
     "target": "net option P&L after estimated costs > 0",
     "signal_timing": "all index, option-chain and model-derived Greek predictors are from the prior completed SENSEX session",
@@ -90,42 +90,42 @@
   "minimum_validation_trades": 20,
   "split_dates": {
     "train_start": "2023-05-17",
-    "train_end": "2025-12-17",
-    "validation_start": "2025-12-19",
-    "validation_end": "2026-06-04",
-    "holdout_start": "2026-06-08",
-    "holdout_end": "2026-11-16"
+    "train_end": "2025-12-18",
+    "validation_start": "2025-12-22",
+    "validation_end": "2026-06-05",
+    "holdout_start": "2026-06-09",
+    "holdout_end": "2026-11-17"
   },
   "split_rows": {
-    "train": 3009,
+    "train": 3015,
     "validation": 654,
     "holdout": 666
   },
   "holdout_classification": {
     "n": 666,
     "positive_rate_pct": 39.189,
-    "accuracy_at_0_5": 0.506,
-    "precision_at_0_5": 0.3882,
-    "recall_at_0_5": 0.4521,
-    "brier_score": 0.25272,
-    "roc_auc": 0.5082,
-    "pr_auc": 0.4135,
+    "accuracy_at_0_5": 0.5015,
+    "precision_at_0_5": 0.3859,
+    "recall_at_0_5": 0.4598,
+    "brier_score": 0.25336,
+    "roc_auc": 0.5075,
+    "pr_auc": 0.4128,
     "pr_auc_baseline": 0.3919,
-    "pr_auc_lift_vs_prevalence": 1.0551
+    "pr_auc_lift_vs_prevalence": 1.0533
   },
   "holdout_strategy": {
     "threshold": 0.6,
-    "trades": 15,
-    "sessions": 15,
-    "net_pnl": 26077.24,
-    "profit_factor": 1.5419,
-    "expectancy_pnl": 1738.48,
-    "expectancy_return_pct": 22.5628,
-    "win_rate_pct": 46.67,
-    "median_return_pct": -4.2112,
-    "max_drawdown_pnl": -32371.22,
-    "max_drawdown_return_pct": -97.163,
-    "sharpe_annualized": 1.3067
+    "trades": 14,
+    "sessions": 14,
+    "net_pnl": 32084.45,
+    "profit_factor": 1.7619,
+    "expectancy_pnl": 2291.75,
+    "expectancy_return_pct": 26.0039,
+    "win_rate_pct": 50.0,
+    "median_return_pct": 2.5059,
+    "max_drawdown_pnl": -28384.83,
+    "max_drawdown_return_pct": -96.317,
+    "sharpe_annualized": 1.4086
   },
   "holdout_selection": "At most one highest-probability candidate per entry session; one-session holding period; no overlapping positions.",
   "drawdown_basis": "compounded premium-return index, base 100; per-trade loss floored at -100%; not a cash-account return",
