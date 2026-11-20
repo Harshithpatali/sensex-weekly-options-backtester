@@ -2,10 +2,10 @@
   "status": "holdout_evaluated",
   "dataset": {
     "status": "ok",
-    "rows": 4347,
-    "entry_sessions": 735,
+    "rows": 4353,
+    "entry_sessions": 736,
     "date_start": "2023-05-17",
-    "date_end": "2026-11-17",
+    "date_end": "2026-11-18",
     "feature_count": 56,
     "features": [
       "ret_1",
@@ -72,8 +72,8 @@
       "OTM1"
     ],
     "side_counts": {
-      "PE": 2179,
-      "CE": 2168
+      "PE": 2182,
+      "CE": 2171
     },
     "target": "net option P&L after estimated costs > 0",
     "signal_timing": "all index, option-chain and model-derived Greek predictors are from the prior completed SENSEX session",
@@ -90,28 +90,28 @@
   "minimum_validation_trades": 20,
   "split_dates": {
     "train_start": "2023-05-17",
-    "train_end": "2025-12-18",
-    "validation_start": "2025-12-22",
-    "validation_end": "2026-06-05",
-    "holdout_start": "2026-06-09",
-    "holdout_end": "2026-11-17"
+    "train_end": "2025-12-19",
+    "validation_start": "2025-12-23",
+    "validation_end": "2026-06-08",
+    "holdout_start": "2026-06-10",
+    "holdout_end": "2026-11-18"
   },
   "split_rows": {
-    "train": 3015,
+    "train": 3021,
     "validation": 654,
     "holdout": 666
   },
   "holdout_classification": {
     "n": 666,
-    "positive_rate_pct": 39.189,
-    "accuracy_at_0_5": 0.5015,
-    "precision_at_0_5": 0.3859,
-    "recall_at_0_5": 0.4598,
-    "brier_score": 0.25336,
-    "roc_auc": 0.5075,
-    "pr_auc": 0.4128,
-    "pr_auc_baseline": 0.3919,
-    "pr_auc_lift_vs_prevalence": 1.0533
+    "positive_rate_pct": 39.64,
+    "accuracy_at_0_5": 0.494,
+    "precision_at_0_5": 0.3849,
+    "recall_at_0_5": 0.4621,
+    "brier_score": 0.25447,
+    "roc_auc": 0.4988,
+    "pr_auc": 0.4108,
+    "pr_auc_baseline": 0.3964,
+    "pr_auc_lift_vs_prevalence": 1.0364
   },
   "holdout_strategy": {
     "threshold": 0.6,
