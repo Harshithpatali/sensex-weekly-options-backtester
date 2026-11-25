@@ -1,8 +1,7 @@
 {
-  "run_time_utc": "2026-11-24T10:53:34.005139+00:00",
-  "target_data_date": "2026-11-23",
+  "run_time_utc": "2026-11-25T09:53:07.257846+00:00",
+  "target_data_date": "2026-11-24",
   "downloaded_option_dates": [
-    "2026-11-20",
     "2026-11-23"
   ],
   "index_rows": 869,
@@ -4425,7 +4424,7 @@
   },
   "intraday_research": {
     "status": "ok",
-    "bars": 2848,
+    "bars": 2919,
     "matched_sessions": 37,
     "validation_start": "2026-11-04",
     "validation_end": "2026-11-20",
