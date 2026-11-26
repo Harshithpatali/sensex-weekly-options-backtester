@@ -1,4 +1,4 @@
 model,validation_n,validation_positive_rate_pct,validation_accuracy_at_0_5,validation_precision_at_0_5,validation_recall_at_0_5,validation_brier_score,validation_roc_auc,validation_pr_auc,validation_pr_auc_baseline,validation_pr_auc_lift_vs_prevalence,validation_selected_trades,validation_selected_expectancy_return_pct,validation_selected_profit_factor,validation_threshold,validation_selection_status
-LOGISTIC_REGRESSION,660,38.333,0.5288,0.4014,0.4664,0.26067,0.5024,0.3863,0.3833,1.0077,25,-5.4779,0.8683,0.6,eligible
-HIST_GRADIENT_BOOSTING,660,38.333,0.5712,0.4107,0.2727,0.26381,0.4888,0.3986,0.3833,1.0397,25,-12.1467,1.0104,0.6,eligible
-RANDOM_FOREST,660,38.333,0.5152,0.3397,0.2806,0.25173,0.4541,0.335,0.3833,0.8738,55,-36.9091,0.2974,0.5,eligible
+LOGISTIC_REGRESSION,660,38.333,0.5379,0.4122,0.4822,0.26027,0.5076,0.3882,0.3833,1.0128,25,-5.4779,0.8683,0.6,eligible
+HIST_GRADIENT_BOOSTING,660,38.333,0.5515,0.3453,0.1897,0.26375,0.4716,0.3806,0.3833,0.9929,44,-24.0675,0.8367,0.5,eligible
+RANDOM_FOREST,660,38.333,0.4985,0.3088,0.249,0.25143,0.457,0.3365,0.3833,0.8777,59,-34.9712,0.2388,0.5,eligible
