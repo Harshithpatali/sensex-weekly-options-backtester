@@ -14,15 +14,15 @@
   },
   "method": "Baseline plus stop-loss-only, take-profit-only, and paired stop/target variants. Signals and entries are unchanged. Stops/targets use next-session BSE option OHLC; if both stop and target are touched intraday, stop is assumed first. Stop gaps use observed next-session open. Estimated transaction costs are reapplied.",
   "train_start": "2023-05-17",
-  "train_end": "2025-12-24",
-  "holdout_start": "2025-12-26",
-  "holdout_end": "2026-11-23",
-  "distinct_entry_sessions": 739,
+  "train_end": "2025-12-26",
+  "holdout_start": "2025-12-29",
+  "holdout_end": "2026-11-25",
+  "distinct_entry_sessions": 740,
   "base_strategies_tested": 7,
   "risk_rules_per_base_strategy": 41,
   "total_variants_including_baselines": 294,
   "monthly_rows": 12348,
-  "base_trade_count": 4592,
+  "base_trade_count": 4599,
   "option_ohlc_coverage_pct": 100.0,
   "approved_candidate_count": 0,
   "top_training_ranked_strategy": {
@@ -30,14 +30,14 @@
     "train_net_pnl": 15544.76,
     "train_aggregate_pf": 1.0915676036039585,
     "train_target_hit_pct": 58.82,
-    "holdout_net_pnl": -110486.67,
-    "holdout_aggregate_pf": 0.4456788079570041,
+    "holdout_net_pnl": -110820.18,
+    "holdout_aggregate_pf": 0.4449343340598849,
     "holdout_target_hit_pct": 28.57
   },
   "approved_candidates": [],
   "exit_reason_counts_top_ranked": {
     "STOP_GAP": 8,
-    "STOP_LOSS": 100,
+    "STOP_LOSS": 101,
     "EOD": 89
   },
   "warning": "A passing backtest is not a guaranteed monthly return. Daily OHLC cannot reveal the exact intraday order of price extremes; the conservative stop-first rule is applied when both levels are touched. Results depend on historical data quality and estimated execution costs."
